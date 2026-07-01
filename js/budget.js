@@ -1,0 +1,200 @@
+// ─── BUDGET ───────────────────────────────────────────────────────────────────
+function chMonth(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderBudget();}
+function setView(v){curView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));document.getElementById('vbtn-'+v).classList.add('active');renderBudget();}
+
+function renderBudget(){
+  document.getElementById('monthLabel').textContent=`${curY}년 ${curM+1}월`;
+  const entries=S.getEntries(curY,curM),checked=S.getChecked(curY,curM);
+  const fi=FIXED_INCOME.reduce((s,i)=>s+i.amount,0)+entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const fe=FIXED_ITEMS.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0)+entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const rem=fi-fe;
+  document.getElementById('sumIncome').textContent=fmt(fi);
+  document.getElementById('sumExpense').textContent=fmt(fe);
+  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color=rem<0?'var(--expense)':'var(--remain)';
+  const mc=document.getElementById('budgetMain');mc.innerHTML='';
+  if(curView==='month'){mc.appendChild(buildTop5());mc.appendChild(buildFreelanceIncome());mc.appendChild(buildFixed());mc.appendChild(buildBudgetCal());}
+  else mc.appendChild(buildYear());
+}
+
+function buildFreelanceIncome(){
+  const entries=S.getEntries(curY,curM).filter(e=>e.type==='income'&&e.cat==='외주');
+  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">💻 프리랜서 수입</span></div>';
+  const inner=document.createElement('div');inner.style.cssText='padding:10px 16px 16px;display:flex;flex-direction:column;gap:7px;';
+  if(!entries.length){inner.innerHTML='<div class="empty">이번 달 프리랜서 수입이 없어요</div>';}
+  else{
+    entries.forEach(e=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:10px;padding:9px 12px;';
+      row.innerHTML=`<div style="font-size:12px;font-weight:600;">${e.emoji||'💻'} ${e.name}</div><div style="font-size:13px;font-weight:800;color:var(--income);">${fmt(e.amount)}</div>`;
+      inner.appendChild(row);
+    });
+    const total=entries.reduce((s,e)=>s+e.amount,0);
+    const totalRow=document.createElement('div');
+    totalRow.style.cssText='display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);margin-top:2px;';
+    totalRow.innerHTML=`<span style="font-size:11px;color:var(--muted);font-weight:700;">합계</span><span style="font-size:13px;font-weight:800;color:var(--income);">${fmt(total)}</span>`;
+    inner.appendChild(totalRow);
+  }
+  card.appendChild(inner);return card;
+}
+
+function buildTop5(){
+  const entries=S.getEntries(curY,curM);
+  const catMap={};entries.filter(e=>e.type==='expense').forEach(e=>{catMap[e.cat]=(catMap[e.cat]||0)+e.amount;});
+  const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const total=sorted.reduce((s,[,v])=>s+v,0);
+  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">변동지출 TOP 5</span></div>';
+  const inner=mkDiv('top5-inner');const list=mkDiv('top5-list');
+  if(!sorted.length){list.innerHTML='<div class="empty">변동지출 내역이 없어요</div>';}
+  else{sorted.forEach(([cat,amt],i)=>{
+    const pct=total?Math.round(amt/total*100):0,color=PIE_COLORS[i];
+    const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+    const row=mkDiv('top5-row');
+    row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat}</div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div><div class="top5-pct">${pct}%</div></div>`;
+    list.appendChild(row);
+  });}
+  const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
+  inner.appendChild(list);inner.appendChild(pw);card.appendChild(inner);
+  if(pieChart)pieChart.destroy();
+  if(sorted.length){pieChart=new Chart(canvas,{type:'doughnut',data:{labels:sorted.map(([c])=>c),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PIE_COLORS.slice(0,sorted.length),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});}
+  return card;
+}
+
+function buildFixed(){
+  const checked=S.getChecked(curY,curM);
+  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">고정지출</span></div>';
+  const table=document.createElement('table');table.className='fixed-table';
+  table.innerHTML='<thead><tr><th style="width:33px">일</th><th style="width:40px">납부</th><th style="width:45px">분류</th><th>내역</th><th>금액</th></tr></thead>';
+  const tbody=document.createElement('tbody');
+  FIXED_ITEMS.forEach(f=>{
+    const done=checked.includes(f.id);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="fixed-day">${f.day}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(f.amount)}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);card.appendChild(table);
+  const da=FIXED_ITEMS.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0);
+  const ta=FIXED_ITEMS.reduce((s,f)=>s+f.amount,0);
+  const footer=mkDiv('fixed-footer');footer.innerHTML=`<span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val">${fmt(da)} / ${fmt(ta)}</span>`;
+  card.appendChild(footer);return card;
+}
+function toggleFixed(id){let c=S.getChecked(curY,curM);c=c.includes(id)?c.filter(x=>x!==id):[...c,id];S.setChecked(curY,curM,c);renderBudget();}
+
+function buildBudgetCal(){
+  const entries=S.getEntries(curY,curM);
+  const fd=new Date(curY,curM,1).getDay();
+  const dim=new Date(curY,curM+1,0).getDate();
+  const byDay={};
+  const todayZero = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+  entries.forEach(e=>{if(!byDay[e.day])byDay[e.day]=[];byDay[e.day].push(e);});
+  FIXED_INCOME.forEach(fi=>{if(!byDay[fi.day])byDay[fi.day]=[];byDay[fi.day].push({...fi,type:'income',auto:true});});
+  const card=mkDiv('card');
+  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">${curY}년 ${curM+1}월</span></div>`;
+  const dow=mkDiv('cal-dow-row');
+  ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dow.appendChild(e);});
+  card.appendChild(dow);
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fd+d-1)%7;
+    const isT=TODAY.getFullYear()===curY&&TODAY.getMonth()===curM&&TODAY.getDate()===d;
+    const isFuture = new Date(curY, curM, d) > todayZero;
+    const de=byDay[d]||[];
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
+    cell.onclick=()=>openPopup(d);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    if(de.length){
+      const totInc=de.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+      const totExp=de.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+      
+      if(totExp > 0){
+        if(totExp <= 30000) cell.style.background = '#FADADD'; // 소액 지출 (연한 코랄)
+        else if(totExp <= 100000) cell.style.background = '#F8C3C3'; // 중간 지출 (코랄)
+        else { cell.style.background = '#F6A9A9'; } // 과소비 (진한 코랄)
+      } else if (!isFuture) { cell.style.background = '#dcfce7'; } // 지출 0원 (초록)
+      
+      if(totInc > 0){
+        const incDot=mkDiv('');incDot.style.cssText='position:absolute;top:6px;right:6px;width:5px;height:5px;background:var(--income);border-radius:50%;';
+        cell.appendChild(incDot);
+      }
+    } else if (!isFuture) {
+      cell.style.background = '#dcfce7'; // 무지출 (초록)
+    }
+    // routine dots removed for budget calendar
+    grid.appendChild(cell);
+  }
+  card.appendChild(grid);return card;
+}
+
+function buildYear(){
+  const card=mkDiv('card');card.innerHTML=`<div class="card-header"><span class="card-title">연간 요약 — ${curY}년</span></div>`;
+  const inner=document.createElement('div');inner.style.cssText='padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px';
+  let yi=0,ye=0;
+  for(let m=0;m<12;m++){
+    const e=S.getEntries(curY,m),c=S.getChecked(curY,m);
+    const fi=FIXED_INCOME.reduce((s,i)=>s+i.amount,0)+e.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);
+    const fe=FIXED_ITEMS.filter(f=>c.includes(f.id)).reduce((s,f)=>s+f.amount,0)+e.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);
+    yi+=fi;ye+=fe;
+    const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer';
+    row.onclick=()=>{curM=m;setView('month');};
+    row.innerHTML=`<span style="font-size:12px;font-weight:700;color:${m===curM?'var(--income)':'var(--muted)'};width:28px">${m+1}월</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--income);font-weight:700">${fmt(fi)}</span><span style="color:var(--expense);font-weight:700">${fmt(fe)}</span></div><div style="height:4px;background:#f0f0f5;border-radius:99px;overflow:hidden"><div style="height:100%;width:${fi?Math.min(100,Math.round(fe/fi*100)):0}%;background:var(--expense);border-radius:99px"></div></div></div><span style="font-size:11px;font-weight:800;color:${fi-fe>=0?'var(--remain)':'var(--expense)'}">${fmt(fi-fe)}</span>`;
+    inner.appendChild(row);
+  }
+  const tot=document.createElement('div');tot.style.cssText='border-top:2px solid var(--border);padding-top:10px;display:flex;justify-content:space-between';
+  tot.innerHTML=`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 수입</div><div style="font-size:14px;font-weight:800;color:var(--income)">${fmt(yi)}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 지출</div><div style="font-size:14px;font-weight:800;color:var(--expense)">${fmt(ye)}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 잔여</div><div style="font-size:14px;font-weight:800;color:var(--remain)">${fmt(yi-ye)}</div></div>`;
+  inner.appendChild(tot);card.appendChild(inner);return card;
+}
+
+// ─── BUDGET POPUP ─────────────────────────────────────────────────────────────
+function openPopup(day){
+  popupDay=day;popupType='income';
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('popupDateLabel').textContent=`${curY}년 ${months[curM]} ${day}일`;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.type-btn.income').classList.add('active');
+  setType('income',document.querySelector('.type-btn.income'));
+  renderPopupEntries();document.getElementById('overlay').classList.add('open');
+}
+function closePopup(e){if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
+function renderPopupEntries(){
+  if(popupDay===null)return;
+  const entries=S.getEntries(curY,curM).filter(e=>e.day===popupDay);
+  const auto=FIXED_INCOME.filter(f=>f.day===popupDay);
+  const all=[...auto.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries];
+  const el=document.getElementById('popupEntries');
+  if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
+  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
+}
+function setType(type,btn){
+  popupType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const isI=(type==='income');
+  document.getElementById('freelanceFields').classList.toggle('show',isI);
+  document.getElementById('normalFields').style.display=isI?'none':'grid';
+  document.getElementById('freelanceCatRow').style.display=isI?'block':'none';
+  document.getElementById('freelanceMemoRow').style.display=isI?'block':'none';
+  const cats=isI?CATS.income:CATS.expense;
+  const selId=isI?'fCategory':'nCategory';
+  const sel=document.getElementById(selId);
+  if(sel)sel.innerHTML=cats.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
+  if(isI)calcTax();
+}
+function calcTax(){
+  const amt=parseFloat(document.getElementById('fAmount').value)||0;
+  const rate=parseFloat(document.getElementById('fTaxRate').value)||3.3;
+  const prev=document.getElementById('taxPreview');
+  if(amt>0){prev.classList.add('show');document.getElementById('taxKip').textContent=fmt(Math.round(amt*rate/100));document.getElementById('taxNet').textContent=fmt(amt-Math.round(amt*rate/100));}
+  else prev.classList.remove('show');
+}
+function addEntry(){
+  const isI=popupType==='income';
+  let amount,cat,memo,emoji;
+  if(isI){amount=parseInt(document.getElementById('fAmount').value)||0;cat=document.getElementById('fCategory').value;const cl=document.getElementById('fClient').value.trim(),pr=document.getElementById('fProject').value.trim();memo=[cl,pr].filter(Boolean).join(' / ')||cat;}
+  else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
+  if(!amount||amount<=0){alert('금액을 입력해주세요');return;}
+  const ci=[...CATS.income,...CATS.expense].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
+  const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo});
+  S.setEntries(curY,curM,entries);
+  ['fAmount','fClient','fProject','nAmount','nMemo','fMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
+  renderPopupEntries();renderBudget();
+}
+function delEntry(id){S.setEntries(curY,curM,S.getEntries(curY,curM).filter(e=>e.id!==id));renderPopupEntries();renderBudget();}

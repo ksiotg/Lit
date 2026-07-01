@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Lit</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 가계부 페이지 -->
+<div id="page-budget" style="display:none">
+  <div class="page-header">
+    <div class="brand">⚡ Lit</div>
+    <div class="traffic-light">
+      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+      <button class="tl-btn budget-tl on" onclick="switchPage('budget')" title="가계부"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+      <span class="tl-label">가계부</span>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="chMonth(-1)">‹</button>
+      <span class="page-title" id="monthLabel"></span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="view-toggle">
+          <button class="view-btn active" id="vbtn-month" onclick="setView('month')">월간</button>
+          <button class="view-btn" id="vbtn-year" onclick="setView('year')">연간</button>
+        </div>
+        <button class="nav-btn" onclick="chMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="sum-grid">
+      <div class="sum-card"><div class="sum-icon">↑</div><div class="sum-label">수입</div><div class="sum-val income" id="sumIncome">₩0</div></div>
+      <div class="sum-card"><div class="sum-icon">↓</div><div class="sum-label">지출</div><div class="sum-val expense" id="sumExpense">₩0</div></div>
+      <div class="sum-card"><div class="sum-icon">₩</div><div class="sum-label">잔여</div><div class="sum-val remain" id="sumRemain">₩0</div></div>
+    </div>
+  </div>
+  <main id="budgetMain"></main>
+</div>
+
+<!-- 루틴 페이지 -->
+<div id="page-routine" style="display:none">
+  <div class="page-header">
+    <div class="brand">⚡ Lit</div>
+    <div class="traffic-light">
+      <button class="tl-btn routine-tl on" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+      <span class="tl-label">루틴</span>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="chRoutineMonth(-1)">‹</button>
+      <span class="page-title" id="routineMonthLabel"></span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="nav-btn" onclick="goToTodayRoutine()" title="오늘로 이동" style="font-size:11px;font-weight:800;">오늘</button>
+        <button class="nav-btn" onclick="openRoutineMgmt()" title="루틴 관리" style="font-size:13px;">⚙️</button>
+        <button class="nav-btn" onclick="chRoutineMonth(1)">›</button>
+      </div>
+    </div>
+  </div>
+  <main id="routineMain"></main>
+</div>
+
+<!-- 운동 페이지 -->
+<div id="page-workout" style="display:none">
+  <div class="page-header">
+    <div class="brand">⚡ Lit</div>
+    <div class="traffic-light">
+      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+      <button class="tl-btn workout-tl on" onclick="switchPage('workout')" title="운동"></button>
+      <span class="tl-label">운동기록</span>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="chWorkoutMonth(-1)">‹</button>
+      <span class="page-title" id="workoutMonthLabel"></span>
+      <button class="nav-btn" onclick="chWorkoutMonth(1)">›</button>
+    </div>
+  </div>
+  <main id="workoutMain"></main>
+</div>
+
+<!-- 회고 페이지 -->
+<div id="page-review" style="display:none">
+  <div class="page-header">
+    <div class="brand">⚡ Lit</div>
+    <div class="traffic-light">
+      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn review-tl on" onclick="switchPage('review')" title="회고"></button>
+      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+      <span class="tl-label">회고</span>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="chReviewMonth(-1)">‹</button>
+      <span class="page-title" id="reviewMonthLabel"></span>
+      <button class="nav-btn" onclick="chReviewMonth(1)">›</button>
+    </div>
+  </div>
+  <main id="reviewMain"></main>
+</div>
+
+<!-- 루틴 관리 팝업 -->
+<div class="routine-mgmt-popup" id="routineMgmtPopup" onclick="closeRoutineMgmt(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;">⚙️ 루틴 관리</div>
+      <button onclick="document.getElementById('routineMgmtPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px;">
+      <div class="add-routine-form-title">💾 데이터 백업</div>
+      <div style="display:flex;gap:8px;">
+        <button class="add-btn" style="margin-top:0;background:#fff;color:var(--text);flex:1;box-shadow:var(--shadow);" onclick="exportData()">⬇️ 내보내기</button>
+        <label class="add-btn" style="margin-top:0;background:#fff;color:var(--text);flex:1;box-shadow:var(--shadow);text-align:center;cursor:pointer;">
+          ⬆️ 불러오기
+          <input type="file" accept="application/json" style="display:none" onchange="importData(this)">
+        </label>
+      </div>
+    </div>
+    <div id="routineMgmtList"></div>
+    <div class="add-routine-form" id="addRoutineForm">
+      <div class="add-routine-form-title">+ 루틴 추가</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">이름</label><input class="fi" id="newRName" placeholder="루틴 이름"></div>
+        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newREmoji" placeholder="🌟" style="font-size:18px;text-align:center;"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;"><label class="fl">시간 (선택)</label><input class="fi" id="newRTime" placeholder="AM 8:00"></div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl">카테고리</label>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <button class="cat-btn active selfcare" data-cat="selfcare" onclick="selNewCat(this)">💛 케어</button>
+          <button class="cat-btn health" data-cat="health" onclick="selNewCat(this)">❤️ 건강</button>
+          <button class="cat-btn growth" data-cat="growth" onclick="selNewCat(this)">💙 성장</button>
+          <button class="cat-btn life" data-cat="life" onclick="selNewCat(this)">💚 생활</button>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl">시기</label>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="freq-btn active" data-period="morning" onclick="selNewPeriod(this)">☀️ 아침</button>
+          <button class="freq-btn" data-period="day" onclick="selNewPeriod(this)">✨ 일중</button>
+          <button class="freq-btn" data-period="evening" onclick="selNewPeriod(this)">🌙 저녁</button>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl">빈도</label>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <button class="freq-btn active" data-freq="daily" onclick="selNewFreq(this)">매일</button>
+          <button class="freq-btn" data-freq="weekly" onclick="selNewFreq(this)">주N회</button>
+          <button class="freq-btn" data-freq="days" onclick="selNewFreq(this)">요일고정</button>
+          <button class="freq-btn" data-freq="monthly" onclick="selNewFreq(this)">월N회</button>
+        </div>
+      </div>
+      <div id="freqDetailWrap" style="margin-bottom:10px;display:none;"></div>
+      <button class="add-btn" onclick="saveNewRoutine()">루틴 추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 회고 작성 팝업 -->
+<div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
+  <div class="popup">
+    <div class="popup-bar"></div>
+    <div class="popup-head">
+      <div class="popup-date-label" id="reviewPopupDate"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">오늘 하루를 돌아봐요</div>
+    </div>
+    <div id="reviewQuestions"></div>
+    <div style="padding:0 16px 8px;">
+      <div class="review-q-label">📝 자유 메모</div>
+      <textarea class="review-memo-input" id="reviewMemoInput" placeholder="오늘 떠오르는 것들을 자유롭게 써요..."></textarea>
+    </div>
+    <button class="review-save-btn" onclick="saveReview()">저장하기</button>
+  </div>
+</div>
+
+<!-- 가계부 팝업 -->
+<div class="overlay" id="overlay" onclick="closePopup(event)">
+  <div class="popup">
+    <div class="popup-bar"></div>
+    <div class="popup-head"><div class="popup-date-label" id="popupDateLabel"></div></div>
+    <div class="popup-entries" id="popupEntries"></div>
+    <div class="popup-divider"></div>
+    <div class="popup-form">
+      <div class="form-title">내역 추가</div>
+      <div class="type-row">
+        <button class="type-btn income active" onclick="setType('income',this)">+ 수입</button>
+        <button class="type-btn expense" onclick="setType('expense',this)">− 지출</button>
+      </div>
+      <div class="fg-freelance" id="freelanceFields">
+        <div class="fg-freelance-grid">
+          <div class="fg"><label class="fl">클라이언트명</label><input class="fi" id="fClient" placeholder="클라이언트"></div>
+          <div class="fg"><label class="fl">프로젝트명</label><input class="fi" id="fProject" placeholder="프로젝트"></div>
+        </div>
+        <div class="fg-freelance-grid">
+          <div class="fg"><label class="fl">세율 (%)</label><input class="fi" id="fTaxRate" type="number" value="3.3" step="0.1" oninput="calcTax()"></div>
+          <div class="fg"><label class="fl">금액</label><input class="fi" id="fAmount" type="number" placeholder="0" oninput="calcTax()"></div>
+        </div>
+        <div class="tax-preview" id="taxPreview">
+          <div class="tax-item"><div class="tax-item-label">세금 킵</div><div class="tax-item-val" id="taxKip">₩0</div></div>
+          <div class="tax-item"><div class="tax-item-label">실수령액</div><div class="tax-item-val" id="taxNet">₩0</div></div>
+        </div>
+      </div>
+      <div class="form-grid" id="normalFields">
+        <div class="fg"><label class="fl">금액</label><input class="fi" id="nAmount" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fl">카테고리</label><select class="fi" id="nCategory"></select></div>
+        <div class="fg full"><label class="fl">메모</label><input class="fi" id="nMemo" placeholder="내용"></div>
+      </div>
+      <div class="fg" id="freelanceCatRow" style="display:none;margin-bottom:8px"><label class="fl">카테고리</label><select class="fi" id="fCategory"></select></div>
+      <div class="fg" id="freelanceMemoRow" style="display:none;margin-bottom:0"><label class="fl">메모</label><input class="fi" id="fMemo" placeholder="메모"></div>
+      <button class="add-btn" onclick="addEntry()">추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 운동 메모 팝업 -->
+<div class="workout-popup" id="workoutPopup" onclick="closeWorkoutPopup(event)">
+  <div class="workout-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div class="workout-title">🥊 운동 기록</div>
+    <div class="workout-sub" id="workoutPopupDate"></div>
+    <div id="workoutPopupList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:50vh;overflow-y:auto;padding-right:4px;"></div>
+    <button class="add-btn" style="background:var(--bg);color:var(--text);margin-bottom:12px;margin-top:0;" onclick="addWorkoutField()">+ 운동 추가</button>
+    <button class="workout-save" onclick="saveWorkoutMemo()">저장하기</button>
+  </div>
+</div>
+
+<script src="js/data-state.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/page-switch.js"></script>
+<script src="js/budget.js"></script>
+<script src="js/routine.js"></script>
+<script src="js/routine-mgmt.js"></script>
+<script src="js/workout.js"></script>
+<script src="js/review.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

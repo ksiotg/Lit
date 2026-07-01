@@ -1,0 +1,323 @@
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+:root {
+  --bg:#f4f6fb;--white:#fff;--border:#eef0f5;--text:#1a1d2e;--muted:#9ea3b8;
+  --income:#3b82f6;--expense:#ef4444;--remain:#8b5cf6;
+  --selfcare:#f59e0b;--health:#ef4444;--growth:#3b82f6;--life:#22c55e;
+  --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{color-scheme:light only;background:#fff!important;}
+body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6fb!important;color:#1a1d2e!important;max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;-webkit-text-size-adjust:100%;}
+
+/* ── 브랜드 ── */
+.brand{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:0.5px;padding:10px 16px 0;}
+
+/* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 여러 열로 넓게 배치됨 ── */
+@media (min-width:860px){
+  html{background:#eef0f6!important;}
+  body{max-width:1120px;margin:0 auto;padding-bottom:60px;}
+  .page-header{padding-left:8px;padding-right:8px;}
+  .nav-row,.traffic-light,.sum-grid{padding-left:24px;padding-right:24px;}
+  main{display:block;columns:2 400px;column-gap:20px;padding:22px 26px;}
+  .card{break-inside:avoid;margin-bottom:20px;}
+  .popup,.workout-inner,.routine-mgmt-inner{max-width:520px;}
+}
+@media (min-width:1300px){
+  main{columns:3 380px;}
+}
+
+/* ── 신호등 ── */
+.traffic-light{display:flex;gap:8px;align-items:center;padding:14px 16px 10px;}
+.tl-btn{width:16px;height:16px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
+.tl-btn.routine-tl{background:#b8860b;}
+.tl-btn.budget-tl{background:#166534;}
+.tl-btn.workout-tl{background:#991b1b;}
+.tl-btn.on.routine-tl{background:#fde047;box-shadow:0 0 0 3px #fef9c3,0 0 10px 3px #fde04799;}
+.tl-btn.on.budget-tl{background:#22c55e;box-shadow:0 0 0 3px #dcfce7,0 0 10px 3px #22c55e99;}
+.tl-btn.on.workout-tl{background:#ef4444;box-shadow:0 0 0 3px #fee2e2,0 0 10px 3px #ef444499;}
+.tl-btn.review-tl{background:#1e3a5f;}
+.tl-btn.on.review-tl{background:#3b82f6;box-shadow:0 0 0 3px #dbeafe,0 0 10px 3px #3b82f699;}
+.tl-label{font-size:11px;font-weight:700;color:var(--muted);margin-left:4px;}
+
+/* ── 공통 헤더 ── */
+.page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
+.nav-row{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;}
+.nav-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:9px;font-size:15px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
+.page-title{font-size:16px;font-weight:800;letter-spacing:-0.5px;}
+.view-toggle{display:flex;gap:3px;}
+.view-btn{background:var(--bg);border:none;padding:5px 9px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.view-btn.active{background:var(--text);color:#fff;}
+
+/* ── 가계부 summary ── */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px;}
+.sum-card{background:var(--bg);border-radius:11px;padding:9px 6px;text-align:center;}
+.sum-icon{font-size:12px;margin-bottom:2px;}
+.sum-label{font-size:9px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+.sum-val{font-size:12px;font-weight:800;}
+.sum-val.income{color:var(--income);}
+.sum-val.expense{color:var(--expense);}
+.sum-val.remain{color:var(--remain);}
+
+/* ── 공통 카드 ── */
+main{padding:14px;display:flex;flex-direction:column;gap:14px;}
+.card{background:#fff!important;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;width:100%;}
+.card-header{padding:14px 16px 0;display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+
+/* ── TOP5 ── */
+.top5-inner{display:flex;gap:12px;padding:12px 16px 16px;align-items:center;}
+.top5-list{flex:1;display:flex;flex-direction:column;gap:7px;}
+.top5-row{display:flex;align-items:center;gap:6px;}
+.top5-num{font-size:10px;font-weight:700;color:var(--muted);width:12px;flex-shrink:0;}
+.top5-info{flex:1;}
+.top5-name{font-size:11px;font-weight:600;}
+.top5-bar-track{height:3px;background:#f0f0f5;border-radius:99px;margin-top:3px;overflow:hidden;}
+.top5-bar-fill{height:100%;border-radius:99px;}
+.top5-right{text-align:right;}
+.top5-amt{font-size:11px;font-weight:700;}
+.top5-pct{font-size:9px;color:var(--muted);}
+.pie-wrap{width:90px;height:90px;flex-shrink:0;}
+
+/* ── 고정지출 ── */
+.fixed-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.fixed-table thead th{font-size:10px;font-weight:700;color:var(--muted);padding:10px 9px;border-bottom:1px solid var(--border);text-align:center;}
+.fixed-table thead th:first-child{padding-left:16px;}
+.fixed-table thead th:last-child{text-align:right;padding-right:16px;}
+.fixed-table tbody tr{border-bottom:1px solid var(--border);}
+.fixed-table tbody tr:last-child{border-bottom:none;}
+.fixed-table tbody td{padding:10px 9px;vertical-align:middle;}
+.fixed-table tbody td:first-child{padding-left:16px;}
+.fixed-table tbody td:last-child{padding-right:16px;}
+.fixed-day{font-size:11px;color:var(--muted);font-weight:600;}
+.cb-wrap{display:flex;justify-content:center;}
+.cb{width:18px;height:18px;border-radius:5px;border:2px solid #dde0ea;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;background:#fff;}
+.cb.on{background:#22c55e;border-color:#22c55e;}
+.cb.on::after{content:'✓';color:#fff;font-size:10px;font-weight:800;}
+.fixed-cat-badge{display:inline-flex;align-items:center;border-radius:6px;padding:3px 7px;font-size:17px;}
+.fixed-name-text{font-size:12px;font-weight:600;}
+.fixed-name-text.done{color:#ccc;text-decoration:line-through;}
+.fixed-amt-text{font-size:12px;font-weight:700;color:var(--expense);text-align:right;display:block;}
+.fixed-amt-text.done{color:#ccc;}
+.fixed-footer{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 14px;border-top:1px solid var(--border);}
+.fixed-footer-label{font-size:11px;color:var(--muted);font-weight:600;}
+.fixed-footer-val{font-size:13px;font-weight:800;color:var(--income);}
+
+/* ── 달력 (공통) ── */
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 10px 4px;}
+.cal-dow{text-align:center;font-size:10px;font-weight:700;color:var(--muted);}
+.cal-dow.sun{color:var(--expense);}
+.cal-dow.sat{color:var(--income);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 10px 14px;}
+.cal-cell{position:relative;border-radius:10px;padding:4px;min-height:48px;cursor:pointer;transition:background 0.12s;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid transparent;}
+.cal-cell:hover{background:#f0f4ff;}
+.cal-cell.empty{cursor:default;pointer-events:none;}
+.cal-cell.today{border-color:var(--income);background:#eff6ff;}
+.cal-day{font-size:13px;font-weight:700;text-align:center;z-index:2;}
+.cal-cell.sun .cal-day{color:var(--expense);}
+.cal-cell.sat .cal-day{color:var(--income);}
+.cal-entries{flex:1;display:flex;flex-direction:column;gap:1px;}
+.cal-entry{font-size:8px;font-weight:600;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-entry.income{color:var(--income);}
+.cal-entry.expense{color:var(--expense);}
+.cal-total{font-size:8px;font-weight:800;text-align:center;color:var(--muted);border-top:1px solid #f0f0f5;padding-top:2px;margin-top:2px;}
+.cal-nodeal{font-size:7.5px;color:#d0d4e8;font-weight:600;text-align:center;margin-top:auto;}
+.cal-rdots{display:flex;gap:2px;justify-content:center;margin-top:2px;flex-wrap:wrap;}
+.cal-rdot{width:5px;height:5px;border-radius:50%;}
+
+/* ── 루틴 페이지 ── */
+/* 루틴 주간 테이블 */
+.rtable-wrap{overflow-x:auto;padding:0 16px 12px;}
+.rtable-wrap::-webkit-scrollbar{height:3px;}
+.rtable-wrap::-webkit-scrollbar-thumb{background:#e0e0e8;border-radius:99px;}
+.rtable{border-collapse:collapse;width:100%;}
+.rtable th{font-size:9px;font-weight:700;color:var(--muted);padding:4px 0;border-bottom:2px solid var(--border);text-align:center;white-space:nowrap;background:#fff;}
+.rtable td{padding:4px 0;border-bottom:1px solid var(--border);vertical-align:middle;text-align:center;font-size:10px;}
+.rtable tbody tr:last-child td{border-bottom:none;}
+.rtable tbody tr.period-morning td{background-color:#fff9e6;}
+.rtable tbody tr.period-day td{background-color:#f2fcf5;}
+.rtable tbody tr.period-evening td{background-color:#f6f0ff;}
+.r-cat-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;font-size:13px;}
+.r-cat-icon.selfcare{background:#fef3c7;}
+.r-cat-icon.health{background:#fee2e2;}
+.r-cat-icon.growth{background:#dbeafe;}
+.r-cat-icon.life{background:#dcfce7;}
+/* 체크박스 */
+
+.rcb{
+width:15px;height:15px;border-radius:50%;
+border:1px solid #d1d5db;
+cursor:pointer;
+display:inline-flex;align-items:center;justify-content:center;
+transition:all .15s ease;
+background:#fff;
+flex-shrink:0;
+}
+.rcb::after{content:'';}
+.rcb.on.selfcare{border-color:var(--selfcare);background:#fef3c7;}
+.rcb.on.health{border-color:var(--health);background:#fee2e2;}
+.rcb.on.growth{border-color:var(--growth);background:#dbeafe;}
+.rcb.on.life{border-color:var(--life);background:#dcfce7;}
+.rcb.sat{border-color:#bfdbfe;}
+.rcb.sun{border-color:#fecaca;}
+
+/* 달성 뱃지 */
+.ach-badge{font-size:14px;}
+/* 횟수 */
+.r-count{font-size:10px;color:var(--muted);font-weight:600;}
+
+/* ── 루틴 달력 ── */
+.rcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 10px 14px;}
+.rcal-cell{border-radius:8px;padding:4px 2px;min-height:48px;cursor:pointer;transition:background 0.1s;display:flex;flex-direction:column;align-items:center;border:1px solid transparent;}
+.rcal-cell:hover{background:#f0f4ff;}
+.rcal-cell.empty{cursor:default;pointer-events:none;}
+.rcal-cell.today{border-color:var(--income);background:#eff6ff;}
+.rcal-cell.week-success{background:#f0fdf4;}
+.rcal-cell.week-fail{background:#fefce8;}
+.rcal-day{font-size:11px;font-weight:700;margin-bottom:2px;}
+.rcal-cell.sun .rcal-day{color:var(--expense);}
+.rcal-cell.sat .rcal-day{color:var(--income);}
+.rcal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;}
+.rcal-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ── 월간 달성률 ── */
+.monthly-grid{display:flex;flex-direction:column;gap:6px;padding:12px 16px 16px;}
+.monthly-cat{border-radius:12px;padding:10px 12px;}
+.monthly-cat.selfcare{background:#fef9ec;}
+.monthly-cat.health{background:#fff1f1;}
+.monthly-cat.growth{background:#eff6ff;}
+.monthly-cat.life{background:#f0fdf4;}
+.monthly-cat-title{font-size:11px;font-weight:800;margin-bottom:8px;}
+.monthly-cat-title.selfcare{color:#b45309;}
+.monthly-cat-title.health{color:#b91c1c;}
+.monthly-cat-title.growth{color:#1d4ed8;}
+.monthly-cat-title.life{color:#15803d;}
+.monthly-items{display:flex;flex-direction:column;gap:6px;}
+.monthly-item{display:flex;align-items:center;gap:8px;}
+.monthly-item-icon{font-size:14px;flex-shrink:0;}
+.monthly-item-info{flex:1;}
+.monthly-item-name{font-size:11px;font-weight:600;margin-bottom:3px;}
+.monthly-item-bar-track{height:4px;background:rgba(0,0,0,0.08);border-radius:99px;overflow:hidden;}
+.monthly-item-bar-fill{height:100%;border-radius:99px;}
+.monthly-item-pct{font-size:11px;font-weight:800;min-width:34px;text-align:right;}
+.worst-banner{margin:0 16px 16px;background:#fff1f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.worst-banner-icon{font-size:20px;}
+.worst-banner-text{font-size:12px;font-weight:600;color:var(--expense);}
+.worst-banner-label{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ── 운동 페이지 ── */
+.workout-cal-cell{border-radius:10px;padding:4px 3px;min-height:52px;cursor:pointer;transition:background 0.12s;display:flex;flex-direction:column;align-items:center;border:1px solid transparent;}
+.workout-cal-cell:hover{background:#f0f4ff;}
+.workout-cal-cell.empty{cursor:default;pointer-events:none;}
+.workout-cal-cell.today{border-color:var(--expense);background:#fef2f2;}
+.workout-cal-cell.has-workout{background:#fff1f1;}
+.workout-icon{font-size:12px;margin-top:2px;}
+
+/* ── 팝업 ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.popup{background:#fff!important;border-radius:22px 22px 0 0;width:100%;max-width:430px;padding:0 0 40px;max-height:88vh;overflow-y:auto;}
+.popup-bar{width:36px;height:4px;background:#e0e0e8;border-radius:99px;margin:12px auto 0;}
+.popup-head{padding:14px 20px 0;}
+.popup-date-label{font-size:16px;font-weight:800;margin-bottom:4px;}
+.popup-entries{padding:10px 16px;display:flex;flex-direction:column;gap:6px;}
+.pe{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:9px 12px;}
+.pe-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pe-dot.income{background:var(--income);}
+.pe-dot.expense{background:var(--expense);}
+.pe-info{flex:1;}
+.pe-name{font-size:13px;font-weight:600;}
+.pe-cat{font-size:11px;color:var(--muted);}
+.pe-amt{font-size:13px;font-weight:800;}
+.pe-amt.income{color:var(--income);}
+.pe-amt.expense{color:var(--expense);}
+.pe-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:17px;padding:2px;}
+.pe-del:hover{color:var(--expense);}
+.popup-divider{height:1px;background:var(--border);margin:6px 16px;}
+.popup-form{padding:8px 16px;}
+.form-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px;}
+.type-row{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;}
+.type-btn{flex:1;padding:9px;border:none;background:var(--bg);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.type-btn.active.income{background:#eff6ff;color:var(--income);}
+.type-btn.active.expense{background:#fef2f2;color:var(--expense);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg-freelance{display:none;flex-direction:column;gap:8px;margin-bottom:8px;}
+.fg-freelance.show{display:flex;}
+.fg-freelance-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tax-preview{background:#eff6ff;border-radius:10px;padding:10px 12px;display:none;justify-content:space-between;}
+.tax-preview.show{display:flex;}
+.tax-item{text-align:center;}
+.tax-item-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+.tax-item-val{font-size:13px;font-weight:800;color:var(--income);}
+.fl{font-size:11px;color:var(--muted);font-weight:600;}
+.fi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;transition:border-color 0.15s;}
+.fi:focus{border-color:var(--income);}
+.add-btn{width:100%;padding:13px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px;transition:opacity 0.15s;}
+.add-btn:hover{opacity:0.85;}
+
+/* 운동 메모 팝업 */
+.workout-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:flex-end;justify-content:center;}
+.workout-popup.open{display:flex;}
+.workout-inner{background:#fff!important;border-radius:22px 22px 0 0;width:100%;max-width:430px;padding:20px 20px 40px;}
+.workout-title{font-size:16px;font-weight:800;margin-bottom:4px;}
+.workout-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.workout-type{flex:1;padding:8px 0;border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.1s;}
+.workout-type.active{background:#fef2f2;color:var(--expense);border-color:var(--expense);}
+.workout-save{width:100%;padding:13px;background:var(--expense);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;margin-top:12px;}
+.empty{text-align:center;padding:20px;color:var(--muted);font-size:12px;}
+
+/* ── 회고 ── */
+.review-q{padding:12px 16px;border-bottom:1px solid var(--border);}
+.review-q:last-child{border-bottom:none;}
+.review-q-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:0.3px;}
+.review-q-text{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.review-stars{display:flex;gap:6px;}
+.review-star{font-size:22px;cursor:pointer;opacity:0.3;transition:opacity 0.15s;}
+.review-star.on{opacity:1;}
+.review-memo-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;resize:none;min-height:72px;transition:border-color 0.15s;}
+.review-memo-input:focus{border-color:var(--income);}
+.review-save-btn{width:calc(100% - 32px);margin:12px 16px 16px;padding:13px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
+.review-cal-cell{border-radius:8px;padding:4px 2px;min-height:48px;cursor:pointer;transition:background 0.1s;display:flex;flex-direction:column;align-items:center;border:1px solid transparent;}
+.review-cal-cell:hover{background:#f0f4ff;}
+.review-cal-cell.empty{cursor:default;pointer-events:none;}
+.review-cal-cell.today{border-color:var(--income);background:#eff6ff;}
+.review-cal-cell.has-review{background:#f0fdf4;}
+.review-cal-day{font-size:11px;font-weight:700;margin-bottom:2px;}
+.review-cal-cell.sun .review-cal-day{color:var(--expense);}
+.review-cal-cell.sat .review-cal-day{color:var(--income);}
+.review-dot{width:6px;height:6px;border-radius:50%;background:var(--income);margin-top:2px;}
+.weekly-sum-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.weekly-sum-row:last-child{border-bottom:none;}
+.weekly-sum-week{font-size:11px;font-weight:700;color:var(--muted);min-width:56px;}
+.weekly-sum-bar-wrap{flex:1;margin:0 10px;}
+.weekly-sum-bar{height:6px;background:#f0f0f5;border-radius:99px;overflow:hidden;}
+.weekly-sum-fill{height:100%;border-radius:99px;background:var(--income);}
+.weekly-sum-pct{font-size:11px;font-weight:800;color:var(--income);min-width:32px;text-align:right;}
+.streak-badge{display:inline-flex;align-items:center;gap:4px;background:#fef3c7;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:800;color:#b45309;}
+
+/* ── 루틴 관리 팝업 ── */
+.routine-mgmt-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:flex-end;justify-content:center;}
+.routine-mgmt-popup.open{display:flex;}
+.routine-mgmt-inner{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:430px;padding:20px 20px 40px;max-height:90vh;overflow-y:auto;}
+.rmgmt-item{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:8px;}
+.rmgmt-icon{font-size:18px;flex-shrink:0;}
+.rmgmt-info{flex:1;}
+.rmgmt-name{font-size:13px;font-weight:700;}
+.rmgmt-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.rmgmt-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:18px;padding:4px;}
+.rmgmt-del:hover{color:var(--expense);}
+.rmgmt-edit{background:none;border:none;color:#ddd;cursor:pointer;font-size:14px;padding:4px;}
+.rmgmt-edit:hover{color:var(--income);}
+.add-routine-form{background:var(--bg);border-radius:14px;padding:14px;margin-top:12px;}
+.add-routine-form-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px;letter-spacing:0.5px;}
+.freq-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.freq-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+.dow-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.dow-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+.cat-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.cat-btn.active.selfcare{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
+.cat-btn.active.health{background:#fee2e2;color:#b91c1c;border-color:#ef4444;}
+.cat-btn.active.growth{background:#dbeafe;color:#1d4ed8;border-color:#3b82f6;}
+.cat-btn.active.life{background:#dcfce7;color:#15803d;border-color:#22c55e;}
+</style>

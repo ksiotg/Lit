@@ -1,0 +1,169 @@
+
+// ─── REVIEW ───────────────────────────────────────────────────────────────────
+function chReviewMonth(d){rvM+=d;if(rvM>11){rvM=0;rvY++;}if(rvM<0){rvM=11;rvY--;}renderReview();}
+
+function renderReview(){
+  document.getElementById('reviewMonthLabel').textContent=`${rvY}년 ${rvM+1}월`;
+  const mc=document.getElementById('reviewMain');mc.innerHTML='';
+  mc.appendChild(buildReviewToday());
+  mc.appendChild(buildReviewCal());
+  mc.appendChild(buildWeeklySummary());
+}
+
+function buildReviewToday(){
+  const card=mkDiv('card');
+  const todayReview=S.getReview(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+  const header=mkDiv('card-header');
+  const streak=calcWeekStreak();
+  header.innerHTML=`<span class="card-title">오늘의 회고</span>${streak>0?`<span class="streak-badge">🔥 ${streak}주 연속</span>`:''}`;
+  card.appendChild(header);
+  if(todayReview){
+    const done=mkDiv('');done.style.cssText='padding:14px 16px;';
+    done.innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--income);margin-bottom:8px;">✅ 오늘 회고 완료!</div>`;
+    REVIEW_QUESTIONS.forEach(q=>{
+      const score=todayReview.scores?.[q.id]||0;
+      const row=mkDiv('');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+      row.innerHTML=`<span style="font-size:14px;">${q.emoji}</span><span style="font-size:12px;flex:1;color:var(--text);">${q.text}</span><span style="font-size:16px;">${'⭐'.repeat(score)}${'☆'.repeat(5-score)}</span>`;
+      done.appendChild(row);
+    });
+    if(todayReview.memo){
+      const memo=mkDiv('');memo.style.cssText='background:var(--bg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);margin-top:8px;';
+      memo.textContent=todayReview.memo;done.appendChild(memo);
+    }
+    const editBtn=document.createElement('button');editBtn.className='add-btn';editBtn.style.cssText='margin-top:12px;';editBtn.textContent='수정하기';
+    editBtn.onclick=()=>openReviewPopup(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+    done.appendChild(editBtn);card.appendChild(done);
+  } else {
+    const empty=mkDiv('');empty.style.cssText='padding:14px 16px;';
+    empty.innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">오늘 하루를 돌아볼 시간이에요 🌙</div>`;
+    const btn=document.createElement('button');btn.className='add-btn';btn.textContent='회고 작성하기';
+    btn.onclick=()=>openReviewPopup(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+    empty.appendChild(btn);card.appendChild(empty);
+  }
+  return card;
+}
+
+function buildReviewCal(){
+  const fd=new Date(rvY,rvM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
+  const dim=new Date(rvY,rvM+1,0).getDate();
+  const card=mkDiv('card');
+  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">${rvY}년 ${rvM+1}월 달력</span></div>`;
+  const dowRow=mkDiv('cal-dow-row');
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
+  card.appendChild(dowRow);
+  const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 10px 14px;';
+  for(let i=0;i<fdMon;i++){const e=mkDiv('review-cal-cell empty');grid.appendChild(e);}
+  for(let d=1;d<=dim;d++){
+    const date=new Date(rvY,rvM,d);
+    const dow=(date.getDay()+6)%7;
+    const isT=TODAY.getFullYear()===rvY&&TODAY.getMonth()===rvM&&TODAY.getDate()===d;
+    const isFuture=date>TODAY;
+    const rv=isFuture?null:S.getReview(rvY,rvM,d);
+    const cell=mkDiv(`review-cal-cell ${isT?'today':''} ${rv?'has-review':''} ${dow===5?'sat':''} ${dow===6?'sun':''}`);
+    if(!isFuture) cell.onclick=()=>openReviewPopup(rvY,rvM,d);
+    const dayEl=mkDiv('review-cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    if(rv){const dot=mkDiv('review-dot');cell.appendChild(dot);}
+    grid.appendChild(cell);
+  }
+  card.appendChild(grid);return card;
+}
+
+function buildWeeklySummary(){
+  const card=mkDiv('card');
+  card.innerHTML='<div class="card-header"><span class="card-title">주간 요약</span></div>';
+  const inner=mkDiv('');inner.style.cssText='padding:12px 16px 16px;';
+  const dim=new Date(rvY,rvM+1,0).getDate();
+  // 주차별로 묶기
+  const weeks={};
+  for(let d=1;d<=dim;d++){
+    const ws=getWeekStart(rvY,rvM,d);
+    const wk=ws.toDateString();
+    if(!weeks[wk]){weeks[wk]={start:new Date(ws),days:[],label:''};}
+    weeks[wk].days.push(d);
+  }
+  const weekKeys=Object.keys(weeks);
+  weekKeys.forEach((wk,wi)=>{
+    const w=weeks[wk];
+    const startM=w.start.getMonth();
+    const startW=getWeekOfMonth(w.start.getFullYear(),startM,w.start.getDate());
+    w.label=`${startM+1}월 ${startW}주`;
+    let done=0,total=0;
+    w.days.forEach(d=>{
+      const date=new Date(rvY,rvM,d);
+      if(date>TODAY)return;
+      total++;
+      if(S.getReview(rvY,rvM,d))done++;
+    });
+    if(total===0)return;
+    const pct=Math.round(done/total*100);
+    const row=mkDiv('weekly-sum-row');
+    row.innerHTML=`<span class="weekly-sum-week">${w.label}</span><div class="weekly-sum-bar-wrap"><div class="weekly-sum-bar"><div class="weekly-sum-fill" style="width:${pct}%"></div></div></div><span class="weekly-sum-pct">${done}/${total}일</span>`;
+    inner.appendChild(row);
+  });
+  if(!inner.children.length)inner.innerHTML='<div class="empty">아직 기록이 없어요</div>';
+  card.appendChild(inner);return card;
+}
+
+function calcWeekStreak(){
+  // 지난 주들을 확인해서 회고 달성 주 연속 계산
+  let streak=0;
+  const today=new Date(TODAY);
+  for(let w=1;w<=52;w++){
+    const weekEnd=new Date(today);
+    weekEnd.setDate(today.getDate()-(w-1)*7);
+    const weekStart=getWeekStart(weekEnd.getFullYear(),weekEnd.getMonth(),weekEnd.getDate());
+    let hasDone=false;
+    for(let i=0;i<7;i++){
+      const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+      if(d>today)continue;
+      if(S.getReview(d.getFullYear(),d.getMonth(),d.getDate())){hasDone=true;break;}
+    }
+    if(hasDone)streak++;
+    else break;
+  }
+  return streak;
+}
+
+function openReviewPopup(y,m,d){
+  reviewCtx={y,m,d};
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('reviewPopupDate').textContent=`${y}년 ${months[m]} ${d}일`;
+  const existing=S.getReview(y,m,d)||{scores:{},memo:''};
+  const qWrap=document.getElementById('reviewQuestions');qWrap.innerHTML='';
+  REVIEW_QUESTIONS.forEach(q=>{
+    const div=mkDiv('review-q');
+    const score=existing.scores?.[q.id]||0;
+    div.innerHTML=`<div class="review-q-label">${q.emoji} ${q.id.replace('q','Q')}</div><div class="review-q-text">${q.text}</div><div class="review-stars" id="stars_${q.id}">${[1,2,3,4,5].map(i=>`<span class="review-star ${i<=score?'on':''}" data-v="${i}" onclick="setReviewStar('${q.id}',${i})">⭐</span>`).join('')}</div>`;
+    qWrap.appendChild(div);
+  });
+  document.getElementById('reviewMemoInput').value=existing.memo||'';
+  document.getElementById('reviewOverlay').classList.add('open');
+}
+
+function setReviewStar(qid,v){
+  document.querySelectorAll(`#stars_${qid} .review-star`).forEach((s,i)=>{s.classList.toggle('on',i<v);});
+}
+
+function closeReviewPopup(e){if(e.target===document.getElementById('reviewOverlay'))document.getElementById('reviewOverlay').classList.remove('open');}
+
+function saveReview(){
+  const{y,m,d}=reviewCtx;
+  const scores={};
+  REVIEW_QUESTIONS.forEach(q=>{
+    const stars=document.querySelectorAll(`#stars_${q.id} .review-star`);
+    let v=0;stars.forEach((s,i)=>{if(s.classList.contains('on'))v=i+1;});
+    scores[q.id]=v;
+  });
+  const memo=document.getElementById('reviewMemoInput').value.trim();
+  S.setReview(y,m,d,{scores,memo,ts:Date.now()});
+  // 루틴 r14(회고) 자동 체크
+  const r14=ROUTINES.find(r=>r.autoFromReview);
+  if(r14){let c=S.getRoutine(y,m,d);if(!c.includes(r14.id))c.push(r14.id);S.setRoutine(y,m,d,c);}
+  document.getElementById('reviewOverlay').classList.remove('open');
+  renderReview();
+  if(rY===y&&rM===m)renderRoutine();
+}
+
+// autoFromReview 체크 함수
+function isReviewDone(y,m,d){return !!S.getReview(y,m,d);}
