@@ -21,9 +21,12 @@ function buildReviewToday(){
     const done=mkDiv('');done.style.cssText='padding:14px 16px;';
     done.innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--income);margin-bottom:8px;">✅ 오늘 회고 완료!</div>`;
     REVIEW_QUESTIONS.forEach(q=>{
-      const score=todayReview.scores?.[q.id]||0;
-      const row=mkDiv('');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;';
-      row.innerHTML=`<span style="font-size:14px;">${q.emoji}</span><span style="font-size:12px;flex:1;color:var(--text);">${q.text}</span><span style="font-size:16px;">${'⭐'.repeat(score)}${'☆'.repeat(5-score)}</span>`;
+      const answer=todayReview.answers?.[q.id]||'';
+      const row=mkDiv('');row.style.cssText='margin-bottom:10px;';
+      const label=mkDiv('');label.style.cssText='font-size:12px;color:var(--muted);margin-bottom:4px;';label.textContent=`${q.emoji} ${q.text}`;
+      const ans=mkDiv('review-q-answer-done');
+      if(answer){ans.textContent=answer;}else{ans.style.color='var(--muted)';ans.textContent='(답변 없음)';}
+      row.appendChild(label);row.appendChild(ans);
       done.appendChild(row);
     });
     if(todayReview.memo){
@@ -129,34 +132,29 @@ function openReviewPopup(y,m,d){
   reviewCtx={y,m,d};
   const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('reviewPopupDate').textContent=`${y}년 ${months[m]} ${d}일`;
-  const existing=S.getReview(y,m,d)||{scores:{},memo:''};
+  const existing=S.getReview(y,m,d)||{answers:{},memo:''};
   const qWrap=document.getElementById('reviewQuestions');qWrap.innerHTML='';
   REVIEW_QUESTIONS.forEach(q=>{
     const div=mkDiv('review-q');
-    const score=existing.scores?.[q.id]||0;
-    div.innerHTML=`<div class="review-q-label">${q.emoji} ${q.id.replace('q','Q')}</div><div class="review-q-text">${q.text}</div><div class="review-stars" id="stars_${q.id}">${[1,2,3,4,5].map(i=>`<span class="review-star ${i<=score?'on':''}" data-v="${i}" onclick="setReviewStar('${q.id}',${i})">⭐</span>`).join('')}</div>`;
+    const answer=existing.answers?.[q.id]||'';
+    div.innerHTML=`<div class="review-q-label">${q.emoji} ${q.id.replace('q','Q')}</div><div class="review-q-text">${q.text}</div><textarea class="review-q-answer" id="ans_${q.id}" placeholder="답변을 적어보세요..."></textarea>`;
     qWrap.appendChild(div);
+    div.querySelector(`#ans_${q.id}`).value=answer;
   });
   document.getElementById('reviewMemoInput').value=existing.memo||'';
   document.getElementById('reviewOverlay').classList.add('open');
-}
-
-function setReviewStar(qid,v){
-  document.querySelectorAll(`#stars_${qid} .review-star`).forEach((s,i)=>{s.classList.toggle('on',i<v);});
 }
 
 function closeReviewPopup(e){if(e.target===document.getElementById('reviewOverlay'))document.getElementById('reviewOverlay').classList.remove('open');}
 
 function saveReview(){
   const{y,m,d}=reviewCtx;
-  const scores={};
+  const answers={};
   REVIEW_QUESTIONS.forEach(q=>{
-    const stars=document.querySelectorAll(`#stars_${q.id} .review-star`);
-    let v=0;stars.forEach((s,i)=>{if(s.classList.contains('on'))v=i+1;});
-    scores[q.id]=v;
+    answers[q.id]=document.getElementById(`ans_${q.id}`).value.trim();
   });
   const memo=document.getElementById('reviewMemoInput').value.trim();
-  S.setReview(y,m,d,{scores,memo,ts:Date.now()});
+  S.setReview(y,m,d,{answers,memo,ts:Date.now()});
   // 루틴 r14(회고) 자동 체크
   const r14=ROUTINES.find(r=>r.autoFromReview);
   if(r14){let c=S.getRoutine(y,m,d);if(!c.includes(r14.id))c.push(r14.id);S.setRoutine(y,m,d,c);}
