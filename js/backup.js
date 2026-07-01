@@ -1,10 +1,6 @@
 // ─── 데이터 백업 (내보내기 / 불러오기) ──────────────────────────────────────────
 function exportData(){
-  const data={};
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    data[k]=localStorage.getItem(k);
-  }
+  const data=Storage._cache;
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -22,7 +18,7 @@ function importData(input){
     try{
       const data=JSON.parse(e.target.result);
       if(!confirm('현재 데이터를 불러온 파일로 덮어씁니다. 계속할까요?')){input.value='';return;}
-      Object.keys(data).forEach(k=>localStorage.setItem(k,data[k]));
+      Object.keys(data).forEach(k=>Storage._set(k,data[k]));
       alert('불러오기 완료! 새로고침합니다.');
       location.reload();
     }catch(err){

@@ -54,12 +54,9 @@ const REVIEW_QUESTIONS=[
   {id:'q5',text:'내일 더 잘하고 싶은 것은?',emoji:'🎯'},
 ];
 
-function getRoutines(){
-  try{const s=localStorage.getItem('custom_routines');if(s)return JSON.parse(s);}catch{}
-  return DEFAULT_ROUTINES;
-}
-function saveRoutines(arr){localStorage.setItem('custom_routines',JSON.stringify(arr));}
-let ROUTINES=getRoutines();
+// getRoutines/saveRoutines는 storage.js(Supabase 연동)에서 정의됨.
+// 로그인 후 데이터를 불러오기 전까지는 기본값으로 시작.
+let ROUTINES=DEFAULT_ROUTINES;
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];
