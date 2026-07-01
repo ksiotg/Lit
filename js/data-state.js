@@ -47,11 +47,11 @@ const DEFAULT_ROUTINES=[
 ];
 
 const REVIEW_QUESTIONS=[
-  {id:'q1',text:'오늘 루틴을 얼마나 잘 지켰나요?',emoji:'✅'},
-  {id:'q2',text:'오늘 에너지 레벨은 어땠나요?',emoji:'⚡'},
-  {id:'q3',text:'오늘 내 감정 상태는?',emoji:'💭'},
-  {id:'q4',text:'오늘 가장 잘한 일 하나는?',emoji:'🌟'},
-  {id:'q5',text:'내일 더 잘하고 싶은 것은?',emoji:'🎯'},
+  {id:'q1',text:'오늘 스스로 선택하거나 결정한 일이 있었나요?',emoji:'🧭'},
+  {id:'q2',text:'오늘 했던 일 중, 나에게 의미 있었던 순간은 무엇인가요?',emoji:'🌱'},
+  {id:'q3',text:'오늘 내가 끝마친 일을 하나만 떠올려보세요.',emoji:'✅'},
+  {id:'q4',text:'오늘 나 자신에게 너그러웠던 순간이 있었나요?',emoji:'💛'},
+  {id:'q5',text:'오늘 "아, 이게 나답다" 싶었던 순간이 있었나요?',emoji:'✨'},
 ];
 
 // getRoutines/saveRoutines, getFixedIncome/saveFixedIncome은 storage.js(Supabase 연동)에서 정의됨.
