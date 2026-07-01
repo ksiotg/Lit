@@ -6,9 +6,25 @@
 <meta name="color-scheme" content="light">
 <title>Lit</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<!-- 로그인 게이트 -->
+<div id="authGate" style="display:none;position:fixed;inset:0;background:#f4f6fb;z-index:1000;align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:340px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:28px;font-weight:800;margin-bottom:4px;">⚡ Lit</div>
+      <div style="font-size:12px;color:var(--muted);">로그인하고 모든 기기에서 이어서 쓰기</div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;"><input class="fi" id="authEmail" type="email" placeholder="이메일"></div>
+    <div class="fg" style="margin-bottom:14px;"><input class="fi" id="authPassword" type="password" placeholder="비밀번호 (6자리 이상)"></div>
+    <button class="add-btn" onclick="handleSignIn()">로그인</button>
+    <button class="add-btn" style="background:var(--bg);color:var(--text);margin-top:8px;" onclick="handleSignUp()">처음이에요, 계정 만들기</button>
+    <div id="authMsg" style="text-align:center;font-size:12px;margin-top:10px;min-height:16px;"></div>
+  </div>
+</div>
 
 <!-- 가계부 페이지 -->
 <div id="page-budget" style="display:none">
@@ -112,6 +128,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:16px;font-weight:800;">⚙️ 루틴 관리</div>
       <button onclick="document.getElementById('routineMgmtPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="text-align:right;margin-bottom:12px;">
+      <button onclick="handleSignOut()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">로그아웃</button>
     </div>
     <div style="background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px;">
       <div class="add-routine-form-title">💾 데이터 백업</div>
@@ -231,10 +250,12 @@
   </div>
 </div>
 
+<script src="js/supabase-client.js"></script>
 <script src="js/data-state.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/backup.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/page-switch.js"></script>
 <script src="js/budget.js"></script>
 <script src="js/routine.js"></script>
