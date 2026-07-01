@@ -198,3 +198,44 @@ function addEntry(){
   renderPopupEntries();renderBudget();
 }
 function delEntry(id){S.setEntries(curY,curM,S.getEntries(curY,curM).filter(e=>e.id!==id));renderPopupEntries();renderBudget();}
+
+// ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
+function openBudgetSettings(){
+  renderFixedIncomeList();
+  document.getElementById('budgetSettingsPopup').classList.add('open');
+}
+function closeBudgetSettings(e){if(e.target===document.getElementById('budgetSettingsPopup'))document.getElementById('budgetSettingsPopup').classList.remove('open');}
+
+function renderFixedIncomeList(){
+  const wrap=document.getElementById('fixedIncomeList');wrap.innerHTML='';
+  if(!FIXED_INCOME.length){wrap.innerHTML='<div class="empty">등록된 고정 수입이 없어요</div>';return;}
+  FIXED_INCOME.forEach(fi=>{
+    const item=mkDiv('rmgmt-item');
+    item.innerHTML=`<div class="rmgmt-icon">${fi.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${fi.name}</div><div class="rmgmt-sub">매월 ${fi.day}일 · ${fmt(fi.amount)}</div></div><button class="rmgmt-del" onclick="deleteFixedIncome('${fi.id}')">×</button>`;
+    wrap.appendChild(item);
+  });
+}
+
+function saveNewFixedIncome(){
+  const name=document.getElementById('newFiName').value.trim();
+  const emoji=document.getElementById('newFiEmoji').value.trim()||'💼';
+  const day=Math.min(31,Math.max(1,parseInt(document.getElementById('newFiDay').value)||1));
+  const amount=parseInt(document.getElementById('newFiAmount').value)||0;
+  if(!name||!amount){alert('이름과 금액을 입력해줘');return;}
+  FIXED_INCOME=[...FIXED_INCOME,{id:'fi'+Date.now(),name,emoji,day,cat:'급여',amount}];
+  saveFixedIncome(FIXED_INCOME);
+  document.getElementById('newFiName').value='';
+  document.getElementById('newFiEmoji').value='';
+  document.getElementById('newFiDay').value='';
+  document.getElementById('newFiAmount').value='';
+  renderFixedIncomeList();
+  renderBudget();
+}
+
+function deleteFixedIncome(id){
+  if(!confirm('이 고정 수입을 삭제할까요?'))return;
+  FIXED_INCOME=FIXED_INCOME.filter(f=>f.id!==id);
+  saveFixedIncome(FIXED_INCOME);
+  renderFixedIncomeList();
+  renderBudget();
+}

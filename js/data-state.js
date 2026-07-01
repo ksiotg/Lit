@@ -20,7 +20,7 @@ const FIXED_ITEMS=[
   {id:'f18',day:28,name:'애플',cat:'구독',emoji:'📅',amount:1100},
   {id:'f19',day:30,name:'카카오',cat:'구독',emoji:'📅',amount:1000},
 ];
-const FIXED_INCOME=[{id:'fi01',day:10,name:'월급',cat:'급여',emoji:'💼',amount:1920000}];
+const DEFAULT_FIXED_INCOME=[{id:'fi01',day:10,name:'월급',cat:'급여',emoji:'💼',amount:1920000}];
 const CATS={
   income:[{n:'급여',e:'💼'},{n:'외주',e:'💻'},{n:'용돈',e:'👛'},{n:'기타',e:'💰'}],
   expense:[{n:'식사',e:'🍽️'},{n:'간식',e:'☕️'},{n:'유흥',e:'🍺'},{n:'의료',e:'🏥'},{n:'생활',e:'🧺'},{n:'교통',e:'🚕'},{n:'뷰티',e:'🪞'},{n:'여행',e:'✈️'},{n:'여가',e:'🎬'},{n:'둥',e:'🐾'},{n:'교육',e:'🎓'},{n:'경조사',e:'🕊️'},{n:'기타',e:'📦'},{n:'세금',e:'🪙'}],
@@ -54,9 +54,10 @@ const REVIEW_QUESTIONS=[
   {id:'q5',text:'내일 더 잘하고 싶은 것은?',emoji:'🎯'},
 ];
 
-// getRoutines/saveRoutines는 storage.js(Supabase 연동)에서 정의됨.
+// getRoutines/saveRoutines, getFixedIncome/saveFixedIncome은 storage.js(Supabase 연동)에서 정의됨.
 // 로그인 후 데이터를 불러오기 전까지는 기본값으로 시작.
 let ROUTINES=DEFAULT_ROUTINES;
+let FIXED_INCOME=DEFAULT_FIXED_INCOME;
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];

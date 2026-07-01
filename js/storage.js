@@ -36,6 +36,11 @@ function getRoutines(){
 }
 function saveRoutines(arr){Storage._set('custom_routines',arr);}
 
+function getFixedIncome(){
+  return Storage._get('fixed_income',null)||DEFAULT_FIXED_INCOME;
+}
+function saveFixedIncome(arr){Storage._set('fixed_income',arr);}
+
 const S={
   getChecked(y,m){return Storage._get('ck_'+mk(y,m),[])},
   setChecked(y,m,a){Storage._set('ck_'+mk(y,m),a)},
