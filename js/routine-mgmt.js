@@ -1,5 +1,10 @@
 // ─── ROUTINE MANAGEMENT ───────────────────────────────────────────────────────
 function openRoutineMgmt(){
+  rmgmtEditMode=false;
+  const toggleBtn=document.getElementById('rmgmtEditToggle');
+  if(toggleBtn){toggleBtn.textContent='✏️ 수정';toggleBtn.classList.remove('active');}
+  const hint=document.getElementById('rmgmtEditHint');
+  if(hint)hint.textContent='';
   renderRoutineMgmtList();
   document.getElementById('routineMgmtPopup').classList.add('open');
 }
@@ -28,14 +33,35 @@ function renderRoutineMgmtList(){
     items.forEach((r,i)=>{
       const item=mkDiv('rmgmt-item');
       const isAuto=r.autoFromBudget||r.autoFromReview;
-      const moveBtns=`<div style="display:flex;flex-direction:column;">
-        <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===0?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',-1)" title="위로">▲</button>
-        <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===items.length-1?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',1)" title="아래로">▼</button>
-      </div>`;
-      item.innerHTML=`${moveBtns}<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div>${isAuto?'<span style="font-size:10px;color:var(--muted);padding:4px 8px;background:#f0f0f5;border-radius:6px;">자동</span>':`<button class="rmgmt-del" onclick="deleteRoutine('${r.id}')">×</button>`}`;
+      const editable=rmgmtEditMode&&!isAuto;
+      if(editable){
+        // 수정 모드: 칸이 부족해서 항목별 수정 버튼을 따로 못 두니, 항목 자체를 눌러서 수정 팝업을 열게 함
+        item.style.cursor='pointer';
+        item.onclick=()=>openRoutineEdit(r.id);
+        item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div><span style="font-size:14px;color:var(--muted);flex-shrink:0;">✏️</span>`;
+      }else{
+        const moveBtns=`<div style="display:flex;flex-direction:column;">
+          <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===0?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',-1)" title="위로">▲</button>
+          <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===items.length-1?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',1)" title="아래로">▼</button>
+        </div>`;
+        item.innerHTML=`${moveBtns}<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div>${isAuto?'<span style="font-size:10px;color:var(--muted);padding:4px 8px;background:#f0f0f5;border-radius:6px;">자동</span>':`<button class="rmgmt-del" onclick="deleteRoutine('${r.id}')">×</button>`}`;
+      }
       wrap.appendChild(item);
     });
   });
+}
+
+// ─── 수정 모드 토글 ────────────────────────────────────────────────────────────
+// 항목마다 수정 버튼을 둘 칸이 없어서, "수정" 모드로 들어간 다음 항목을 누르면
+// 해당 루틴의 수정 팝업이 뜨는 방식으로 처리함.
+let rmgmtEditMode=false;
+function toggleRmgmtEditMode(){
+  rmgmtEditMode=!rmgmtEditMode;
+  const btn=document.getElementById('rmgmtEditToggle');
+  btn.textContent=rmgmtEditMode?'✓ 완료':'✏️ 수정';
+  btn.classList.toggle('active',rmgmtEditMode);
+  document.getElementById('rmgmtEditHint').textContent=rmgmtEditMode?'항목을 눌러 수정하세요':'';
+  renderRoutineMgmtList();
 }
 
 function moveRoutine(id,dir){
@@ -140,6 +166,109 @@ function saveNewRoutine(){
   document.querySelectorAll('[data-period]').forEach(b=>b.classList.toggle('active',b.dataset.period==='morning'));
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat==='selfcare'));
   document.getElementById('freqDetailWrap').style.display='none';
+  renderRoutineMgmtList();
+  renderRoutine();
+}
+
+// ─── 루틴 개별 수정 팝업 ────────────────────────────────────────────────────────
+// "새 루틴 추가" 폼과 별개의 팝업으로 만들어서, 다른 탭(가계부/외주)의 수정 팝업과
+// 같은 톤(오버레이 + 슬라이드업 카드)을 유지함.
+let editingRoutineId=null;
+let editRCat='selfcare',editRPeriod='morning',editRFreq='daily',editRWeekDays=[],editRWeeklyN=3,editRMonthlyN=2;
+
+function openRoutineEdit(id){
+  const r=ROUTINES.find(x=>x.id===id);
+  if(!r)return;
+  editingRoutineId=id;
+  document.getElementById('editRName').value=r.name||'';
+  document.getElementById('editREmoji').value=r.emoji||'';
+  document.getElementById('editRTime').value=r.time||'';
+  editRCat=r.cat||'selfcare';
+  editRPeriod=r.period||'morning';
+  editRFreq=r.freq||'daily';
+  editRWeekDays=[...(r.days||[])];
+  editRWeeklyN=r.weeklyN||3;
+  editRMonthlyN=r.monthlyN||2;
+  document.querySelectorAll('#editRCatWrap .cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===editRCat));
+  document.querySelectorAll('#editRPeriodWrap .freq-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===editRPeriod));
+  document.querySelectorAll('#editRFreqWrap .freq-btn').forEach(b=>b.classList.toggle('active',b.dataset.freq===editRFreq));
+  renderEditFreqDetail();
+  document.getElementById('routineEditPopup').classList.add('open');
+}
+
+function closeRoutineEdit(e){if(e.target===document.getElementById('routineEditPopup'))document.getElementById('routineEditPopup').classList.remove('open');}
+
+function selEditCat(btn){
+  document.querySelectorAll('#editRCatWrap .cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  editRCat=btn.dataset.cat;
+}
+
+function selEditPeriod(btn){
+  document.querySelectorAll('#editRPeriodWrap .freq-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  editRPeriod=btn.dataset.period;
+}
+
+function selEditFreq(btn){
+  document.querySelectorAll('#editRFreqWrap .freq-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  editRFreq=btn.dataset.freq;
+  renderEditFreqDetail();
+}
+
+function renderEditFreqDetail(){
+  const wrap=document.getElementById('editFreqDetailWrap');
+  wrap.innerHTML='';wrap.style.display='none';
+  if(editRFreq==='weekly'){
+    wrap.style.display='block';
+    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">주 몇 회?</label><div style="display:flex;gap:6px;">${[1,2,3,4,5,6,7].map(n=>`<button style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:${editRWeeklyN===n?'var(--text)':'#fff'};color:${editRWeeklyN===n?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;" onclick="setEditWeeklyN(${n},this)">${n}</button>`).join('')}</div>`;
+  } else if(editRFreq==='days'){
+    wrap.style.display='block';
+    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">요일 선택</label><div style="display:flex;gap:4px;">${['월','화','수','목','금','토','일'].map((d,i)=>`<button class="dow-btn ${editRWeekDays.includes(i)?'active':''}" onclick="toggleEditDow(${i},this)">${d}</button>`).join('')}</div>`;
+  } else if(editRFreq==='monthly'){
+    wrap.style.display='block';
+    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">월 몇 회?</label><div style="display:flex;gap:6px;flex-wrap:wrap;">${[1,2,3,4,5,6,7,8].map(n=>`<button style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:${editRMonthlyN===n?'var(--text)':'#fff'};color:${editRMonthlyN===n?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;" onclick="setEditMonthlyN(${n},this)">${n}</button>`).join('')}</div>`;
+  }
+}
+
+function setEditWeeklyN(n,btn){
+  editRWeeklyN=n;
+  btn.parentElement.querySelectorAll('button').forEach(b=>{b.style.background='#fff';b.style.color='var(--muted)';});
+  btn.style.background='var(--text)';btn.style.color='#fff';
+}
+
+function toggleEditDow(i,btn){
+  if(editRWeekDays.includes(i))editRWeekDays=editRWeekDays.filter(x=>x!==i);
+  else editRWeekDays.push(i);
+  btn.classList.toggle('active');
+}
+
+function setEditMonthlyN(n,btn){
+  editRMonthlyN=n;
+  btn.parentElement.querySelectorAll('button').forEach(b=>{b.style.background='#fff';b.style.color='var(--muted)';});
+  btn.style.background='var(--text)';btn.style.color='#fff';
+}
+
+function saveRoutineEdit(){
+  if(!editingRoutineId)return;
+  const name=document.getElementById('editRName').value.trim();
+  const emoji=document.getElementById('editREmoji').value.trim()||'⭐';
+  const time=document.getElementById('editRTime').value.trim()||null;
+  if(!name){alert('루틴 이름을 입력해주세요');return;}
+  let goal=7;
+  if(editRFreq==='weekly')goal=editRWeeklyN;
+  else if(editRFreq==='days')goal=editRWeekDays.length||1;
+  else if(editRFreq==='monthly')goal=editRMonthlyN;
+  ROUTINES=ROUTINES.map(r=>r.id===editingRoutineId?{
+    ...r,name,emoji,time,period:editRPeriod,cat:editRCat,goal,freq:editRFreq,
+    ...(editRFreq==='weekly'?{weeklyN:editRWeeklyN}:{}),
+    ...(editRFreq==='days'?{days:[...editRWeekDays]}:{}),
+    ...(editRFreq==='monthly'?{monthlyN:editRMonthlyN}:{}),
+  }:r);
+  saveRoutines(ROUTINES);
+  editingRoutineId=null;
+  document.getElementById('routineEditPopup').classList.remove('open');
   renderRoutineMgmtList();
   renderRoutine();
 }
