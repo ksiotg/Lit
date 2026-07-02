@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=29">
+<link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body>
 
@@ -415,11 +415,10 @@
 <div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
   <div class="popup">
     <div class="popup-bar"></div>
-    <div class="popup-head">
-      <div class="popup-date-label" id="reviewPopupDate"></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:2px;">오늘 하루를 돌아봐요</div>
+    <div class="popup-head" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="popup-date-label" id="reviewPopupDate" style="margin-bottom:0;"></div>
+      <div class="popup-day-actions" id="reviewPopupActions"></div>
     </div>
-    <div class="popup-day-actions" id="reviewPopupActions"></div>
     <div id="reviewQuestions"></div>
     <div style="padding:0 16px 8px;">
       <div class="review-q-label">📝 자유 메모</div>
@@ -483,29 +482,31 @@
 <div class="workout-popup" id="workoutPopup" onclick="closeWorkoutPopup(event)">
   <div class="workout-inner">
     <div class="popup-bar" style="margin:0 auto 16px"></div>
-    <div class="workout-title">🥊 운동 기록</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="workout-title" style="margin-bottom:0;">🥊 운동 기록</div>
+      <div class="popup-day-actions" id="workoutPopupActions"></div>
+    </div>
     <div class="workout-sub" id="workoutPopupDate"></div>
-    <div class="popup-day-actions" id="workoutPopupActions"></div>
     <div id="workoutPopupList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:50vh;overflow-y:auto;padding-right:4px;"></div>
-    <button class="add-btn" style="background:var(--bg);color:var(--text);margin-bottom:12px;margin-top:0;" onclick="addWorkoutField()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 운동 추가</button>
+    <button class="add-btn" style="background:var(--bg);color:var(--text);margin-bottom:12px;margin-top:0;" onclick="addWorkoutField()"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--workout)"></span> 운동 추가</button>
     <button class="workout-save" onclick="saveWorkoutMemo()">저장하기</button>
   </div>
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=29"></script>
-<script src="js/data-state.js?v=29"></script>
-<script src="js/storage.js?v=29"></script>
-<script src="js/utils.js?v=29"></script>
-<script src="js/backup.js?v=29"></script>
-<script src="js/auth.js?v=29"></script>
-<script src="js/page-switch.js?v=29"></script>
-<script src="js/budget.js?v=29"></script>
-<script src="js/routine.js?v=29"></script>
-<script src="js/routine-mgmt.js?v=29"></script>
-<script src="js/workout.js?v=29"></script>
-<script src="js/review.js?v=29"></script>
-<script src="js/freelance.js?v=29"></script>
-<script src="js/main.js?v=29"></script>
+<script src="js/supabase-client.js?v=30"></script>
+<script src="js/data-state.js?v=30"></script>
+<script src="js/storage.js?v=30"></script>
+<script src="js/utils.js?v=30"></script>
+<script src="js/backup.js?v=30"></script>
+<script src="js/auth.js?v=30"></script>
+<script src="js/page-switch.js?v=30"></script>
+<script src="js/budget.js?v=30"></script>
+<script src="js/routine.js?v=30"></script>
+<script src="js/routine-mgmt.js?v=30"></script>
+<script src="js/workout.js?v=30"></script>
+<script src="js/review.js?v=30"></script>
+<script src="js/freelance.js?v=30"></script>
+<script src="js/main.js?v=30"></script>
 </body>
 </html>
