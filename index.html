@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=16">
+<link rel="stylesheet" href="css/style.css?v=17">
 </head>
 <body>
 
@@ -355,6 +355,32 @@
   </div>
 </div>
 
+<!-- 변동지출 전체 카테고리 더보기 팝업 -->
+<div class="routine-mgmt-popup" id="catAllPopup" onclick="closeCatAllPopup(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:16px;font-weight:800;">📊 전체 카테고리</div>
+      <button onclick="document.getElementById('catAllPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="catAllSub"></div>
+    <div id="catAllList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+<!-- 카테고리별 지출 상세 내역 팝업 -->
+<div class="routine-mgmt-popup" id="catDetailPopup" onclick="closeCatDetail(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:16px;font-weight:800;" id="catDetailTitle">카테고리</div>
+      <button onclick="document.getElementById('catDetailPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="catDetailSub"></div>
+    <div id="catDetailList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  </div>
+</div>
+
 <!-- 회고 작성 팝업 -->
 <div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
   <div class="popup">
@@ -437,19 +463,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=16"></script>
-<script src="js/data-state.js?v=16"></script>
-<script src="js/storage.js?v=16"></script>
-<script src="js/utils.js?v=16"></script>
-<script src="js/backup.js?v=16"></script>
-<script src="js/auth.js?v=16"></script>
-<script src="js/page-switch.js?v=16"></script>
-<script src="js/budget.js?v=16"></script>
-<script src="js/routine.js?v=16"></script>
-<script src="js/routine-mgmt.js?v=16"></script>
-<script src="js/workout.js?v=16"></script>
-<script src="js/review.js?v=16"></script>
-<script src="js/freelance.js?v=16"></script>
-<script src="js/main.js?v=16"></script>
+<script src="js/supabase-client.js?v=17"></script>
+<script src="js/data-state.js?v=17"></script>
+<script src="js/storage.js?v=17"></script>
+<script src="js/utils.js?v=17"></script>
+<script src="js/backup.js?v=17"></script>
+<script src="js/auth.js?v=17"></script>
+<script src="js/page-switch.js?v=17"></script>
+<script src="js/budget.js?v=17"></script>
+<script src="js/routine.js?v=17"></script>
+<script src="js/routine-mgmt.js?v=17"></script>
+<script src="js/workout.js?v=17"></script>
+<script src="js/review.js?v=17"></script>
+<script src="js/freelance.js?v=17"></script>
+<script src="js/main.js?v=17"></script>
 </body>
 </html>
