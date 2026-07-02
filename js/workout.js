@@ -65,7 +65,7 @@ function openWorkoutPopup(y,m,d){
   workoutCtx={y,m,d};
   const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('workoutPopupDate').textContent=`${y}년 ${months[m]} ${d}일`;
-  
+
   const listEl = document.getElementById('workoutPopupList');
   listEl.innerHTML = '';
   const workouts = S.getWorkout(y,m,d);
@@ -74,8 +74,40 @@ function openWorkoutPopup(y,m,d){
   } else {
     workouts.forEach(w => addWorkoutField(w.type, w.memo));
   }
-  
+  const actions=document.getElementById('workoutPopupActions');
+  actions.innerHTML = workouts.length ? `<button onclick="editWorkoutDate()">📅 날짜 변경</button><button class="danger" onclick="deleteWorkoutDay()">🗑 이 날 기록 삭제</button>` : '';
+
   document.getElementById('workoutPopup').classList.add('open');
+}
+// 잘못 입력한 날짜의 운동 기록 전체를 다른 날짜로 이동
+function editWorkoutDate(){
+  const{y,m,d}=workoutCtx;
+  const cur=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const input=prompt('날짜를 수정해줘 (YYYY-MM-DD)',cur);
+  if(!input)return;
+  const mch=input.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!mch){alert('날짜 형식이 올바르지 않아요 (예: 2026-07-15)');return;}
+  const newY=parseInt(mch[1]),newM=parseInt(mch[2])-1,newD=parseInt(mch[3]);
+  const dim=new Date(newY,newM+1,0).getDate();
+  if(newM<0||newM>11||newD<1||newD>dim){alert('날짜가 올바르지 않아요');return;}
+  if(newY===y&&newM===m&&newD===d){document.getElementById('workoutPopup').classList.remove('open');return;}
+  const current=S.getWorkout(y,m,d);
+  const target=S.getWorkout(newY,newM,newD);
+  if(target.length&&!confirm('이미 그 날짜에 운동 기록이 있어요. 합쳐서 저장할까요?'))return;
+  S.setWorkout(newY,newM,newD,[...target,...current]);
+  S.setWorkout(y,m,d,[]);
+  let c1=S.getRoutine(y,m,d);c1=c1.filter(x=>x!=='r08');S.setRoutine(y,m,d,c1);
+  let c2=S.getRoutine(newY,newM,newD);if(!c2.includes('r08'))c2.push('r08');S.setRoutine(newY,newM,newD,c2);
+  document.getElementById('workoutPopup').classList.remove('open');
+  renderWorkout();
+}
+function deleteWorkoutDay(){
+  const{y,m,d}=workoutCtx;
+  if(!confirm('이 날짜의 운동 기록을 전부 삭제할까요?'))return;
+  S.setWorkout(y,m,d,[]);
+  let c=S.getRoutine(y,m,d);c=c.filter(x=>x!=='r08');S.setRoutine(y,m,d,c);
+  document.getElementById('workoutPopup').classList.remove('open');
+  renderWorkout();
 }
 function closeWorkoutPopup(e){if(e.target===document.getElementById('workoutPopup'))document.getElementById('workoutPopup').classList.remove('open');}
 function addWorkoutField(type = '러닝', memo = '') {

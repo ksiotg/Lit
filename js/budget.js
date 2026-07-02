@@ -173,7 +173,31 @@ function renderPopupEntries(){
   const all=[...auto.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries];
   const el=document.getElementById('popupEntries');
   if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
-  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
+  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntryDate('${e.id}')" title="날짜 수정">📅</button><button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
+}
+// 잘못 입력한 날짜를 수정 (같은 달 안에서 일자만 바꾸거나, 다른 달/연도로도 이동 가능)
+function editEntryDate(id){
+  const entries=S.getEntries(curY,curM);
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  const cur=`${curY}-${String(curM+1).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
+  const input=prompt('날짜를 수정해줘 (YYYY-MM-DD)',cur);
+  if(!input)return;
+  const mch=input.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!mch){alert('날짜 형식이 올바르지 않아요 (예: 2026-07-15)');return;}
+  const newY=parseInt(mch[1]),newM=parseInt(mch[2])-1,newD=parseInt(mch[3]);
+  const dim=new Date(newY,newM+1,0).getDate();
+  if(newM<0||newM>11||newD<1||newD>dim){alert('날짜가 올바르지 않아요');return;}
+  const rest=entries.filter(x=>x.id!==id);
+  const moved={...e,day:newD};
+  if(newY===curY&&newM===curM){
+    rest.push(moved);S.setEntries(curY,curM,rest);
+  }else{
+    S.setEntries(curY,curM,rest);
+    const target=S.getEntries(newY,newM);
+    target.push(moved);S.setEntries(newY,newM,target);
+  }
+  renderPopupEntries();renderBudget();
 }
 function setType(type,btn){
   popupType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
