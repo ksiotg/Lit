@@ -79,6 +79,9 @@ let ROUTINES=DEFAULT_ROUTINES;
 let FIXED_INCOME=DEFAULT_FIXED_INCOME;
 let FIXED_ITEMS=DEFAULT_FIXED_ITEMS;
 let FREELANCE_PROJECTS=[];
+// 변동지출 카테고리(이름/이모지/색상). 사용자가 직접 추가/수정 가능 — 기본값은 CATS.expense +
+// EXPENSE_CAT_COLORS(없으면 PIE_COLORS 순환)로 시드하고, 이후엔 이 배열 자체가 저장/로드됨.
+let EXPENSE_CATS=CATS.expense.map((c,i)=>({n:c.n,e:c.e,color:EXPENSE_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];

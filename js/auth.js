@@ -47,6 +47,7 @@ async function onAuthReady(user){
   FIXED_INCOME=getFixedIncome();
   FIXED_ITEMS=getFixedItems();
   FREELANCE_PROJECTS=getFreelanceProjects();
+  EXPENSE_CATS=getExpenseCats();
   hideAuthGate();
   switchPage('routine');
 }

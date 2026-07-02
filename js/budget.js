@@ -69,8 +69,8 @@ function buildTop5(){
   const list=mkDiv('top5-list');
   const pieLabels=[];
   sorted.forEach(([cat,amt],i)=>{
-    const pct=grandTotal?Math.round(amt/grandTotal*100):0,color=expenseCatColor(cat,i);
-    const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+    const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦',color:PIE_COLORS[i%PIE_COLORS.length]};
+    const pct=grandTotal?Math.round(amt/grandTotal*100):0,color=ci.color;
     pieLabels.push(`${ci.e} ${pct}%`);
     const row=mkDiv('top5-row');
     row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat} <span class="top5-pct">${pct}%</span></div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div></div>`;
@@ -83,7 +83,7 @@ function buildTop5(){
   card.appendChild(moreBtn);
   if(pieChart)pieChart.destroy();
   // 카테고리별 고정 색상 적용. TOP5 이후 항목은 톤다운된 회색으로 묶어서 보여줌.
-  const colors=allSorted.map(([cat],i)=>i<5?expenseCatColor(cat,i):'#e5e7eb');
+  const colors=allSorted.map(([cat],i)=>{if(i>=5)return '#e5e7eb';const ci=EXPENSE_CATS.find(c=>c.n===cat);return ci?ci.color:PIE_COLORS[i%PIE_COLORS.length];});
   // 완전한 파이(도넛 아님) + TOP5 조각에 이모지·퍼센트 라벨을 직접 그려주는 커스텀 플러그인.
   const pieLabelPlugin={
     id:'pieTop5Labels',
@@ -120,8 +120,8 @@ function openCatAllPopup(){
   }else{
     sorted.forEach(([cat,amt],i)=>{
       const pct=total?Math.round(amt/total*100):0;
-      const color=expenseCatColor(cat,i);
-      const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+      const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦',color:PIE_COLORS[i%PIE_COLORS.length]};
+      const color=ci.color;
       const row=mkDiv('top5-row clickable');
       row.onclick=()=>openCatDetail(cat);
       row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat} <span class="top5-pct">${pct}%</span></div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div></div>`;
@@ -135,7 +135,7 @@ function closeCatAllPopup(e){if(e.target===document.getElementById('catAllPopup'
 function openCatDetail(cat){
   const entries=S.getEntries(curY,curM).filter(e=>e.type==='expense'&&e.cat===cat).sort((a,b)=>b.day-a.day);
   const total=entries.reduce((s,e)=>s+e.amount,0);
-  const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+  const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦'};
   document.getElementById('catDetailTitle').textContent=`${ci.e} ${cat}`;
   document.getElementById('catDetailSub').textContent=`${curY}년 ${curM+1}월 · 총 ${fmt(total)} · ${entries.length}건`;
   const wrap=document.getElementById('catDetailList');
@@ -385,7 +385,7 @@ function setType(type,btn){
     document.getElementById('freelanceFields').classList.remove('show');
     document.getElementById('incomeSimpleFields').style.display='none';
     const sel=document.getElementById('nCategory');
-    sel.innerHTML=CATS.expense.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
+    sel.innerHTML=EXPENSE_CATS.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
   }
 }
 // 수입 카테고리에 따라 입력 폼을 전환. "외주"만 세율 계산(프리랜서 원천징수 미리보기) 폼을 보여주고,
@@ -419,7 +419,7 @@ function saveEntryForm(){
     }
   }else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
   if(!amount||amount<=0){alert('금액을 입력해주세요');return;}
-  const ci=[...CATS.income,...CATS.expense].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
+  const ci=[...CATS.income,...EXPENSE_CATS].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
   // 외주 수입을 "등록된 프로젝트에서 불러오기"로 선택했으면 그 프로젝트 id를 항목에 같이 저장함
   // (외주 탭 프로젝트 상세보기에서 이 항목을 정산 내역으로 역추적할 수 있게).
   const projectId=(isI&&cat==='외주')?pickedFlProjectId||undefined:undefined;
@@ -464,6 +464,13 @@ function delEntry(id){
 function openBudgetSettings(){
   renderFixedIncomeList();
   renderFixedItemsList();
+  renderExpenseCatsList();
+  editingExpenseCatName=null;
+  document.getElementById('newExpCatName').value='';
+  document.getElementById('newExpCatEmoji').value='';
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14)} 카테고리 추가`;
+  document.getElementById('expCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
+  renderExpCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
   document.getElementById('budgetSettingsPopup').classList.add('open');
 }
 function closeBudgetSettings(e){if(e.target===document.getElementById('budgetSettingsPopup'))document.getElementById('budgetSettingsPopup').classList.remove('open');}
@@ -569,4 +576,80 @@ function endFixedItem(id){
   saveFixedItems(FIXED_ITEMS);
   renderFixedItemsList();
   renderBudget();
+}
+
+// ─── 가계부 설정 (변동지출 카테고리 관리) ────────────────────────────────────
+// 고정 수입/고정지출과 달리 카테고리는 "이번 달부터 적용" 같은 시간 개념이 없어서
+// 수정 시 바로 덮어씀. 단, 이름을 바꾸면 이미 저장된 과거 항목들이 옛 이름을 그대로
+// 들고 있어서 "고아 카테고리"가 되기 때문에, 모든 달의 기록을 훑어서 함께 갱신해줌.
+let editingExpenseCatName=null;
+let pendingExpCatColor=null;
+
+function renderExpenseCatsList(){
+  const wrap=document.getElementById('expenseCatsList');wrap.innerHTML='';
+  if(!EXPENSE_CATS.length){wrap.innerHTML='<div class="empty">등록된 카테고리가 없어요</div>';return;}
+  EXPENSE_CATS.forEach(c=>{
+    const item=mkDiv('rmgmt-item');
+    item.innerHTML=`<div class="rmgmt-icon">${c.e}</div><div class="rmgmt-info"><div class="rmgmt-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:5px;vertical-align:middle;"></span>${c.n}</div></div><button class="rmgmt-del" onclick="editExpenseCatStart('${c.n}')" title="수정">${icon('edit',14)}</button>`;
+    wrap.appendChild(item);
+  });
+}
+
+function renderExpCatColorSwatches(selected){
+  const wrap=document.getElementById('expCatColorSwatches');
+  if(!wrap)return;
+  pendingExpCatColor=selected||FL_COLOR_PALETTE[0];
+  wrap.innerHTML=FL_COLOR_PALETTE.map(c=>`<div class="fl-color-swatch ${c===pendingExpCatColor?'active':''}" style="background:${c};" onclick="selExpCatColor('${c}')"></div>`).join('');
+}
+function selExpCatColor(c){renderExpCatColorSwatches(c);}
+
+function editExpenseCatStart(name){
+  const c=EXPENSE_CATS.find(x=>x.n===name);
+  if(!c)return;
+  editingExpenseCatName=name;
+  document.getElementById('newExpCatName').value=c.n;
+  document.getElementById('newExpCatEmoji').value=c.e;
+  renderExpCatColorSwatches(c.color);
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('edit',14)} 카테고리 수정`;
+  document.getElementById('expCatSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
+}
+
+// 새 카테고리 추가 / 기존 카테고리 수정 저장.
+function saveExpenseCatForm(){
+  const name=document.getElementById('newExpCatName').value.trim();
+  const emoji=document.getElementById('newExpCatEmoji').value.trim()||'📦';
+  const color=pendingExpCatColor||FL_COLOR_PALETTE[0];
+  if(!name){alert('카테고리 이름을 입력해줘');return;}
+  if(editingExpenseCatName){
+    if(name!==editingExpenseCatName&&EXPENSE_CATS.some(c=>c.n===name)){alert('이미 있는 카테고리 이름이에요');return;}
+    if(name!==editingExpenseCatName)renameExpenseCatInEntries(editingExpenseCatName,name);
+    EXPENSE_CATS=EXPENSE_CATS.map(c=>c.n===editingExpenseCatName?{n:name,e:emoji,color}:c);
+    editingExpenseCatName=null;
+  }else{
+    if(EXPENSE_CATS.some(c=>c.n===name)){alert('이미 있는 카테고리 이름이에요');return;}
+    EXPENSE_CATS=[...EXPENSE_CATS,{n:name,e:emoji,color}];
+  }
+  saveExpenseCats(EXPENSE_CATS);
+  document.getElementById('newExpCatName').value='';
+  document.getElementById('newExpCatEmoji').value='';
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14)} 카테고리 추가`;
+  document.getElementById('expCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
+  renderExpCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
+  renderExpenseCatsList();
+  renderBudget();
+}
+
+// 카테고리 이름을 바꿀 때, 이미 저장된 모든 달의 변동지출 항목에서 옛 이름을 새 이름으로 바꿔줌.
+function renameExpenseCatInEntries(oldName,newName){
+  getAllEntryMonths().forEach(({ym,entries})=>{
+    let changed=false;
+    const updated=entries.map(e=>{
+      if(e.type==='expense'&&e.cat===oldName){changed=true;return {...e,cat:newName};}
+      return e;
+    });
+    if(changed){
+      const [y,m]=ym.split('-');
+      S.setEntries(parseInt(y),parseInt(m)-1,updated);
+    }
+  });
 }

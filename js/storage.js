@@ -55,6 +55,13 @@ function getFixedItems(){
 }
 function saveFixedItems(arr){Storage._set('fixed_items',arr);}
 
+function getExpenseCats(){
+  const custom=Storage._get('expense_cats',null);
+  if(custom&&custom.length)return custom;
+  return CATS.expense.map((c,i)=>({n:c.n,e:c.e,color:EXPENSE_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
+}
+function saveExpenseCats(arr){Storage._set('expense_cats',arr);}
+
 function getFreelanceProjects(){
   return Storage._get('freelance_projects',[]);
 }
