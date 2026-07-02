@@ -89,7 +89,7 @@ main{padding:14px;display:flex;flex-direction:column;gap:14px;}
 .top5-row.clickable{cursor:pointer;}
 
 /* ── 연간 요약 잔여 pill ── */
-.year-remain-pill{flex-shrink:0;background:var(--freelance-tint);border-radius:99px;padding:4px 10px;text-align:center;min-width:0;}
+.year-remain-pill{flex-shrink:0;background:var(--budget-tint);border-radius:99px;padding:4px 10px;text-align:left;width:76px;box-sizing:border-box;}
 .year-remain-pill span{font-size:10.5px;font-weight:800;white-space:nowrap;}
 
 /* ── 무지출 챌린지 배지 ── */
