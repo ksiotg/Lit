@@ -68,18 +68,25 @@ main{padding:14px;display:flex;flex-direction:column;gap:14px;}
 .card-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
 
 /* ── TOP5 ── */
-.top5-inner{display:flex;gap:12px;padding:12px 16px 16px;align-items:center;}
-.top5-list{flex:1;display:flex;flex-direction:column;gap:7px;}
+.top5-inner{display:flex;flex-direction:column;gap:4px;padding:8px 16px 6px;}
+.top5-list{flex:1;display:flex;flex-direction:column;gap:7px;margin-top:8px;}
 .top5-row{display:flex;align-items:center;gap:6px;}
 .top5-num{font-size:10px;font-weight:700;color:var(--muted);width:12px;flex-shrink:0;}
-.top5-info{flex:1;}
+.top5-info{flex:1;min-width:0;}
 .top5-name{font-size:11px;font-weight:600;}
 .top5-bar-track{height:3px;background:#f0f0f5;border-radius:99px;margin-top:3px;overflow:hidden;}
 .top5-bar-fill{height:100%;border-radius:99px;}
-.top5-right{text-align:right;}
+.top5-right{text-align:right;flex-shrink:0;}
 .top5-amt{font-size:11px;font-weight:700;}
 .top5-pct{font-size:9px;color:var(--muted);}
-.pie-wrap{width:90px;height:90px;flex-shrink:0;}
+.pie-wrap{width:100%;height:190px;}
+.top5-more-btn{display:block;width:calc(100% - 32px);margin:12px 16px 16px;padding:10px;background:var(--bg);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;}
+.top5-more-btn:hover{color:var(--text);}
+.top5-row.clickable{cursor:pointer;}
+
+/* ── 연간 요약 잔여 pill ── */
+.year-remain-pill{flex-shrink:0;background:var(--freelance-tint);border-radius:99px;padding:4px 10px;text-align:center;min-width:0;}
+.year-remain-pill span{font-size:10.5px;font-weight:800;white-space:nowrap;}
 
 /* ── 무지출 챌린지 배지 ── */
 .nospend-challenge{margin:6px 16px 0;padding:6px 10px;background:#dcfce7;color:#16a34a;font-size:11px;font-weight:700;border-radius:8px;display:inline-block;}
