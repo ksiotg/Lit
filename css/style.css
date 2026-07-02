@@ -294,11 +294,11 @@ flex-shrink:0;
 .review-dot{width:6px;height:6px;border-radius:50%;background:var(--income);margin-top:2px;}
 .weekly-sum-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
 .weekly-sum-row:last-child{border-bottom:none;}
-.weekly-sum-week{font-size:11px;font-weight:700;color:var(--muted);min-width:56px;}
-.weekly-sum-bar-wrap{flex:1;margin:0 10px;}
+.weekly-sum-week{font-size:10.5px;font-weight:700;color:var(--muted);min-width:74px;max-width:84px;line-height:1.35;}
+.weekly-sum-bar-wrap{flex:1;margin:0 8px;}
 .weekly-sum-bar{height:6px;background:#f0f0f5;border-radius:99px;overflow:hidden;}
 .weekly-sum-fill{height:100%;border-radius:99px;background:var(--income);}
-.weekly-sum-pct{font-size:11px;font-weight:800;color:var(--income);min-width:32px;text-align:right;}
+.weekly-sum-pct{font-size:11px;font-weight:800;color:var(--income);min-width:58px;text-align:right;white-space:nowrap;}
 .streak-badge{display:inline-flex;align-items:center;gap:4px;background:#fef3c7;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:800;color:#b45309;}
 
 /* ── 루틴 관리 팝업 ── */
