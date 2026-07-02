@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 </head>
 <body>
 
@@ -37,14 +37,15 @@
 <!-- 가계부 페이지 -->
 <div id="page-budget" style="display:none">
   <div class="page-header">
-    <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
-      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
-      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
-      <button class="tl-btn budget-tl on" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
-      <span class="tl-label">가계부</span>
+      <div class="tab-emoji">💶</div>
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl on" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
+      </div>
     </div>
     <div class="nav-row">
       <button class="nav-btn" onclick="chMonth(-1)">‹</button>
@@ -70,14 +71,15 @@
 <!-- 루틴 페이지 -->
 <div id="page-routine" style="display:none">
   <div class="page-header">
-    <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
-      <button class="tl-btn routine-tl on" onclick="switchPage('routine')" title="루틴"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
-      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
-      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
-      <span class="tl-label">루틴</span>
+      <div class="tab-emoji">✨</div>
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl on" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
+      </div>
     </div>
     <div class="nav-row">
       <button class="nav-btn" onclick="chRoutineMonth(-1)">‹</button>
@@ -95,14 +97,15 @@
 <!-- 운동 페이지 -->
 <div id="page-workout" style="display:none">
   <div class="page-header">
-    <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
-      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
-      <button class="tl-btn workout-tl on" onclick="switchPage('workout')" title="운동"></button>
-      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
-      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
-      <span class="tl-label">운동기록</span>
+      <div class="tab-emoji">🥊</div>
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl on" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
+      </div>
     </div>
     <div class="nav-row">
       <button class="nav-btn" onclick="chWorkoutMonth(-1)">‹</button>
@@ -116,14 +119,15 @@
 <!-- 회고 페이지 -->
 <div id="page-review" style="display:none">
   <div class="page-header">
-    <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
-      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
-      <button class="tl-btn review-tl on" onclick="switchPage('review')" title="회고"></button>
-      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
-      <span class="tl-label">회고</span>
+      <div class="tab-emoji">🛋️</div>
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl on" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
+      </div>
     </div>
     <div class="nav-row">
       <button class="nav-btn" onclick="chReviewMonth(-1)">‹</button>
@@ -137,14 +141,15 @@
 <!-- 외주 페이지 -->
 <div id="page-freelance" style="display:none">
   <div class="page-header">
-    <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
-      <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
-      <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
-      <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn freelance-tl on" onclick="switchPage('freelance')" title="외주"></button>
-      <span class="tl-label">외주</span>
+      <div class="tab-emoji">🦄</div>
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl on" onclick="switchPage('freelance')" title="외주"></button>
+      </div>
     </div>
     <div class="nav-row">
       <button class="nav-btn" onclick="chFlMonth(-1)">‹</button>
@@ -481,19 +486,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=24"></script>
-<script src="js/data-state.js?v=24"></script>
-<script src="js/storage.js?v=24"></script>
-<script src="js/utils.js?v=24"></script>
-<script src="js/backup.js?v=24"></script>
-<script src="js/auth.js?v=24"></script>
-<script src="js/page-switch.js?v=24"></script>
-<script src="js/budget.js?v=24"></script>
-<script src="js/routine.js?v=24"></script>
-<script src="js/routine-mgmt.js?v=24"></script>
-<script src="js/workout.js?v=24"></script>
-<script src="js/review.js?v=24"></script>
-<script src="js/freelance.js?v=24"></script>
-<script src="js/main.js?v=24"></script>
+<script src="js/supabase-client.js?v=25"></script>
+<script src="js/data-state.js?v=25"></script>
+<script src="js/storage.js?v=25"></script>
+<script src="js/utils.js?v=25"></script>
+<script src="js/backup.js?v=25"></script>
+<script src="js/auth.js?v=25"></script>
+<script src="js/page-switch.js?v=25"></script>
+<script src="js/budget.js?v=25"></script>
+<script src="js/routine.js?v=25"></script>
+<script src="js/routine-mgmt.js?v=25"></script>
+<script src="js/workout.js?v=25"></script>
+<script src="js/review.js?v=25"></script>
+<script src="js/freelance.js?v=25"></script>
+<script src="js/main.js?v=25"></script>
 </body>
 </html>
