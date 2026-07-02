@@ -36,8 +36,9 @@ function renderRoutine(){
   }
   const mc=document.getElementById('routineMain');mc.innerHTML='';
   // PC 대시보드에서는 전부 넓게 봐야 하는 위젯들이라 card-wide로 표시함
-  const tableCard=buildRoutineTable();tableCard.classList.add('card-wide');mc.appendChild(tableCard);
+  // 달력을 맨 위로 올려서 한눈에 이번 달 상황부터 보이게 함
   const calCard=buildRoutineCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
+  const tableCard=buildRoutineTable();tableCard.classList.add('card-wide');mc.appendChild(tableCard);
   const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
 }
 
@@ -208,6 +209,7 @@ function buildRoutineCal(){
 
     const cell=mkDiv(`rcal-cell ${isT?'today':''} ${dow===5?'sat':''} ${dow===6?'sun':''}`);
     if(bgColor)cell.style.background=bgColor;
+    cell.onclick=()=>openRoutineDayDetail(rY,rM,d);
     const dayEl=mkDiv('rcal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     if(!isFuture){
       const dots=mkDiv('rcal-dots');
@@ -257,4 +259,19 @@ function buildMonthlyAchievement(){
   }
   return card;
 }
+
+// ─── 루틴 달력 날짜 클릭 시 그날 달성한 루틴 목록 팝업 ────────────────────────────
+function openRoutineDayDetail(y,m,d){
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('routineDayTitle').textContent=`${y}년 ${months[m]} ${d}일`;
+  const done=ROUTINES.filter(r=>getRoutineChecked(r,y,m,d));
+  const content=document.getElementById('routineDayContent');
+  if(!done.length){
+    content.innerHTML='<div class="empty">이 날 달성한 루틴이 없어요</div>';
+  }else{
+    content.innerHTML=done.map(r=>`<div class="rmgmt-item" style="margin-bottom:0;"><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${PERIOD_LABEL[r.period]} · ${CAT_LABELS[r.cat]}</div></div></div>`).join('');
+  }
+  document.getElementById('routineDayPopup').classList.add('open');
+}
+function closeRoutineDayPopup(e){if(e.target===document.getElementById('routineDayPopup'))document.getElementById('routineDayPopup').classList.remove('open');}
 
