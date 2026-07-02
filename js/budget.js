@@ -34,29 +34,16 @@ function renderBudget(){
   document.getElementById('sumExpense').textContent=fmt(fe);
   const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color=rem<0?'var(--expense)':'var(--remain)';
   const mc=document.getElementById('budgetMain');mc.innerHTML='';
-  if(curView==='month'){mc.appendChild(buildTop5());mc.appendChild(buildFreelanceIncome());mc.appendChild(buildFixed());mc.appendChild(buildBudgetCal());}
-  else mc.appendChild(buildYear());
-}
-
-function buildFreelanceIncome(){
-  const entries=S.getEntries(curY,curM).filter(e=>e.type==='income'&&e.cat==='외주');
-  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">💻 프리랜서 수입</span></div>';
-  const inner=document.createElement('div');inner.style.cssText='padding:10px 16px 16px;display:flex;flex-direction:column;gap:7px;';
-  if(!entries.length){inner.innerHTML='<div class="empty">이번 달 프리랜서 수입이 없어요</div>';}
-  else{
-    entries.forEach(e=>{
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:10px;padding:9px 12px;';
-      row.innerHTML=`<div style="font-size:12px;font-weight:600;">${e.emoji||'💻'} ${e.name}</div><div style="font-size:13px;font-weight:800;color:var(--income);">${fmt(e.amount)}</div>`;
-      inner.appendChild(row);
-    });
-    const total=entries.reduce((s,e)=>s+e.amount,0);
-    const totalRow=document.createElement('div');
-    totalRow.style.cssText='display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);margin-top:2px;';
-    totalRow.innerHTML=`<span style="font-size:11px;color:var(--muted);font-weight:700;">합계</span><span style="font-size:13px;font-weight:800;color:var(--income);">${fmt(total)}</span>`;
-    inner.appendChild(totalRow);
+  // "이달의 외주수입" 위젯은 제거함 — 외주 탭이 따로 생겨서 거기서 확인하면 되고,
+  // 가계부에 중복으로 보여줄 필요가 없어짐.
+  if(curView==='month'){
+    mc.appendChild(buildTop5());
+    mc.appendChild(buildFixed());
+    // 캘린더는 PC 대시보드에서 항상 전체 폭을 차지하게 함 (card-wide)
+    const calCard=buildBudgetCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
+  }else{
+    const yearCard=buildYear();yearCard.classList.add('card-wide');mc.appendChild(yearCard);
   }
-  card.appendChild(inner);return card;
 }
 
 // 이번 달 변동지출을 카테고리별로 합산해서 금액 많은 순으로 정렬해서 반환.

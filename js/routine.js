@@ -35,9 +35,10 @@ function renderRoutine(){
     curWeekStart=getWeekStart(rY,rM,refDate.getDate());
   }
   const mc=document.getElementById('routineMain');mc.innerHTML='';
-  mc.appendChild(buildRoutineTable());
-  mc.appendChild(buildRoutineCal());
-  mc.appendChild(buildMonthlyAchievement());
+  // PC 대시보드에서는 전부 넓게 봐야 하는 위젯들이라 card-wide로 표시함
+  const tableCard=buildRoutineTable();tableCard.classList.add('card-wide');mc.appendChild(tableCard);
+  const calCard=buildRoutineCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
+  const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
 }
 
 function buildRoutineTable(){

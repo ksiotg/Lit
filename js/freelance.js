@@ -39,7 +39,9 @@ function renderFreelance(){
   document.getElementById('flSumDday').textContent=dueSoon.length+'건';
   document.getElementById('flSumDone').textContent=fmt(doneTotal);
   const main=document.getElementById('freelanceMain');main.innerHTML='';
-  main.appendChild(flView==='project'?buildFlProjectList():buildFlClientList());
+  const listCard=flView==='project'?buildFlProjectList():buildFlClientList();
+  listCard.classList.add('card-wide');
+  main.appendChild(listCard);
 }
 
 // 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌. 하나만 있으면 그것만 표시.

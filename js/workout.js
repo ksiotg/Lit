@@ -4,7 +4,7 @@ function chWorkoutMonth(d){wM+=d;if(wM>11){wM=0;wY++;}if(wM<0){wM=11;wY--;}rende
 function renderWorkout(){
   document.getElementById('workoutMonthLabel').textContent=`${wY}년 ${wM+1}월`;
   const mc=document.getElementById('workoutMain');mc.innerHTML='';
-  mc.appendChild(buildWorkoutCal());
+  const calCard=buildWorkoutCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
   mc.appendChild(buildWorkoutStats());
 }
 

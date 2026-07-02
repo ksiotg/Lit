@@ -6,7 +6,7 @@ function renderReview(){
   document.getElementById('reviewMonthLabel').textContent=`${rvY}년 ${rvM+1}월`;
   const mc=document.getElementById('reviewMain');mc.innerHTML='';
   mc.appendChild(buildReviewToday());
-  mc.appendChild(buildReviewCal());
+  const calCard=buildReviewCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
   mc.appendChild(buildWeeklySummary());
 }
 
