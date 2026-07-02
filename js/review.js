@@ -88,9 +88,14 @@ function buildWeeklySummary(){
   const weekKeys=Object.keys(weeks);
   weekKeys.forEach((wk,wi)=>{
     const w=weeks[wk];
+    const weekEnd=new Date(w.start);weekEnd.setDate(w.start.getDate()+6);
     const startM=w.start.getMonth();
     const startW=getWeekOfMonth(w.start.getFullYear(),startM,w.start.getDate());
-    w.label=`${startM+1}월 ${startW}주`;
+    const endM=weekEnd.getMonth();
+    const endW=getWeekOfMonth(weekEnd.getFullYear(),endM,weekEnd.getDate());
+    // 주가 두 달에 걸치면(예: 6월 마지막 주 = 7월 첫째 주) 두 라벨을 함께 표시해서
+    // "6월 5주"만 보고 실제로는 7월 날짜라 헷갈리는 걸 방지함.
+    w.label = startM===endM ? `${startM+1}월 ${startW}주차` : `${startM+1}월 ${startW}주차 / ${endM+1}월 ${endW}주차`;
     let done=0,total=0;
     w.days.forEach(d=>{
       const date=new Date(rvY,rvM,d);
@@ -101,7 +106,7 @@ function buildWeeklySummary(){
     if(total===0)return;
     const pct=Math.round(done/total*100);
     const row=mkDiv('weekly-sum-row');
-    row.innerHTML=`<span class="weekly-sum-week">${w.label}</span><div class="weekly-sum-bar-wrap"><div class="weekly-sum-bar"><div class="weekly-sum-fill" style="width:${pct}%"></div></div></div><span class="weekly-sum-pct">${done}/${total}일</span>`;
+    row.innerHTML=`<span class="weekly-sum-week">${w.label}</span><div class="weekly-sum-bar-wrap"><div class="weekly-sum-bar"><div class="weekly-sum-fill" style="width:${pct}%"></div></div></div><span class="weekly-sum-pct">${total}일 중 ${done}일</span>`;
     inner.appendChild(row);
   });
   if(!inner.children.length)inner.innerHTML='<div class="empty">아직 기록이 없어요</div>';
