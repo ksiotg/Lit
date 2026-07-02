@@ -53,6 +53,7 @@
           <button class="view-btn active" id="vbtn-month" onclick="setView('month')">월간</button>
           <button class="view-btn" id="vbtn-year" onclick="setView('year')">연간</button>
         </div>
+        <button class="nav-btn" onclick="openBudgetSettings()" title="가계부 설정" style="font-size:13px;">⚙️</button>
         <button class="nav-btn" onclick="chMonth(1)">›</button>
       </div>
     </div>
@@ -190,6 +191,31 @@
   </div>
 </div>
 
+<!-- 가계부 설정 팝업 -->
+<div class="routine-mgmt-popup" id="budgetSettingsPopup" onclick="closeBudgetSettings(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;">⚙️ 가계부 설정</div>
+      <button onclick="document.getElementById('budgetSettingsPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div class="add-routine-form-title" style="margin-bottom:8px;">💼 고정 수입 (매월 자동 반영)</div>
+    <div id="fixedIncomeList" style="margin-bottom:14px;"></div>
+    <div class="add-routine-form">
+      <div class="add-routine-form-title">+ 고정 수입 추가</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">이름</label><input class="fi" id="newFiName" placeholder="월급"></div>
+        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newFiEmoji" placeholder="💼" style="font-size:18px;text-align:center;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">받는 날 (일)</label><input class="fi" id="newFiDay" type="number" min="1" max="31" placeholder="10"></div>
+        <div class="fg"><label class="fl">금액</label><input class="fi" id="newFiAmount" type="number" placeholder="0"></div>
+      </div>
+      <button class="add-btn" onclick="saveNewFixedIncome()">추가하기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 회고 작성 팝업 -->
 <div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
   <div class="popup">
@@ -198,6 +224,7 @@
       <div class="popup-date-label" id="reviewPopupDate"></div>
       <div style="font-size:12px;color:var(--muted);margin-top:2px;">오늘 하루를 돌아봐요</div>
     </div>
+    <div class="popup-day-actions" id="reviewPopupActions"></div>
     <div id="reviewQuestions"></div>
     <div style="padding:0 16px 8px;">
       <div class="review-q-label">📝 자유 메모</div>
@@ -252,6 +279,7 @@
     <div class="popup-bar" style="margin:0 auto 16px"></div>
     <div class="workout-title">🥊 운동 기록</div>
     <div class="workout-sub" id="workoutPopupDate"></div>
+    <div class="popup-day-actions" id="workoutPopupActions"></div>
     <div id="workoutPopupList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:50vh;overflow-y:auto;padding-right:4px;"></div>
     <button class="add-btn" style="background:var(--bg);color:var(--text);margin-bottom:12px;margin-top:0;" onclick="addWorkoutField()">+ 운동 추가</button>
     <button class="workout-save" onclick="saveWorkoutMemo()">저장하기</button>
