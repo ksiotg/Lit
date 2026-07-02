@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=6">
+<link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
 
@@ -259,9 +259,15 @@
     <div class="popup-form">
       <div class="form-title">내역 추가</div>
       <div class="type-row">
-        <button class="type-btn income active" onclick="setType('income',this)">+ 수입</button>
-        <button class="type-btn expense" onclick="setType('expense',this)">− 지출</button>
+        <button class="type-btn expense active" onclick="setType('expense',this)">− 지출</button>
+        <button class="type-btn income" onclick="setType('income',this)">+ 수입</button>
       </div>
+      <div class="form-grid" id="normalFields">
+        <div class="fg"><label class="fl">금액</label><input class="fi" id="nAmount" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fl">카테고리</label><select class="fi" id="nCategory"></select></div>
+        <div class="fg full"><label class="fl">메모</label><input class="fi" id="nMemo" placeholder="내용"></div>
+      </div>
+      <div class="fg" id="incomeCatRow" style="display:none;margin-bottom:8px"><label class="fl">카테고리</label><select class="fi" id="fCategory" onchange="onIncomeCatChange()"></select></div>
       <div class="fg-freelance" id="freelanceFields">
         <div class="fg-freelance-grid">
           <div class="fg"><label class="fl">클라이언트명</label><input class="fi" id="fClient" placeholder="클라이언트"></div>
@@ -276,13 +282,10 @@
           <div class="tax-item"><div class="tax-item-label">실수령액</div><div class="tax-item-val" id="taxNet">₩0</div></div>
         </div>
       </div>
-      <div class="form-grid" id="normalFields">
-        <div class="fg"><label class="fl">금액</label><input class="fi" id="nAmount" type="number" placeholder="0"></div>
-        <div class="fg"><label class="fl">카테고리</label><select class="fi" id="nCategory"></select></div>
-        <div class="fg full"><label class="fl">메모</label><input class="fi" id="nMemo" placeholder="내용"></div>
+      <div class="form-grid" id="incomeSimpleFields" style="display:none;">
+        <div class="fg"><label class="fl">금액</label><input class="fi" id="fSimpleAmount" type="number" placeholder="0"></div>
+        <div class="fg full"><label class="fl">메모</label><input class="fi" id="fSimpleMemo" placeholder="내용"></div>
       </div>
-      <div class="fg" id="freelanceCatRow" style="display:none;margin-bottom:8px"><label class="fl">카테고리</label><select class="fi" id="fCategory"></select></div>
-      <div class="fg" id="freelanceMemoRow" style="display:none;margin-bottom:0"><label class="fl">메모</label><input class="fi" id="fMemo" placeholder="메모"></div>
       <button class="add-btn" onclick="addEntry()">추가하기</button>
     </div>
   </div>
@@ -302,18 +305,18 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=6"></script>
-<script src="js/data-state.js?v=6"></script>
-<script src="js/storage.js?v=6"></script>
-<script src="js/utils.js?v=6"></script>
-<script src="js/backup.js?v=6"></script>
-<script src="js/auth.js?v=6"></script>
-<script src="js/page-switch.js?v=6"></script>
-<script src="js/budget.js?v=6"></script>
-<script src="js/routine.js?v=6"></script>
-<script src="js/routine-mgmt.js?v=6"></script>
-<script src="js/workout.js?v=6"></script>
-<script src="js/review.js?v=6"></script>
-<script src="js/main.js?v=6"></script>
+<script src="js/supabase-client.js?v=7"></script>
+<script src="js/data-state.js?v=7"></script>
+<script src="js/storage.js?v=7"></script>
+<script src="js/utils.js?v=7"></script>
+<script src="js/backup.js?v=7"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/page-switch.js?v=7"></script>
+<script src="js/budget.js?v=7"></script>
+<script src="js/routine.js?v=7"></script>
+<script src="js/routine-mgmt.js?v=7"></script>
+<script src="js/workout.js?v=7"></script>
+<script src="js/review.js?v=7"></script>
+<script src="js/main.js?v=7"></script>
 </body>
 </html>
