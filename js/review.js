@@ -19,7 +19,7 @@ function buildReviewToday(){
   card.appendChild(header);
   if(todayReview){
     const done=mkDiv('');done.style.cssText='padding:14px 16px;';
-    done.innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--income);margin-bottom:8px;">✅ 오늘 회고 완료!</div>`;
+    done.innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--review);margin-bottom:8px;">✅ 오늘 회고 완료!</div>`;
     REVIEW_QUESTIONS.forEach(q=>{
       const answer=todayReview.answers?.[q.id]||'';
       const row=mkDiv('');row.style.cssText='margin-bottom:10px;';
