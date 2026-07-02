@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=14">
+<link rel="stylesheet" href="css/style.css?v=15">
 </head>
 <body>
 
@@ -40,9 +40,9 @@
     <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
       <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
       <button class="tl-btn budget-tl on" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
       <span class="tl-label">가계부</span>
     </div>
@@ -73,9 +73,9 @@
     <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
       <button class="tl-btn routine-tl on" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
       <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
       <span class="tl-label">루틴</span>
     </div>
@@ -98,9 +98,9 @@
     <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
       <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn workout-tl on" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
       <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn workout-tl on" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
       <span class="tl-label">운동기록</span>
     </div>
@@ -119,9 +119,9 @@
     <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
       <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn review-tl on" onclick="switchPage('review')" title="회고"></button>
       <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
       <span class="tl-label">회고</span>
     </div>
@@ -140,9 +140,9 @@
     <div class="brand">⚡ Lit</div>
     <div class="traffic-light">
       <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
       <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
-      <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
       <button class="tl-btn freelance-tl on" onclick="switchPage('freelance')" title="외주"></button>
       <span class="tl-label">외주</span>
     </div>
@@ -154,9 +154,9 @@
       <button class="nav-btn" onclick="openFreelanceForm()" title="새 프로젝트" style="width:auto;padding:0 12px;font-size:12px;font-weight:800;">+ 추가</button>
     </div>
     <div class="sum-grid">
-      <div class="sum-card"><div class="sum-icon">📁</div><div class="sum-label">진행중</div><div class="sum-val" id="flSumProgress" style="color:var(--income)">0건</div></div>
+      <div class="sum-card"><div class="sum-icon">📁</div><div class="sum-label">진행중</div><div class="sum-val" id="flSumProgress" style="color:var(--freelance)">0건</div></div>
       <div class="sum-card"><div class="sum-icon">⏰</div><div class="sum-label">기한임박</div><div class="sum-val" id="flSumDday" style="color:var(--expense)">0건</div></div>
-      <div class="sum-card"><div class="sum-icon">✅</div><div class="sum-label">누적 완료수입</div><div class="sum-val" id="flSumDone" style="color:var(--remain)">₩0</div></div>
+      <div class="sum-card"><div class="sum-icon">✅</div><div class="sum-label">누적 완료수입</div><div class="sum-val" id="flSumDone" style="color:var(--freelance)">₩0</div></div>
     </div>
   </div>
   <main id="freelanceMain"></main>
@@ -389,19 +389,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=14"></script>
-<script src="js/data-state.js?v=14"></script>
-<script src="js/storage.js?v=14"></script>
-<script src="js/utils.js?v=14"></script>
-<script src="js/backup.js?v=14"></script>
-<script src="js/auth.js?v=14"></script>
-<script src="js/page-switch.js?v=14"></script>
-<script src="js/budget.js?v=14"></script>
-<script src="js/routine.js?v=14"></script>
-<script src="js/routine-mgmt.js?v=14"></script>
-<script src="js/workout.js?v=14"></script>
-<script src="js/review.js?v=14"></script>
-<script src="js/freelance.js?v=14"></script>
-<script src="js/main.js?v=14"></script>
+<script src="js/supabase-client.js?v=15"></script>
+<script src="js/data-state.js?v=15"></script>
+<script src="js/storage.js?v=15"></script>
+<script src="js/utils.js?v=15"></script>
+<script src="js/backup.js?v=15"></script>
+<script src="js/auth.js?v=15"></script>
+<script src="js/page-switch.js?v=15"></script>
+<script src="js/budget.js?v=15"></script>
+<script src="js/routine.js?v=15"></script>
+<script src="js/routine-mgmt.js?v=15"></script>
+<script src="js/workout.js?v=15"></script>
+<script src="js/review.js?v=15"></script>
+<script src="js/freelance.js?v=15"></script>
+<script src="js/main.js?v=15"></script>
 </body>
 </html>
