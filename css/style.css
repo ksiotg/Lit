@@ -6,7 +6,8 @@
   --freelance:#8b5cf6;--freelance-tint:#ede9fe;
   --review:#0080f5;--review-tint:#dceeff;
   --routine:#f0932b;--routine-tint:#fef3e2;
-  --budget:#22c55e;--workout:#ef4444;
+  --budget:#22c55e;--budget-tint:#dcfce7;
+  --workout:#ef4444;--workout-tint:#fee2e2;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -14,9 +15,9 @@ html{color-scheme:light only;background:#fff!important;}
 body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6fb!important;color:#1a1d2e!important;max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;-webkit-text-size-adjust:100%;}
 
 /* ── 신호등 (텍스트/이모지 제목 없이 점만, 가운데 정렬) ── */
-.traffic-light{display:flex;align-items:center;justify-content:center;padding:14px 24px 10px;}
-.tl-dots{display:flex;gap:8px;align-items:center;}
-.tl-btn{width:11px;height:11px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
+.traffic-light{display:flex;align-items:center;justify-content:center;padding:14px 48px 25px;}
+.tl-dots{display:flex;gap:9px;align-items:center;}
+.tl-btn{width:13px;height:13px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
 .tl-btn.routine-tl{background:#9c5b0a;}
 .tl-btn.budget-tl{background:#166534;}
 .tl-btn.workout-tl{background:#991b1b;}
@@ -31,7 +32,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
 .nav-row{display:flex;align-items:center;justify-content:space-between;padding:0 24px 8px;}
-.nav-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:9px;font-size:15px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
+.nav-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:9px;font-size:15px;cursor:pointer;color:var(--text);display:inline-flex;align-items:center;justify-content:center;}
 .page-title{font-size:16px;font-weight:800;letter-spacing:-0.5px;}
 /* ── 상단 월 표기를 각 탭 테마색으로 볼드 강조 ── */
 #page-routine .page-title{color:var(--routine);font-weight:800;}
@@ -40,8 +41,19 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-review .page-title{color:var(--review);font-weight:800;}
 #page-freelance .page-title{color:var(--freelance);font-weight:800;}
 .view-toggle{display:flex;gap:3px;}
-.view-btn{background:var(--bg);border:none;padding:5px 9px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.view-btn{background:var(--bg);border:none;height:32px;padding:0 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;}
 .view-btn.active{background:var(--text);color:#fff;}
+/* ── 상단 월 이동/뷰 토글 버튼: 탭 테마색 옅은 배경 + 진한 텍스트, 활성시 꽉 찬 테마색 ── */
+#page-routine .nav-btn,#page-routine .view-btn{background:var(--routine-tint);color:var(--routine);}
+#page-routine .view-btn.active{background:var(--routine);color:#fff;}
+#page-budget .nav-btn,#page-budget .view-btn{background:var(--budget-tint);color:var(--budget);}
+#page-budget .view-btn.active{background:var(--budget);color:#fff;}
+#page-workout .nav-btn,#page-workout .view-btn{background:var(--workout-tint);color:var(--workout);}
+#page-workout .view-btn.active{background:var(--workout);color:#fff;}
+#page-review .nav-btn,#page-review .view-btn{background:var(--review-tint);color:var(--review);}
+#page-review .view-btn.active{background:var(--review);color:#fff;}
+#page-freelance .nav-btn,#page-freelance .view-btn{background:var(--freelance-tint);color:var(--freelance);}
+#page-freelance .view-btn.active{background:var(--freelance);color:#fff;}
 
 /* ── 가계부 summary ── */
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 21px;}
@@ -216,6 +228,7 @@ flex-shrink:0;
 .workout-cal-cell.today{border-color:var(--expense);background:#fef2f2;}
 .workout-cal-cell.has-workout{background:#fff1f1;}
 .workout-icon{font-size:12px;margin-top:2px;}
+#page-workout .fixed-footer-val{color:var(--workout);}
 
 /* ── 팝업 ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
@@ -364,7 +377,6 @@ flex-shrink:0;
 .fl-payment-date{font-size:12px;color:var(--muted);font-weight:600;}
 .fl-payment-amt{font-size:13px;font-weight:800;color:var(--freelance);}
 /* 외주 탭 전용 포인트 컬러 오버라이드 (다른 탭에서 재사용하는 공용 클래스는 스코프를 좁혀서 여기서만 보라색 적용) */
-#page-freelance .view-btn.active{background:var(--freelance);}
 #freelanceFormPopup .tax-preview{background:var(--freelance-tint);}
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
