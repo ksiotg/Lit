@@ -67,11 +67,9 @@ function buildTop5(){
   }
   const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
   const list=mkDiv('top5-list');
-  const pieLabels=[];
   sorted.forEach(([cat,amt],i)=>{
     const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦',color:PIE_COLORS[i%PIE_COLORS.length]};
     const pct=grandTotal?Math.round(amt/grandTotal*100):0,color=ci.color;
-    pieLabels.push(`${ci.e} ${pct}%`);
     const row=mkDiv('top5-row');
     row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat} <span class="top5-pct">${pct}%</span></div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div></div>`;
     list.appendChild(row);
@@ -82,30 +80,41 @@ function buildTop5(){
   moreBtn.onclick=()=>openCatAllPopup();
   card.appendChild(moreBtn);
   if(pieChart)pieChart.destroy();
-  // 카테고리별 고정 색상 적용. TOP5 이후 항목은 톤다운된 회색으로 묶어서 보여줌.
-  const colors=allSorted.map(([cat],i)=>{if(i>=5)return '#e5e7eb';const ci=EXPENSE_CATS.find(c=>c.n===cat);return ci?ci.color:PIE_COLORS[i%PIE_COLORS.length];});
-  // 완전한 파이(도넛 아님) + TOP5 조각에 이모지·퍼센트 라벨을 직접 그려주는 커스텀 플러그인.
+  // 파이차트는 이제 전체 카테고리를 각자 고유 색으로 표시 (TOP5 톤다운 없음).
+  const pieLabels=[];
+  const colors=allSorted.map(([cat,amt],i)=>{
+    const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦',color:PIE_COLORS[i%PIE_COLORS.length]};
+    const pct=grandTotal?Math.round(amt/grandTotal*100):0;
+    pieLabels.push(`${ci.e} ${pct}%`);
+    return ci.color;
+  });
+  // 완전한 파이(도넛 아님) + 각 조각 바깥쪽에 리더라인 + 이모지·퍼센트 라벨을 그려주는 커스텀 플러그인.
+  // (파이 안쪽에 그리면 조각이 좁을 때 라벨이 잘려서, 조각 밖으로 선을 빼서 라벨을 붙임)
   const pieLabelPlugin={
-    id:'pieTop5Labels',
+    id:'pieOuterLabels',
     afterDatasetsDraw(chart){
       const {ctx}=chart;
       const meta=chart.getDatasetMeta(0);
       meta.data.forEach((arc,i)=>{
         if(i>=pieLabels.length)return;
-        const props=arc.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'],true);
+        const props=arc.getProps(['startAngle','endAngle','outerRadius','x','y'],true);
         const mid=(props.startAngle+props.endAngle)/2;
-        const r=(props.innerRadius+props.outerRadius)/2*0.72;
-        const lx=props.x+Math.cos(mid)*r,ly=props.y+Math.sin(mid)*r;
+        const cos=Math.cos(mid),sin=Math.sin(mid);
+        const r1=props.outerRadius+6,r2=props.outerRadius+22;
+        const sx=props.x+cos*r1,sy=props.y+sin*r1;
+        const ex=props.x+cos*r2,ey=props.y+sin*r2;
         ctx.save();
+        ctx.strokeStyle='#c7cad1';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
         ctx.font='700 11px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillStyle='#fff';
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(pieLabels[i],lx,ly);
+        ctx.fillStyle='#555';
+        ctx.textAlign=cos>=0?'left':'right';ctx.textBaseline='middle';
+        ctx.fillText(pieLabels[i],ex+(cos>=0?3:-3),ey);
         ctx.restore();
       });
     }
   };
-  pieChart=new Chart(canvas,{type:'pie',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}},plugins:[pieLabelPlugin]});
+  pieChart=new Chart(canvas,{type:'pie',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff',radius:'62%'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:28},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}},plugins:[pieLabelPlugin]});
   return card;
 }
 
