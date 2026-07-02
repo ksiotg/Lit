@@ -296,7 +296,8 @@ flex-shrink:0;
 .review-q-answer-done{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);white-space:pre-wrap;}
 .review-memo-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;resize:none;min-height:72px;transition:border-color 0.15s;}
 .review-memo-input:focus{border-color:var(--review);}
-.review-save-btn{width:calc(100% - 32px);margin:12px 16px 16px;padding:13px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
+.review-save-btn{width:calc(100% - 32px);margin:12px 16px 16px;padding:13px;background:var(--review);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
+#page-review .add-btn{background:var(--review);}
 .review-cal-cell{border-radius:8px;padding:4px 2px;min-height:48px;cursor:pointer;transition:background 0.1s;display:flex;flex-direction:column;align-items:center;border:1px solid transparent;}
 .review-cal-cell:hover{background:var(--review-tint);}
 .review-cal-cell.empty{cursor:default;pointer-events:none;}
