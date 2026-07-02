@@ -62,7 +62,9 @@ function buildFreelanceIncome(){
 function buildTop5(){
   const entries=S.getEntries(curY,curM);
   const catMap={};entries.filter(e=>e.type==='expense').forEach(e=>{catMap[e.cat]=(catMap[e.cat]||0)+e.amount;});
-  const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  // 리스트는 TOP5만, 그래프는 전체 카테고리를 다 보여주되 TOP5 조각만 강조(하이라이트)함.
+  const allSorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const sorted=allSorted.slice(0,5);
   const total=sorted.reduce((s,[,v])=>s+v,0);
   const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">변동지출 TOP 5</span></div>';
   const inner=mkDiv('top5-inner');const list=mkDiv('top5-list');
@@ -77,7 +79,12 @@ function buildTop5(){
   const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
   inner.appendChild(list);inner.appendChild(pw);card.appendChild(inner);
   if(pieChart)pieChart.destroy();
-  if(sorted.length){pieChart=new Chart(canvas,{type:'doughnut',data:{labels:sorted.map(([c])=>c),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PIE_COLORS.slice(0,sorted.length),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});}
+  if(allSorted.length){
+    // 처음 5개(=TOP5)는 원래 색으로 살려서 튀어나오게 하고, 나머지는 톤다운된 회색으로 묶어서 보여줌.
+    const colors=allSorted.map((_,i)=>i<5?PIE_COLORS[i]:'#e5e7eb');
+    const offsets=allSorted.map((_,i)=>i<5?8:0);
+    pieChart=new Chart(canvas,{type:'doughnut',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff',offset:offsets}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+  }
   return card;
 }
 
@@ -112,9 +119,9 @@ function buildBudgetCal(){
   activeFixedIncome(curY,curM).forEach(fi=>{if(!byDay[fi.day])byDay[fi.day]=[];byDay[fi.day].push({...fi,type:'income',auto:true});});
   const card=mkDiv('card');
   card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">${curY}년 ${curM+1}월</span></div>`;
+  let noSpendCount=0;
   const dow=mkDiv('cal-dow-row');
   ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dow.appendChild(e);});
-  card.appendChild(dow);
   const grid=mkDiv('cal-grid');
   for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
   for(let d=1;d<=dim;d++){
@@ -125,16 +132,17 @@ function buildBudgetCal(){
     const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
     cell.onclick=()=>openPopup(d);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    let totExp=0;
     if(de.length){
       const totInc=de.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
-      const totExp=de.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
-      
+      totExp=de.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+
       if(totExp > 0){
         if(totExp <= 30000) cell.style.background = '#FADADD'; // 소액 지출 (연한 코랄)
         else if(totExp <= 100000) cell.style.background = '#F8C3C3'; // 중간 지출 (코랄)
         else { cell.style.background = '#F6A9A9'; } // 과소비 (진한 코랄)
       } else if (!isFuture) { cell.style.background = '#dcfce7'; } // 지출 0원 (초록)
-      
+
       if(totInc > 0){
         const incDot=mkDiv('');incDot.style.cssText='position:absolute;top:6px;right:6px;width:5px;height:5px;background:var(--income);border-radius:50%;';
         cell.appendChild(incDot);
@@ -142,9 +150,15 @@ function buildBudgetCal(){
     } else if (!isFuture) {
       cell.style.background = '#dcfce7'; // 무지출 (초록)
     }
+    // 오늘까지 지난 날짜 중 지출이 0원인 날만 무지출 챌린지 성공으로 카운트 (미래 날짜는 제외)
+    if(!isFuture && totExp===0) noSpendCount++;
     // routine dots removed for budget calendar
     grid.appendChild(cell);
   }
+  const challenge=mkDiv('nospend-challenge');
+  challenge.textContent=`이번 달 무지출 챌린지 ${noSpendCount}회 성공!`;
+  card.appendChild(challenge);
+  card.appendChild(dow);
   card.appendChild(grid);return card;
 }
 
