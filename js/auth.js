@@ -46,7 +46,7 @@ async function onAuthReady(user){
   ROUTINES=getRoutines();
   FIXED_INCOME=getFixedIncome();
   FIXED_ITEMS=getFixedItems();
-  FREELANCE_PROJECTS=flApplyAutoTransitions(getFreelanceProjects());
+  FREELANCE_PROJECTS=getFreelanceProjects();
   hideAuthGate();
   switchPage('routine');
 }
