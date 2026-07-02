@@ -1,6 +1,6 @@
 // ─── PAGE SWITCH ──────────────────────────────────────────────────────────────
 function switchPage(page){
-  ['budget','routine','workout','review','freelance'].forEach(p=>{
+  ['routine','workout','review','budget','freelance'].forEach(p=>{
     document.getElementById('page-'+p).style.display=p===page?'':'none';
   });
   if(page==='budget') renderBudget();

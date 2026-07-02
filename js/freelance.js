@@ -266,7 +266,7 @@ function openFreelanceDetail(id){
       <span style="color:${remain>0?'var(--expense)':'var(--remain)'}">${contract?(remain>0?'미정산 '+fmt(remain):'정산 완료'):''}</span>
     </div>
     <div style="height:8px;background:#f0f0f5;border-radius:99px;overflow:hidden;">
-      <div style="height:100%;width:${pct}%;background:var(--income);border-radius:99px;"></div>
+      <div style="height:100%;width:${pct}%;background:var(--freelance);border-radius:99px;"></div>
     </div>
     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:4px;">${pct}%</div>`;
 
