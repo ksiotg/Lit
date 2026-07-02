@@ -1,7 +1,8 @@
 // ─── 외주(FREELANCE) ──────────────────────────────────────────────────────────
 // 프로젝트별/클라이언트별 관리 + 마감 D-day 표시.
-// "완료 처리"는 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
-// (완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
+// 상태 흐름: 진행중 → 작업완료(마감일이 지나면 자동 전환, 미리 수동 전환도 가능) → 정산완료(입금 확인 후 수동 전환).
+// "정산완료" 처리는 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
+// (작업완료/정산완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
 // 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
 // 때마다 프로젝트를 골라 클라이언트/프로젝트명을 자동으로 채워넣을 수 있게 함.
 let flView='project'; // 'project' | 'client' | 'month'
@@ -16,6 +17,25 @@ function setFreelanceView(v){
 }
 
 function chFlMonth(d){flM+=d;if(flM>11){flM=0;flY++;}if(flM<0){flM=11;flY--;}renderFreelance();}
+
+// 상태 흐름: 진행중 → 작업완료(마감일이 지나면 자동 전환, 또는 수동으로 미리 전환 가능) → 정산완료(입금 확인 후 수동 전환).
+// 예전에 쓰던 상태 이름(정산중/완료)도 여기서 새 이름으로 자동 마이그레이션해줌.
+function flApplyAutoTransitions(list){
+  const pad=n=>String(n).padStart(2,'0');
+  const todayStr=`${TODAY.getFullYear()}-${pad(TODAY.getMonth()+1)}-${pad(TODAY.getDate())}`;
+  let changed=false;
+  const next=list.map(p=>{
+    let status=p.status;
+    if(status==='정산중')status='작업완료'; // 예전 이름 마이그레이션
+    else if(status==='완료')status='정산완료'; // 예전 이름 마이그레이션
+    else if(!status)status='진행중';
+    if(status==='진행중'&&p.dueDate&&p.dueDate<todayStr)status='작업완료'; // 마감일 경과 자동 전환
+    if(status!==p.status){changed=true;return {...p,status};}
+    return p;
+  });
+  if(changed)saveFreelanceProjects(next);
+  return next;
+}
 
 // dueDate(YYYY-MM-DD) 기준 D-day 계산. 완료된 프로젝트는 호출 안 함.
 function ddayInfo(dueDate){
@@ -34,16 +54,14 @@ function ddayInfo(dueDate){
 }
 
 function renderFreelance(){
-  FREELANCE_PROJECTS=getFreelanceProjects();
+  FREELANCE_PROJECTS=flApplyAutoTransitions(getFreelanceProjects());
   document.getElementById('flMonthLabel').textContent=`${flY}년 ${flM+1}월`;
   const inProgress=FREELANCE_PROJECTS.filter(p=>p.status==='진행중');
-  const settling=FREELANCE_PROJECTS.filter(p=>p.status==='정산중');
-  const dueSoon=inProgress.filter(p=>{const dd=ddayInfo(p.dueDate);return dd&&dd.diff<=3;});
-  const doneTotal=FREELANCE_PROJECTS.filter(p=>p.status==='완료').reduce((s,p)=>s+(p.amount||0),0);
+  const workDone=FREELANCE_PROJECTS.filter(p=>p.status==='작업완료');
+  const settledTotal=FREELANCE_PROJECTS.filter(p=>p.status==='정산완료').reduce((s,p)=>s+(p.amount||0),0);
   document.getElementById('flSumProgress').textContent=inProgress.length+'건';
-  document.getElementById('flSumSettling').textContent=settling.length+'건';
-  document.getElementById('flSumDday').textContent=dueSoon.length+'건';
-  document.getElementById('flSumDone').textContent=fmt(doneTotal);
+  document.getElementById('flSumSettling').textContent=workDone.length+'건';
+  document.getElementById('flSumDone').textContent=fmt(settledTotal);
   const main=document.getElementById('freelanceMain');main.innerHTML='';
   let listCard;
   if(flView==='month')listCard=buildFlMonthView();
@@ -64,10 +82,10 @@ function flPeriodLabel(p){
   return '';
 }
 
-// 상태별 배지: 진행중은 마감 D-day, 정산중/완료는 전용 배지.
+// 상태별 배지: 진행중은 마감 D-day, 작업완료/정산완료는 전용 배지.
 function flStatusBadge(p){
-  if(p.status==='완료')return '<span class="fl-badge done">✅ 완료</span>';
-  if(p.status==='정산중')return '<span class="fl-badge settling">💰 정산중</span>';
+  if(p.status==='정산완료')return '<span class="fl-badge done">💰 정산완료</span>';
+  if(p.status==='작업완료')return '<span class="fl-badge settling">📋 작업완료</span>';
   const dd=ddayInfo(p.dueDate);
   return dd?`<span class="fl-badge ${dd.cls}">${dd.label}</span>`:'<span class="fl-badge safe">기한없음</span>';
 }
@@ -79,7 +97,7 @@ function buildFlRow(p){
   let actions;
   if(p.status==='진행중'){
     actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">작업 완료</button>`;
-  }else if(p.status==='정산중'){
+  }else if(p.status==='작업완료'){
     actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">입금 완료</button><button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
   }else{
     actions=`<button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
@@ -109,8 +127,8 @@ function buildFlProjectList(){
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
-    // 진행중 → 정산중 → 완료 순, 그 안에서는 마감 임박 순.
-    const rank={'진행중':0,'정산중':1,'완료':2};
+    // 진행중 → 작업완료 → 정산완료 순, 그 안에서는 마감 임박 순.
+    const rank={'진행중':0,'작업완료':1,'정산완료':2};
     const sorted=[...FREELANCE_PROJECTS].sort((a,b)=>{
       const r=(rank[a.status]??0)-(rank[b.status]??0);
       if(r)return r;
@@ -316,30 +334,32 @@ function deleteFreelanceProject(id){
   renderFreelance();
 }
 
-// 상태를 한 단계 진행시킴: 진행중(작업 중) → 정산중(작업 끝, 입금 대기) → 완료(입금까지 끝나서 수입으로 기재됨).
-// 완료 처리는 여전히 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
+// 상태를 한 단계 진행시킴: 진행중(작업 중) → 작업완료(작업 끝, 입금 대기 — 마감일이 지나면 자동으로도 전환됨.
+// 마감일 전에 미리 끝냈으면 이 버튼으로 앞당겨 전환 가능) → 정산완료(입금까지 끝나서 수입으로 기재됨).
+// 정산완료 처리는 여전히 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
 // (실제 입금은 가계부에서 "등록된 프로젝트에서 불러오기"로 직접 등록 — 분할 입금/지연도 자연스럽게 처리됨).
 function flAdvanceStatus(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
   if(p.status==='진행중'){
-    if(!confirm('작업을 완료하고 정산중 상태로 바꿀까요?'))return;
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'정산중'}:x);
-  }else if(p.status==='정산중'){
-    if(!confirm('입금까지 완료됐나요? 완료 처리할까요?'))return;
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'완료'}:x);
+    if(!confirm('작업을 완료 처리할까요? (마감일이 지나면 자동으로도 전환돼요)'))return;
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'작업완료'}:x);
+  }else if(p.status==='작업완료'){
+    if(!confirm('입금까지 완료됐나요? 정산완료로 처리할까요?'))return;
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'정산완료'}:x);
   }else return;
   saveFreelanceProjects(FREELANCE_PROJECTS);
   renderFreelance();
 }
 
-// 상태를 한 단계 되돌림: 완료 → 정산중, 정산중 → 진행중.
+// 상태를 한 단계 되돌림: 정산완료 → 작업완료, 작업완료 → 진행중.
+// (작업완료로 되돌려도 마감일이 이미 지났다면 다음 렌더링 때 자동전환으로 다시 작업완료가 됨)
 function flRevertStatus(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
   let prev;
-  if(p.status==='완료'){prev='정산중';if(!confirm('완료를 취소하고 정산중으로 되돌릴까요?'))return;}
-  else if(p.status==='정산중'){prev='진행중';if(!confirm('정산중을 취소하고 진행중으로 되돌릴까요?'))return;}
+  if(p.status==='정산완료'){prev='작업완료';if(!confirm('정산완료를 취소하고 작업완료로 되돌릴까요?'))return;}
+  else if(p.status==='작업완료'){prev='진행중';if(!confirm('작업완료를 취소하고 진행중으로 되돌릴까요?'))return;}
   else return;
   FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:prev}:x);
   saveFreelanceProjects(FREELANCE_PROJECTS);
@@ -352,9 +372,9 @@ function flRevertStatus(id){
 function populateFlProjectPicker(){
   const sel=document.getElementById('fProjectPicker');
   if(!sel)return;
-  const list=[...FREELANCE_PROJECTS].sort((a,b)=>(a.status==='완료')-(b.status==='완료'));
+  const list=[...FREELANCE_PROJECTS].sort((a,b)=>(a.status==='정산완료')-(b.status==='정산완료'));
   sel.innerHTML='<option value="">직접 입력</option>'+list.map(p=>
-    `<option value="${p.id}">${p.client||'?'} · ${p.project||'?'}${p.status==='완료'?' (완료)':''}</option>`
+    `<option value="${p.id}">${p.client||'?'} · ${p.project||'?'}${p.status==='정산완료'?' (정산완료)':''}</option>`
   ).join('');
   sel.value='';
 }
