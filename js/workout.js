@@ -117,7 +117,7 @@ function addWorkoutField(type = '러닝', memo = '') {
   row.style.cssText = 'background:var(--bg);padding:12px;border-radius:12px;position:relative;';
   const types = ['러닝', '홈트', '걷기', '자전거', '등산', '클라이밍'];
   const typeHtml = types.map(t => `<button class="workout-type ${t===type?'active':''}" data-type="${t}" onclick="selWType(this)">${WORKOUT_EMOJIS[t]} ${t}</button>`).join('');
-  row.innerHTML = `<button style="position:absolute;top:8px;right:8px;background:none;border:none;color:#9ea3b8;font-size:18px;cursor:pointer;padding:4px;" onclick="this.parentElement.remove()">✕</button><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">운동 종류</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${typeHtml}</div><input class="fi workout-memo-input" style="background:#fff" placeholder="강도 및 시간 (예: 5km, 30분)" value="${memo}">`;
+  row.innerHTML = `<button style="position:absolute;top:8px;right:8px;background:none;border:none;color:#9ea3b8;font-size:18px;cursor:pointer;padding:4px;" onclick="this.parentElement.remove()">✕</button><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">운동 종류</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px">${typeHtml}</div><input class="fi workout-memo-input" style="background:#fff" placeholder="강도 및 시간 (예: 5km, 30분)" value="${memo}">`;
   listEl.appendChild(row);
 }
 function selWType(btn) {
