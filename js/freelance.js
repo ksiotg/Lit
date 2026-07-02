@@ -1,7 +1,9 @@
 // ─── 외주(FREELANCE) ──────────────────────────────────────────────────────────
 // 프로젝트별/클라이언트별 관리 + 마감 D-day 표시.
-// "완료 처리"를 누르면 오늘 날짜로 가계부(외주 수입)에 자동 등록됨(historical-integrity
-// 원칙과 동일하게, 되돌리기 전까지는 실제 등록된 가계부 기록으로 남음).
+// "완료 처리"는 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
+// (완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
+// 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
+// 때마다 프로젝트를 골라 클라이언트/프로젝트명을 자동으로 채워넣을 수 있게 함.
 let flView='project'; // 'project' | 'client'
 let editingFlId=null;
 
@@ -167,36 +169,26 @@ function deleteFreelanceProject(id){
   renderFreelance();
 }
 
-// 완료 처리: 오늘 날짜로 가계부에 외주 수입 항목을 만들어줌.
-// 되돌리기 때 정확히 지우기 위해 어느 달의 몇 번 항목으로 등록했는지 프로젝트에 저장해둠.
+// 완료 처리: 프로젝트 상태만 완료로 바꿈. 가계부에는 아무것도 자동으로 등록하지 않음.
+// (외주는 완료≠입금이라, 실제 입금 시점에 가계부에서 "등록된 프로젝트에서 불러오기"로
+// 직접 수입을 등록하는 방식을 사용함 — 분할 입금/입금 지연도 자연스럽게 처리됨)
 function completeFreelanceProject(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
-  if(!confirm(`오늘 날짜로 가계부에 ${fmt(p.amount||0)} 외주 수입을 등록할까요?`))return;
-  const y=TODAY.getFullYear(),m=TODAY.getMonth(),d=TODAY.getDate();
-  const entryId='e'+Date.now();
-  const entries=S.getEntries(y,m);
-  entries.push({id:entryId,type:'income',day:d,amount:p.amount||0,cat:'외주',emoji:'💻',name:[p.client,p.project].filter(Boolean).join(' / ')});
-  S.setEntries(y,m,entries);
-  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'완료',entryYm:mk(y,m),entryId}:x);
+  if(!confirm('이 프로젝트를 완료 처리할까요?'))return;
+  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'완료'}:x);
   saveFreelanceProjects(FREELANCE_PROJECTS);
   renderFreelance();
 }
 
-// 완료를 취소하고 다시 진행중으로 되돌림. 연동돼서 만들어졌던 가계부 수입 기록도 같이 지움.
+// 완료를 취소하고 다시 진행중으로 되돌림.
 function revertFreelanceProject(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
-  if(!confirm('완료를 취소하고 진행중으로 되돌릴까요? 연동된 가계부 수입 기록도 함께 삭제돼요.'))return;
-  if(p.entryYm&&p.entryId){
-    const parts=p.entryYm.split('-').map(Number);
-    const ey=parts[0],em=parts[1]-1;
-    S.setEntries(ey,em,S.getEntries(ey,em).filter(e=>e.id!==p.entryId));
-  }
-  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'진행중',entryYm:null,entryId:null}:x);
+  if(!confirm('완료를 취소하고 진행중으로 되돌릴까요?'))return;
+  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'진행중'}:x);
   saveFreelanceProjects(FREELANCE_PROJECTS);
   renderFreelance();
-  renderBudget();
 }
 
 // ─── 가계부 외주 입력 폼 연동 ───────────────────────────────────────────────────
