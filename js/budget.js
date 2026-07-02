@@ -150,24 +150,24 @@ function toggleFixed(id){let c=S.getChecked(curY,curM);c=c.includes(id)?c.filter
 function buildBudgetCal(){
   const entries=S.getEntries(curY,curM);
   const fd=new Date(curY,curM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
   const dim=new Date(curY,curM+1,0).getDate();
   const byDay={};
   const todayZero = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
   entries.forEach(e=>{if(!byDay[e.day])byDay[e.day]=[];byDay[e.day].push(e);});
   activeFixedIncome(curY,curM).forEach(fi=>{if(!byDay[fi.day])byDay[fi.day]=[];byDay[fi.day].push({...fi,type:'income',auto:true});});
   const card=mkDiv('card');
-  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">${curY}년 ${curM+1}월</span></div>`;
   let noSpendCount=0;
   const dow=mkDiv('cal-dow-row');
-  ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dow.appendChild(e);});
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
   const grid=mkDiv('cal-grid');
-  for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
   for(let d=1;d<=dim;d++){
-    const dow2=(fd+d-1)%7;
+    const dow2=(fdMon+d-1)%7;
     const isT=TODAY.getFullYear()===curY&&TODAY.getMonth()===curM&&TODAY.getDate()===d;
     const isFuture = new Date(curY, curM, d) > todayZero;
     const de=byDay[d]||[];
-    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
     cell.onclick=()=>openPopup(d);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     let totExp=0;
@@ -179,6 +179,10 @@ function buildBudgetCal(){
         if(totExp <= 30000) cell.style.background = '#FADADD'; // 소액 지출 (연한 코랄)
         else if(totExp <= 100000) cell.style.background = '#F8C3C3'; // 중간 지출 (코랄)
         else { cell.style.background = '#F6A9A9'; } // 과소비 (진한 코랄)
+      } else if(totInc > 0){
+        if(totInc <= 100000) cell.style.background = '#DCEAFB'; // 소액 수입 (연한 파랑)
+        else if(totInc <= 500000) cell.style.background = '#B8D4F7'; // 중간 수입 (파랑)
+        else { cell.style.background = '#8FBEF3'; } // 고액 수입 (진한 파랑)
       } else if (!isFuture) { cell.style.background = '#dcfce7'; } // 지출 0원 (초록)
 
       if(totInc > 0){
@@ -193,11 +197,17 @@ function buildBudgetCal(){
     // routine dots removed for budget calendar
     grid.appendChild(cell);
   }
+  const challengeWrap=document.createElement('div');
+  challengeWrap.style.cssText='text-align:center;padding:14px 0 2px;';
   const challenge=mkDiv('nospend-challenge');
-  challenge.textContent=`이번 달 무지출 챌린지 ${noSpendCount}회 성공!`;
-  card.appendChild(challenge);
+  challenge.style.margin='0';
+  challenge.textContent=`무지출 챌린지 ${noSpendCount}회 성공!`;
+  challengeWrap.appendChild(challenge);
+  card.appendChild(challengeWrap);
+  dow.style.paddingTop='6px';
   card.appendChild(dow);
-  card.appendChild(grid);return card;
+  card.appendChild(grid);
+  return card;
 }
 
 function buildYear(){

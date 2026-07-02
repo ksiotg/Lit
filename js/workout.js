@@ -31,20 +31,21 @@ function buildWorkoutStats(){
 
 function buildWorkoutCal(){
   const fd=new Date(wY,wM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
   const dim=new Date(wY,wM+1,0).getDate();
   const card=mkDiv('card');
-  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">🏋️ ${wY}년 ${wM+1}월 운동기록</span></div>`;
   const dowRow=mkDiv('cal-dow-row');
-  ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dowRow.appendChild(e);});
+  dowRow.style.paddingTop='14px';
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
   card.appendChild(dowRow);
   const grid=mkDiv('cal-grid');
-  for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
   for(let d=1;d<=dim;d++){
-    const dow2=(fd+d-1)%7;
+    const dow2=(fdMon+d-1)%7;
     const isT=TODAY.getFullYear()===wY&&TODAY.getMonth()===wM&&TODAY.getDate()===d;
     const workouts=S.getWorkout(wY,wM,d);
     const hasW=workouts.length>0;
-    const cell=mkDiv(`cal-cell workout-cal-cell ${isT?'today':''} ${hasW?'has-workout':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
+    const cell=mkDiv(`cal-cell workout-cal-cell ${isT?'today':''} ${hasW?'has-workout':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
     cell.onclick=()=>openWorkoutPopup(wY,wM,d);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     if(hasW){

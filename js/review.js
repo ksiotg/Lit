@@ -51,8 +51,8 @@ function buildReviewCal(){
   const fdMon=fd===0?6:fd-1;
   const dim=new Date(rvY,rvM+1,0).getDate();
   const card=mkDiv('card');
-  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">${rvY}년 ${rvM+1}월 달력</span></div>`;
   const dowRow=mkDiv('cal-dow-row');
+  dowRow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
   card.appendChild(dowRow);
   const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 10px 14px;';

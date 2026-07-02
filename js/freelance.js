@@ -198,6 +198,7 @@ const FL_CAL_PALETTE=['#8b5cf6','#f59e0b','#10b981','#3b82f6','#ec4899','#ef4444
 function buildFlCal(){
   const dim=new Date(flY,flM+1,0).getDate();
   const fd=new Date(flY,flM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
   const pad=n=>String(n).padStart(2,'0');
   const monthStart=`${flY}-${pad(flM+1)}-01`,monthEnd=`${flY}-${pad(flM+1)}-${pad(dim)}`;
   // 이 달과 기간이 겹치는 프로젝트만 색상 배정 (착수/마감 중 하나만 있어도 그 날 하루짜리로 취급)
@@ -213,16 +214,16 @@ function buildFlCal(){
   settleEntries.forEach(e=>{(settleByDay[e.day]=settleByDay[e.day]||[]).push(e);});
 
   const card=mkDiv('card');
-  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">🗓️ ${flY}년 ${flM+1}월 프로젝트 캘린더</span></div>`;
   const dow=mkDiv('cal-dow-row');
-  ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dow.appendChild(e);});
+  dow.style.paddingTop='14px';
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
   const grid=mkDiv('cal-grid');
-  for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
   for(let d=1;d<=dim;d++){
-    const dow2=(fd+d-1)%7;
+    const dow2=(fdMon+d-1)%7;
     const isT=TODAY.getFullYear()===flY&&TODAY.getMonth()===flM&&TODAY.getDate()===d;
     const dateStr=`${flY}-${pad(flM+1)}-${pad(d)}`;
-    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     const dayProjects=activeProjects.filter(p=>{
       const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
@@ -240,8 +241,6 @@ function buildFlCal(){
     const daySettles=settleByDay[d]||[];
     if(daySettles.length){
       cell.style.background='var(--freelance-tint)';
-      const mark=mkDiv('');mark.style.cssText='position:absolute;top:3px;right:4px;font-size:8px;';mark.textContent='💰';
-      cell.appendChild(mark);
     }
     if(dayProjects.length||daySettles.length)cell.onclick=()=>openFlDayDetail(dateStr,dayProjects,daySettles);
     grid.appendChild(cell);
@@ -251,7 +250,7 @@ function buildFlCal(){
     const legend=document.createElement('div');
     legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
     legend.innerHTML=activeProjects.map(p=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${colorOf[p.id]};display:inline-block;"></span>${p.project||'(제목없음)'}</span>`).join('')
-      +`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);">💰 정산일</span>`;
+      +`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:var(--freelance-tint);border:1.5px solid var(--freelance);display:inline-block;"></span>정산일</span>`;
     card.appendChild(legend);
   }
   return card;
