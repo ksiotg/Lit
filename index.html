@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=35">
+<link rel="stylesheet" href="css/style.css?v=36">
 </head>
 <body>
 
@@ -314,6 +314,17 @@
       <div class="fg" style="margin-bottom:10px;"><label class="fl">금액</label><input class="fi" id="newFItemAmount" type="number" placeholder="0"></div>
       <button class="add-btn" id="fiItemSaveBtn" onclick="saveFixedItemForm()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
     </div>
+    <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">🏷️ 변동지출 카테고리</div>
+    <div id="expenseCatsList" style="margin-bottom:14px;"></div>
+    <div class="add-routine-form">
+      <div class="add-routine-form-title" id="expCatFormTitle"><span class="ico" data-icon="plus-circle" data-size="14"></span> 카테고리 추가</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">이름</label><input class="fi" id="newExpCatName" placeholder="식사"></div>
+        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newExpCatEmoji" placeholder="🍽️" style="font-size:18px;text-align:center;"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;"><label class="fl">색상</label><div id="expCatColorSwatches" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;"></div></div>
+      <button class="add-btn" id="expCatSaveBtn" onclick="saveExpenseCatForm()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
+    </div>
   </div>
 </div>
 
@@ -523,19 +534,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=35"></script>
-<script src="js/data-state.js?v=35"></script>
-<script src="js/storage.js?v=35"></script>
-<script src="js/utils.js?v=35"></script>
-<script src="js/backup.js?v=35"></script>
-<script src="js/auth.js?v=35"></script>
-<script src="js/page-switch.js?v=35"></script>
-<script src="js/budget.js?v=35"></script>
-<script src="js/routine.js?v=35"></script>
-<script src="js/routine-mgmt.js?v=35"></script>
-<script src="js/workout.js?v=35"></script>
-<script src="js/review.js?v=35"></script>
-<script src="js/freelance.js?v=35"></script>
-<script src="js/main.js?v=35"></script>
+<script src="js/supabase-client.js?v=36"></script>
+<script src="js/data-state.js?v=36"></script>
+<script src="js/storage.js?v=36"></script>
+<script src="js/utils.js?v=36"></script>
+<script src="js/backup.js?v=36"></script>
+<script src="js/auth.js?v=36"></script>
+<script src="js/page-switch.js?v=36"></script>
+<script src="js/budget.js?v=36"></script>
+<script src="js/routine.js?v=36"></script>
+<script src="js/routine-mgmt.js?v=36"></script>
+<script src="js/workout.js?v=36"></script>
+<script src="js/review.js?v=36"></script>
+<script src="js/freelance.js?v=36"></script>
+<script src="js/main.js?v=36"></script>
 </body>
 </html>
