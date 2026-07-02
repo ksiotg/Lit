@@ -169,12 +169,12 @@ function buildYear(){
 
 // ─── BUDGET POPUP ─────────────────────────────────────────────────────────────
 function openPopup(day){
-  popupDay=day;popupType='income';
+  popupDay=day;popupType='expense';
   const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('popupDateLabel').textContent=`${curY}년 ${months[curM]} ${day}일`;
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.type-btn.income').classList.add('active');
-  setType('income',document.querySelector('.type-btn.income'));
+  document.querySelector('.type-btn.expense').classList.add('active');
+  setType('expense',document.querySelector('.type-btn.expense'));
   renderPopupEntries();document.getElementById('overlay').classList.add('open');
 }
 function closePopup(e){if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
@@ -214,15 +214,27 @@ function editEntryDate(id){
 function setType(type,btn){
   popupType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   const isI=(type==='income');
-  document.getElementById('freelanceFields').classList.toggle('show',isI);
   document.getElementById('normalFields').style.display=isI?'none':'grid';
-  document.getElementById('freelanceCatRow').style.display=isI?'block':'none';
-  document.getElementById('freelanceMemoRow').style.display=isI?'block':'none';
-  const cats=isI?CATS.income:CATS.expense;
-  const selId=isI?'fCategory':'nCategory';
-  const sel=document.getElementById(selId);
-  if(sel)sel.innerHTML=cats.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
-  if(isI)calcTax();
+  document.getElementById('incomeCatRow').style.display=isI?'block':'none';
+  if(isI){
+    const sel=document.getElementById('fCategory');
+    sel.innerHTML=CATS.income.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
+    onIncomeCatChange();
+  }else{
+    document.getElementById('freelanceFields').classList.remove('show');
+    document.getElementById('incomeSimpleFields').style.display='none';
+    const sel=document.getElementById('nCategory');
+    sel.innerHTML=CATS.expense.map(c=>`<option value="${c.n}">${c.e} ${c.n}</option>`).join('');
+  }
+}
+// 수입 카테고리에 따라 입력 폼을 전환. "외주"만 세율 계산(프리랜서 원천징수 미리보기) 폼을 보여주고,
+// 급여/용돈/기타처럼 세금을 떼지 않는 항목은 입력한 금액을 그대로 반영하는 단순 폼을 보여줌.
+function onIncomeCatChange(){
+  const cat=document.getElementById('fCategory').value;
+  const isFreelance=(cat==='외주');
+  document.getElementById('freelanceFields').classList.toggle('show',isFreelance);
+  document.getElementById('incomeSimpleFields').style.display=isFreelance?'none':'grid';
+  if(isFreelance)calcTax();
 }
 function calcTax(){
   const amt=parseFloat(document.getElementById('fAmount').value)||0;
@@ -234,13 +246,22 @@ function calcTax(){
 function addEntry(){
   const isI=popupType==='income';
   let amount,cat,memo,emoji;
-  if(isI){amount=parseInt(document.getElementById('fAmount').value)||0;cat=document.getElementById('fCategory').value;const cl=document.getElementById('fClient').value.trim(),pr=document.getElementById('fProject').value.trim();memo=[cl,pr].filter(Boolean).join(' / ')||cat;}
-  else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
+  if(isI){
+    cat=document.getElementById('fCategory').value;
+    if(cat==='외주'){
+      amount=parseInt(document.getElementById('fAmount').value)||0;
+      const cl=document.getElementById('fClient').value.trim(),pr=document.getElementById('fProject').value.trim();
+      memo=[cl,pr].filter(Boolean).join(' / ')||cat;
+    }else{
+      amount=parseInt(document.getElementById('fSimpleAmount').value)||0;
+      memo=document.getElementById('fSimpleMemo').value.trim()||cat;
+    }
+  }else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
   if(!amount||amount<=0){alert('금액을 입력해주세요');return;}
   const ci=[...CATS.income,...CATS.expense].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
   const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo});
   S.setEntries(curY,curM,entries);
-  ['fAmount','fClient','fProject','nAmount','nMemo','fMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
   renderPopupEntries();renderBudget();
 }
