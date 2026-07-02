@@ -369,8 +369,6 @@ flex-shrink:0;
 .fl-payment-amt{font-size:13px;font-weight:800;color:var(--freelance);}
 /* 외주 탭 전용 포인트 컬러 오버라이드 (다른 탭에서 재사용하는 공용 클래스는 스코프를 좁혀서 여기서만 보라색 적용) */
 #page-freelance .view-btn.active{background:var(--freelance);}
-#page-freelance .sum-grid{grid-template-columns:repeat(4,1fr);gap:6px;}
-#page-freelance .sum-val{font-size:11px;}
 #freelanceFormPopup .tax-preview{background:var(--freelance-tint);}
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
