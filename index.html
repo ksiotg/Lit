@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
 
@@ -183,6 +183,10 @@
         </label>
       </div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--muted);" id="rmgmtEditHint"></div>
+      <button id="rmgmtEditToggle" class="freq-btn" onclick="toggleRmgmtEditMode()" style="padding:5px 12px;flex-shrink:0;">✏️ 수정</button>
+    </div>
     <div id="routineMgmtList"></div>
     <div class="add-routine-form" id="addRoutineForm">
       <div class="add-routine-form-title">+ 루틴 추가</div>
@@ -220,6 +224,50 @@
       <div id="freqDetailWrap" style="margin-bottom:10px;display:none;"></div>
       <button class="add-btn" onclick="saveNewRoutine()">루틴 추가</button>
     </div>
+  </div>
+</div>
+
+<!-- 루틴 개별 수정 팝업 -->
+<div class="routine-mgmt-popup" id="routineEditPopup" onclick="closeRoutineEdit(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;">✏️ 루틴 수정</div>
+      <button onclick="document.getElementById('routineEditPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div class="fg"><label class="fl">이름</label><input class="fi" id="editRName" placeholder="루틴 이름"></div>
+      <div class="fg"><label class="fl">이모지</label><input class="fi" id="editREmoji" placeholder="🌟" style="font-size:18px;text-align:center;"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;"><label class="fl">시간 (선택)</label><input class="fi" id="editRTime" placeholder="AM 8:00"></div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label class="fl">카테고리</label>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="editRCatWrap">
+        <button class="cat-btn selfcare" data-cat="selfcare" onclick="selEditCat(this)">💛 케어</button>
+        <button class="cat-btn health" data-cat="health" onclick="selEditCat(this)">❤️ 건강</button>
+        <button class="cat-btn growth" data-cat="growth" onclick="selEditCat(this)">💙 성장</button>
+        <button class="cat-btn life" data-cat="life" onclick="selEditCat(this)">💚 생활</button>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label class="fl">시기</label>
+      <div style="display:flex;gap:6px;margin-top:6px;" id="editRPeriodWrap">
+        <button class="freq-btn" data-period="morning" onclick="selEditPeriod(this)">☀️ 아침</button>
+        <button class="freq-btn" data-period="day" onclick="selEditPeriod(this)">✨ 일중</button>
+        <button class="freq-btn" data-period="evening" onclick="selEditPeriod(this)">🌙 저녁</button>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label class="fl">빈도</label>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="editRFreqWrap">
+        <button class="freq-btn" data-freq="daily" onclick="selEditFreq(this)">매일</button>
+        <button class="freq-btn" data-freq="weekly" onclick="selEditFreq(this)">주N회</button>
+        <button class="freq-btn" data-freq="days" onclick="selEditFreq(this)">요일고정</button>
+        <button class="freq-btn" data-freq="monthly" onclick="selEditFreq(this)">월N회</button>
+      </div>
+    </div>
+    <div id="editFreqDetailWrap" style="margin-bottom:14px;display:none;"></div>
+    <button class="add-btn" onclick="saveRoutineEdit()">수정 완료</button>
   </div>
 </div>
 
@@ -389,19 +437,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=15"></script>
-<script src="js/data-state.js?v=15"></script>
-<script src="js/storage.js?v=15"></script>
-<script src="js/utils.js?v=15"></script>
-<script src="js/backup.js?v=15"></script>
-<script src="js/auth.js?v=15"></script>
-<script src="js/page-switch.js?v=15"></script>
-<script src="js/budget.js?v=15"></script>
-<script src="js/routine.js?v=15"></script>
-<script src="js/routine-mgmt.js?v=15"></script>
-<script src="js/workout.js?v=15"></script>
-<script src="js/review.js?v=15"></script>
-<script src="js/freelance.js?v=15"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/supabase-client.js?v=16"></script>
+<script src="js/data-state.js?v=16"></script>
+<script src="js/storage.js?v=16"></script>
+<script src="js/utils.js?v=16"></script>
+<script src="js/backup.js?v=16"></script>
+<script src="js/auth.js?v=16"></script>
+<script src="js/page-switch.js?v=16"></script>
+<script src="js/budget.js?v=16"></script>
+<script src="js/routine.js?v=16"></script>
+<script src="js/routine-mgmt.js?v=16"></script>
+<script src="js/workout.js?v=16"></script>
+<script src="js/review.js?v=16"></script>
+<script src="js/freelance.js?v=16"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>
