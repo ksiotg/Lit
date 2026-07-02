@@ -5,6 +5,8 @@
   --selfcare:#f59e0b;--health:#ef4444;--growth:#3b82f6;--life:#22c55e;
   --freelance:#8b5cf6;--freelance-tint:#ede9fe;
   --review:#0080f5;--review-tint:#dceeff;
+  --routine:#f0932b;--routine-tint:#fef3e2;
+  --budget:#22c55e;--workout:#ef4444;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -14,29 +16,31 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 /* ── 브랜드 ── */
 .brand{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:0.5px;padding:10px 16px 0;}
 
-/* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 여러 열로 넓게 배치됨 ── */
+/* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 그리드 대시보드로 나란히 배치됨 ── */
 @media (min-width:860px){
   html{background:#eef0f6!important;}
   body{max-width:1120px;margin:0 auto;padding-bottom:60px;}
   .page-header{padding-left:8px;padding-right:8px;}
   .nav-row,.traffic-light,.sum-grid{padding-left:24px;padding-right:24px;}
-  main{display:block;columns:2 400px;column-gap:20px;padding:22px 26px;}
-  .card{break-inside:avoid;margin-bottom:20px;}
+  main{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;align-items:start;padding:22px 26px;}
+  .card{margin-bottom:0;}
+  /* 캘린더, 연간 요약, 프로젝트 목록처럼 넓게 봐야 하는 카드는 항상 grid 전체 폭을 차지함 */
+  .card.card-wide{grid-column:1/-1;}
   .popup,.workout-inner,.routine-mgmt-inner{max-width:520px;}
 }
 @media (min-width:1300px){
-  main{columns:3 380px;}
+  main{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
 }
 
 /* ── 신호등 ── */
 .traffic-light{display:flex;gap:8px;align-items:center;padding:14px 16px 10px;}
 .tl-btn{width:16px;height:16px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
-.tl-btn.routine-tl{background:#b8860b;}
+.tl-btn.routine-tl{background:#9c5b0a;}
 .tl-btn.budget-tl{background:#166534;}
 .tl-btn.workout-tl{background:#991b1b;}
-.tl-btn.on.routine-tl{background:#fde047;box-shadow:0 0 0 3px #fef9c3,0 0 10px 3px #fde04799;}
-.tl-btn.on.budget-tl{background:#22c55e;box-shadow:0 0 0 3px #dcfce7,0 0 10px 3px #22c55e99;}
-.tl-btn.on.workout-tl{background:#ef4444;box-shadow:0 0 0 3px #fee2e2,0 0 10px 3px #ef444499;}
+.tl-btn.on.routine-tl{background:var(--routine);box-shadow:0 0 0 3px var(--routine-tint),0 0 10px 3px #f0932b99;}
+.tl-btn.on.budget-tl{background:var(--budget);box-shadow:0 0 0 3px #dcfce7,0 0 10px 3px #22c55e99;}
+.tl-btn.on.workout-tl{background:var(--workout);box-shadow:0 0 0 3px #fee2e2,0 0 10px 3px #ef444499;}
 .tl-btn.review-tl{background:#004c8f;}
 .tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 3px var(--review-tint),0 0 10px 3px #0080f599;}
 .tl-btn.freelance-tl{background:#5b21b6;}
@@ -48,6 +52,12 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .nav-row{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;}
 .nav-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:9px;font-size:15px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
 .page-title{font-size:16px;font-weight:800;letter-spacing:-0.5px;}
+/* ── 탭 제목(라벨) + 상단 월 표기를 각 탭 테마색으로 볼드 강조 ── */
+#page-routine .tl-label,#page-routine .page-title{color:var(--routine);font-weight:800;}
+#page-budget .tl-label,#page-budget .page-title{color:var(--budget);font-weight:800;}
+#page-workout .tl-label,#page-workout .page-title{color:var(--workout);font-weight:800;}
+#page-review .tl-label,#page-review .page-title{color:var(--review);font-weight:800;}
+#page-freelance .tl-label{color:var(--freelance);font-weight:800;}
 .view-toggle{display:flex;gap:3px;}
 .view-btn{background:var(--bg);border:none;padding:5px 9px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
 .view-btn.active{background:var(--text);color:#fff;}
