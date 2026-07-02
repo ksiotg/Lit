@@ -1,12 +1,18 @@
 // ─── 외주(FREELANCE) ──────────────────────────────────────────────────────────
 // 프로젝트별/클라이언트별 관리 + 마감 D-day 표시.
-// 상태 흐름: 진행중 → 작업완료(마감일이 지나면 자동 전환, 미리 수동 전환도 가능) → 정산완료(입금 확인 후 수동 전환).
-// "정산완료" 처리는 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
-// (작업완료/정산완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
-// 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
+// 상태는 더 이상 저장하지 않고 매번 계산함(flComputeStatus 참고):
+//   진행중  = 마감일이 아직 안 지남
+//   정산대기 = 마감일은 지났지만 계약금액만큼 가계부 외주수입으로 아직 다 등록되지 않음
+//   완료    = 계약금액만큼 가계부 외주수입으로 등록 완료됨 (분할 입금도 합산해서 판단하기 때문에
+//            일부만 입금된 프로젝트는 계속 정산대기 상태로 남아 추가 입금을 등록할 수 있음)
+// 가계부의 외주 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
 // 때마다 프로젝트를 골라 클라이언트/프로젝트명을 자동으로 채워넣을 수 있게 함.
 let flView='month'; // 'month' | 'project' | 'client' — 탭에 들어갈 때마다 기본값은 '월간'
 let editingFlId=null;
+let flLastGroups=null; // 마지막 렌더링 시점의 {진행중:[],정산대기:[],완료:[]} — 요약카드 클릭 팝업에서 재사용
+// 프로젝트 커스텀 컬러용 24색 팔레트 (흰색/검정 제외)
+const FL_COLOR_PALETTE=['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78716c','#64748b','#6b7280','#7c3aed','#db2777','#059669','#ca8a04'];
+let pendingFlColor=null;
 
 function setFreelanceView(v){
   flView=v;
@@ -21,23 +27,17 @@ function flSyncViewButtons(){
 
 function chFlMonth(d){flM+=d;if(flM>11){flM=0;flY++;}if(flM<0){flM=11;flY--;}renderFreelance();}
 
-// 상태 흐름: 진행중 → 작업완료(마감일이 지나면 자동 전환, 또는 수동으로 미리 전환 가능) → 정산완료(입금 확인 후 수동 전환).
-// 예전에 쓰던 상태 이름(정산중/완료)도 여기서 새 이름으로 자동 마이그레이션해줌.
-function flApplyAutoTransitions(list){
+// 프로젝트의 현재 상태를 계산함 (저장된 필드가 아니라 매번 다시 계산 — 상태가 어긋날 일이 없음).
+// paymentsTotal을 미리 알고 있으면 넘겨서 중복 계산을 피할 수 있음.
+function flComputeStatus(p,paymentsTotal){
+  if(paymentsTotal==null)paymentsTotal=getProjectPayments(p).reduce((s,e)=>s+e.amount,0);
+  const contract=p.amount||0;
+  const isDone=contract>0?paymentsTotal>=contract:paymentsTotal>0;
+  if(isDone)return '완료';
   const pad=n=>String(n).padStart(2,'0');
   const todayStr=`${TODAY.getFullYear()}-${pad(TODAY.getMonth()+1)}-${pad(TODAY.getDate())}`;
-  let changed=false;
-  const next=list.map(p=>{
-    let status=p.status;
-    if(status==='정산중')status='작업완료'; // 예전 이름 마이그레이션
-    else if(status==='완료')status='정산완료'; // 예전 이름 마이그레이션
-    else if(!status)status='진행중';
-    if(status==='진행중'&&p.dueDate&&p.dueDate<todayStr)status='작업완료'; // 마감일 경과 자동 전환
-    if(status!==p.status){changed=true;return {...p,status};}
-    return p;
-  });
-  if(changed)saveFreelanceProjects(next);
-  return next;
+  if(p.dueDate&&p.dueDate<todayStr)return '정산대기';
+  return '진행중';
 }
 
 // dueDate(YYYY-MM-DD) 기준 D-day 계산. 완료된 프로젝트는 호출 안 함.
@@ -57,29 +57,47 @@ function ddayInfo(dueDate){
 }
 
 function renderFreelance(){
-  FREELANCE_PROJECTS=flApplyAutoTransitions(getFreelanceProjects());
+  FREELANCE_PROJECTS=getFreelanceProjects();
   document.getElementById('flMonthLabel').textContent=`${flY}년 ${flM+1}월`;
   flSyncViewButtons();
-  const inProgress=FREELANCE_PROJECTS.filter(p=>p.status==='진행중');
-  const workDone=FREELANCE_PROJECTS.filter(p=>p.status==='작업완료');
-  const settledTotal=FREELANCE_PROJECTS.filter(p=>p.status==='정산완료').reduce((s,p)=>s+(p.amount||0),0);
-  document.getElementById('flSumProgress').textContent=inProgress.length+'건';
-  document.getElementById('flSumSettling').textContent=workDone.length+'건';
-  document.getElementById('flSumDone').textContent=fmt(settledTotal);
+  const groups={'진행중':[],'정산대기':[],'완료':[]};
+  FREELANCE_PROJECTS.forEach(p=>{
+    const paymentsTotal=getProjectPayments(p).reduce((s,e)=>s+e.amount,0);
+    const status=flComputeStatus(p,paymentsTotal);
+    groups[status].push({p,paymentsTotal});
+  });
+  flLastGroups=groups;
+  const doneAmount=groups['완료'].reduce((s,x)=>s+x.paymentsTotal,0);
+  document.getElementById('flSumProgress').textContent=groups['진행중'].length+'건';
+  document.getElementById('flSumSettling').textContent=groups['정산대기'].length+'건';
+  document.getElementById('flSumDone').textContent=fmt(doneAmount);
   const main=document.getElementById('freelanceMain');main.innerHTML='';
-  let listCard;
-  if(flView==='month')listCard=buildFlMonthView();
-  else if(flView==='client')listCard=buildFlClientList();
-  else listCard=buildFlProjectList();
-  listCard.classList.add('card-wide');
-  main.appendChild(listCard);
-  // 프로젝트 캘린더는 "월간" 뷰에서만 표시 (프로젝트/클라이언트 뷰에서는 숨김)
   if(flView==='month'){
-    const calCard=buildFlCal();
-    calCard.classList.add('card-wide');
-    main.appendChild(calCard);
+    // 월간 뷰는 달력을 맨 위로, 그 아래 이 달 정산내역 순서로 배치.
+    const calCard=buildFlCal();calCard.classList.add('card-wide');main.appendChild(calCard);
+    const listCard=buildFlMonthView();listCard.classList.add('card-wide');main.appendChild(listCard);
+  }else{
+    const listCard=flView==='client'?buildFlClientList():buildFlProjectList();
+    listCard.classList.add('card-wide');
+    main.appendChild(listCard);
   }
 }
+
+// 요약카드(진행중/정산대기/완료) 클릭 시 해당 프로젝트 목록을 팝업으로 보여줌.
+function flOpenStatusPopup(status){
+  if(!flLastGroups)return;
+  const list=flLastGroups[status]||[];
+  const titleMap={'진행중':'😈 진행중','정산대기':'🦄 정산대기','완료':'💜 완료'};
+  document.getElementById('flStatusPopupTitle').textContent=titleMap[status]||status;
+  const wrap=document.getElementById('flStatusPopupList');
+  if(!list.length){wrap.innerHTML='<div class="empty">해당하는 프로젝트가 없어요</div>';}
+  else{
+    wrap.innerHTML='';
+    list.forEach(({p})=>wrap.appendChild(buildFlRow(p)));
+  }
+  document.getElementById('flStatusPopup').classList.add('open');
+}
+function closeFlStatusPopup(e){if(e.target===document.getElementById('flStatusPopup'))document.getElementById('flStatusPopup').classList.remove('open');}
 
 // 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌. 하나만 있으면 그것만 표시.
 function flPeriodLabel(p){
@@ -89,38 +107,40 @@ function flPeriodLabel(p){
   return '';
 }
 
-// 상태별 배지: 진행중은 마감 D-day, 작업완료/정산완료는 전용 배지.
-function flStatusBadge(p){
-  if(p.status==='정산완료')return '<span class="fl-badge done">💰 정산완료</span>';
-  if(p.status==='작업완료')return '<span class="fl-badge settling">📋 작업완료</span>';
+// 상태별 배지: 진행중은 마감 D-day, 정산대기/완료는 전용 배지.
+function flStatusBadge(p,status){
+  status=status||flComputeStatus(p);
+  if(status==='완료')return '<span class="fl-badge done">💜 완료</span>';
+  if(status==='정산대기')return '<span class="fl-badge settling">🦄 정산대기</span>';
   const dd=ddayInfo(p.dueDate);
-  return dd?`<span class="fl-badge ${dd.cls}">${dd.label}</span>`:'<span class="fl-badge safe">기한없음</span>';
+  return dd?`<span class="fl-badge ${dd.cls}">😈 ${dd.label}</span>`:'<span class="fl-badge safe">😈 기한없음</span>';
 }
 
-function buildFlRow(p){
+// showClient가 false면 클라이언트명 줄을 생략함 (클라이언트별 보기에서는 이미 그룹 헤더에
+// 클라이언트명이 있어서 각 행에 또 보여줄 필요가 없음).
+function buildFlRow(p,showClient){
+  if(showClient===undefined)showClient=true;
   const row=mkDiv('fl-row');
-  const badge=flStatusBadge(p);
+  const status=flComputeStatus(p);
+  const badge=flStatusBadge(p,status);
   const period=flPeriodLabel(p);
-  let actions;
-  if(p.status==='진행중'){
-    actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">작업 완료</button>`;
-  }else if(p.status==='작업완료'){
-    actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">입금 완료</button><button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
-  }else{
-    actions=`<button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
-  }
+  const color=p.color||FL_COLOR_PALETTE[0];
+  const emoji=p.emoji||'📁';
+  const clientLine=showClient?(p.client||'미지정')+(period?' · '+period:''):period;
   row.innerHTML=`
     <div class="fl-row-top">
       <div class="fl-row-info" onclick="openFreelanceDetail('${p.id}')" title="정산 내역 보기">
-        <div class="fl-row-name">${p.project||'(제목없음)'}</div>
-        <div class="fl-row-client">🏢 ${p.client||'미지정'}${period?' · '+period:''}</div>
+        <div class="fl-row-name-line">
+          <span class="fl-row-emoji" style="background:${color}22;">${emoji}</span>
+          <div class="fl-row-name">${p.project||'(제목없음)'}</div>
+        </div>
+        ${clientLine?`<div class="fl-row-client">${clientLine}</div>`:''}
       </div>
       ${badge}
     </div>
     <div class="fl-row-bottom">
       <div class="fl-row-amt">${fmt(p.amount||0)}</div>
       <div class="fl-row-actions">
-        ${actions}
         <button class="fl-icon" onclick="editFreelanceProject('${p.id}')" title="수정">${icon('edit',14)}</button>
         <button class="fl-icon del" onclick="deleteFreelanceProject('${p.id}')" title="삭제">${icon('x-circle',15)}</button>
       </div>
@@ -134,10 +154,10 @@ function buildFlProjectList(){
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
-    // 진행중 → 작업완료 → 정산완료 순, 그 안에서는 마감 임박 순.
-    const rank={'진행중':0,'작업완료':1,'정산완료':2};
+    // 진행중 → 정산대기 → 완료 순, 그 안에서는 마감 임박 순.
+    const rank={'진행중':0,'정산대기':1,'완료':2};
     const sorted=[...FREELANCE_PROJECTS].sort((a,b)=>{
-      const r=(rank[a.status]??0)-(rank[b.status]??0);
+      const r=rank[flComputeStatus(a)]-rank[flComputeStatus(b)];
       if(r)return r;
       return (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99');
     });
@@ -158,9 +178,9 @@ function buildFlClientList(){
       const total=projects.reduce((s,p)=>s+(p.amount||0),0);
       const group=mkDiv('fl-client-group');
       const head=mkDiv('fl-client-head');
-      head.innerHTML=`<span class="fl-client-name">🏢 ${client}</span><span class="fl-client-total">${fmt(total)} · ${projects.length}건</span>`;
+      head.innerHTML=`<span class="fl-client-name">${client}</span><span class="fl-client-total">${fmt(total)} · ${projects.length}건</span>`;
       const list=document.createElement('div');list.style.cssText='display:flex;flex-direction:column;gap:6px;margin-top:10px;';
-      [...projects].sort((a,b)=>(a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99')).forEach(p=>list.appendChild(buildFlRow(p)));
+      [...projects].sort((a,b)=>(a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99')).forEach(p=>list.appendChild(buildFlRow(p,false)));
       group.appendChild(head);group.appendChild(list);
       wrap.appendChild(group);
     });
@@ -169,17 +189,14 @@ function buildFlClientList(){
 }
 
 // ─── 월간 뷰: 이 달에 정산된 외주 수입 모아보기 ──────────────────────────────────
+// 달력에 이미 "몇월"인지 나와 있어서 여기 제목은 중복이라 생략함. "이번달 정산합계"도
+// 리스트 아래로 옮기고 글자 크기를 살짝 줄여서 리스트가 우선 보이게 구성.
 function buildFlMonthView(){
   const entries=S.getEntries(flY,flM).filter(e=>e.type==='income'&&e.cat==='외주');
   const total=entries.reduce((s,e)=>s+e.amount,0);
   const card=mkDiv('card');
-  card.innerHTML=`<div class="card-header"><span class="card-title">${flY}년 ${flM+1}월 정산 내역</span></div>`;
-  const summary=document.createElement('div');
-  summary.style.cssText='padding:0 16px 12px;display:flex;justify-content:space-between;align-items:center;';
-  summary.innerHTML=`<span style="font-size:12px;color:var(--muted);font-weight:700;">이번 달 정산 합계</span><span style="font-size:16px;font-weight:800;color:var(--freelance);">${fmt(total)}</span>`;
-  card.appendChild(summary);
   const list=document.createElement('div');
-  list.style.cssText='padding:0 16px 16px;display:flex;flex-direction:column;gap:6px;';
+  list.style.cssText='padding:14px 16px 2px;display:flex;flex-direction:column;';
   if(!entries.length){
     list.innerHTML='<div class="empty">이번 달 정산 내역이 없어요</div>';
   }else{
@@ -190,6 +207,10 @@ function buildFlMonthView(){
     });
   }
   card.appendChild(list);
+  const summary=document.createElement('div');
+  summary.style.cssText='padding:10px 16px 14px;margin-top:2px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;';
+  summary.innerHTML=`<span style="font-size:11px;color:var(--muted);font-weight:700;">이번 달 정산 합계</span><span style="font-size:13px;font-weight:800;color:var(--freelance);">${fmt(total)}</span>`;
+  card.appendChild(summary);
   return card;
 }
 
@@ -262,7 +283,7 @@ function openFlDayDetail(dateStr,dayProjects,settlements){
   const parts=[];
   if(dayProjects.length){
     parts.push(`<div><div class="add-routine-form-title" style="margin-bottom:8px;">📁 진행 중인 프로젝트</div><div style="display:flex;flex-direction:column;gap:6px;">${dayProjects.map(p=>
-      `<div class="fl-payment-row" style="cursor:pointer;" onclick="closeFlDayPopupAndOpen('${p.id}')"><span style="font-size:12px;font-weight:700;">${p.project||'(제목없음)'}</span><span style="font-size:11px;color:var(--muted);">🏢 ${p.client||'미지정'}</span></div>`
+      `<div class="fl-payment-row" style="cursor:pointer;" onclick="closeFlDayPopupAndOpen('${p.id}')"><span style="font-size:12px;font-weight:700;">${p.project||'(제목없음)'}</span><span style="font-size:11px;color:var(--muted);">${p.client||'미지정'}</span></div>`
     ).join('')}</div></div>`);
   }
   if(settlements.length){
@@ -277,13 +298,24 @@ function closeFlDayPopup(e){if(e.target===document.getElementById('flDayPopup'))
 function closeFlDayPopupAndOpen(id){document.getElementById('flDayPopup').classList.remove('open');openFreelanceDetail(id);}
 
 // ─── 추가/수정 폼 ──────────────────────────────────────────────────────────────
+// 프로젝트 커스텀 이모지 옆에 24색 팔레트를 그려서 클릭으로 색을 고를 수 있게 함.
+function renderFlColorSwatches(selected){
+  const wrap=document.getElementById('flColorSwatches');
+  if(!wrap)return;
+  pendingFlColor=selected||FL_COLOR_PALETTE[0];
+  wrap.innerHTML=FL_COLOR_PALETTE.map(c=>`<div class="fl-color-swatch ${c===pendingFlColor?'active':''}" style="background:${c};" onclick="selFlColor('${c}')"></div>`).join('');
+}
+function selFlColor(c){
+  renderFlColorSwatches(c);
+}
 function openFreelanceForm(){
   editingFlId=null;
   document.getElementById('flFormTitle').innerHTML=`${icon('plus-circle',16)} 새 프로젝트`;
   document.getElementById('flSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
-  ['flClient','flProject','flAmount','flStartDate','flDueDate','flMemo'].forEach(id=>{document.getElementById(id).value='';});
+  ['flClient','flProject','flAmount','flStartDate','flDueDate','flMemo','flEmoji'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('flTaxRate').value='3.3';
   document.getElementById('flTaxPreview').classList.remove('show');
+  renderFlColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
   document.getElementById('freelanceFormPopup').classList.add('open');
 }
 function closeFreelanceForm(e){if(e.target===document.getElementById('freelanceFormPopup'))document.getElementById('freelanceFormPopup').classList.remove('open');}
@@ -309,6 +341,8 @@ function editFreelanceProject(id){
   document.getElementById('flStartDate').value=p.startDate||'';
   document.getElementById('flDueDate').value=p.dueDate||'';
   document.getElementById('flMemo').value=p.memo||'';
+  document.getElementById('flEmoji').value=p.emoji||'';
+  renderFlColorSwatches(p.color||FL_COLOR_PALETTE[0]);
   calcFlTax();
   document.getElementById('freelanceFormPopup').classList.add('open');
 }
@@ -321,12 +355,14 @@ function saveFreelanceForm(){
   const startDate=document.getElementById('flStartDate').value;
   const dueDate=document.getElementById('flDueDate').value;
   const memo=document.getElementById('flMemo').value.trim();
+  const emoji=document.getElementById('flEmoji').value.trim();
+  const color=pendingFlColor||FL_COLOR_PALETTE[0];
   if(!client||!project){alert('클라이언트명과 프로젝트명을 입력해줘');return;}
   if(startDate&&dueDate&&startDate>dueDate){alert('마감일이 착수일보다 빠를 수 없어요');return;}
   if(editingFlId){
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(p=>p.id===editingFlId?{...p,client,project,amount,taxRate,startDate,dueDate,memo}:p);
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(p=>p.id===editingFlId?{...p,client,project,amount,taxRate,startDate,dueDate,memo,emoji,color}:p);
   }else{
-    FREELANCE_PROJECTS=[...FREELANCE_PROJECTS,{id:'fp'+Date.now(),client,project,amount,taxRate,startDate,dueDate,memo,status:'진행중',createdAt:Date.now()}];
+    FREELANCE_PROJECTS=[...FREELANCE_PROJECTS,{id:'fp'+Date.now(),client,project,amount,taxRate,startDate,dueDate,memo,emoji,color,createdAt:Date.now()}];
   }
   saveFreelanceProjects(FREELANCE_PROJECTS);
   document.getElementById('freelanceFormPopup').classList.remove('open');
@@ -340,47 +376,15 @@ function deleteFreelanceProject(id){
   renderFreelance();
 }
 
-// 상태를 한 단계 진행시킴: 진행중(작업 중) → 작업완료(작업 끝, 입금 대기 — 마감일이 지나면 자동으로도 전환됨.
-// 마감일 전에 미리 끝냈으면 이 버튼으로 앞당겨 전환 가능) → 정산완료(입금까지 끝나서 수입으로 기재됨).
-// 정산완료 처리는 여전히 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
-// (실제 입금은 가계부에서 "등록된 프로젝트에서 불러오기"로 직접 등록 — 분할 입금/지연도 자연스럽게 처리됨).
-function flAdvanceStatus(id){
-  const p=FREELANCE_PROJECTS.find(x=>x.id===id);
-  if(!p)return;
-  if(p.status==='진행중'){
-    if(!confirm('작업을 완료 처리할까요? (마감일이 지나면 자동으로도 전환돼요)'))return;
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'작업완료'}:x);
-  }else if(p.status==='작업완료'){
-    if(!confirm('입금까지 완료됐나요? 정산완료로 처리할까요?'))return;
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'정산완료'}:x);
-  }else return;
-  saveFreelanceProjects(FREELANCE_PROJECTS);
-  renderFreelance();
-}
-
-// 상태를 한 단계 되돌림: 정산완료 → 작업완료, 작업완료 → 진행중.
-// (작업완료로 되돌려도 마감일이 이미 지났다면 다음 렌더링 때 자동전환으로 다시 작업완료가 됨)
-function flRevertStatus(id){
-  const p=FREELANCE_PROJECTS.find(x=>x.id===id);
-  if(!p)return;
-  let prev;
-  if(p.status==='정산완료'){prev='작업완료';if(!confirm('정산완료를 취소하고 작업완료로 되돌릴까요?'))return;}
-  else if(p.status==='작업완료'){prev='진행중';if(!confirm('작업완료를 취소하고 진행중으로 되돌릴까요?'))return;}
-  else return;
-  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:prev}:x);
-  saveFreelanceProjects(FREELANCE_PROJECTS);
-  renderFreelance();
-}
-
 // ─── 가계부 외주 입력 폼 연동 ───────────────────────────────────────────────────
 // 가계부에서 "외주" 카테고리를 고르면, 외주 탭에 이미 등록해둔 프로젝트 목록을
 // 드롭다운으로 보여줘서 클라이언트/프로젝트명을 직접 타이핑하지 않고 불러올 수 있게 함.
 function populateFlProjectPicker(){
   const sel=document.getElementById('fProjectPicker');
   if(!sel)return;
-  // 완전히 정산 끝난(정산완료) 프로젝트는 목록에서 아예 제외. 아직 안 끝난(진행중/작업완료 등
-  // 부분 정산 상태) 프로젝트만 골라서 등록할 수 있게 함.
-  const list=FREELANCE_PROJECTS.filter(p=>p.status!=='정산완료');
+  // 계약금액만큼 다 입금돼서 "완료" 처리된 프로젝트는 목록에서 아예 제외. 아직 덜 받은(진행중/
+  // 정산대기 = 부분 입금 포함) 프로젝트만 골라서 추가 입금을 등록할 수 있게 함.
+  const list=FREELANCE_PROJECTS.filter(p=>flComputeStatus(p)!=='완료');
   sel.innerHTML='<option value="">프로젝트를 선택하세요</option>'+list.map(p=>
     `<option value="${p.id}">${p.client||'?'} · ${p.project||'?'}</option>`
   ).join('');
@@ -430,7 +434,7 @@ function openFreelanceDetail(id){
   const period=flPeriodLabel(p);
 
   document.getElementById('flDetailTitle').textContent=p.project||'(제목없음)';
-  document.getElementById('flDetailSub').textContent=`🏢 ${p.client||'미지정'}${period?' · '+period:''}`;
+  document.getElementById('flDetailSub').textContent=`${p.client||'미지정'}${period?' · '+period:''}`;
   document.getElementById('flDetailProgress').innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px;">
       <span>정산 ${fmt(received)} / 계약 ${fmt(contract)}</span>
