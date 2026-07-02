@@ -230,8 +230,13 @@ flex-shrink:0;
 .pe-amt{font-size:13px;font-weight:800;}
 .pe-amt.income{color:var(--income);}
 .pe-amt.expense{color:var(--expense);}
+.pe-edit{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px;}
+.pe-edit:hover{color:var(--income);}
 .pe-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:17px;padding:2px;}
 .pe-del:hover{color:var(--expense);}
+.popup-day-actions{display:flex;gap:6px;justify-content:center;padding:0 16px 10px;}
+.popup-day-actions button{background:var(--bg);border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;}
+.popup-day-actions button.danger{color:var(--expense);}
 .popup-divider{height:1px;background:var(--border);margin:6px 16px;}
 .popup-form{padding:8px 16px;}
 .form-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px;}
