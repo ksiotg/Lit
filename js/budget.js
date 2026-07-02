@@ -59,34 +59,85 @@ function buildFreelanceIncome(){
   card.appendChild(inner);return card;
 }
 
-function buildTop5(){
+// 이번 달 변동지출을 카테고리별로 합산해서 금액 많은 순으로 정렬해서 반환.
+function expenseCatBreakdown(){
   const entries=S.getEntries(curY,curM);
   const catMap={};entries.filter(e=>e.type==='expense').forEach(e=>{catMap[e.cat]=(catMap[e.cat]||0)+e.amount;});
-  // 리스트는 TOP5만, 그래프는 전체 카테고리를 다 보여주되 TOP5 조각만 강조(하이라이트)함.
-  const allSorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  return Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+}
+
+function buildTop5(){
+  // 전체 카테고리 비율(도넛차트)을 위에 크게 배치 → TOP5 리스트 → 더보기 버튼 순서로 구성.
+  const allSorted=expenseCatBreakdown();
   const sorted=allSorted.slice(0,5);
   const total=sorted.reduce((s,[,v])=>s+v,0);
   const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">변동지출 TOP 5</span></div>';
-  const inner=mkDiv('top5-inner');const list=mkDiv('top5-list');
-  if(!sorted.length){list.innerHTML='<div class="empty">변동지출 내역이 없어요</div>';}
-  else{sorted.forEach(([cat,amt],i)=>{
+  const inner=mkDiv('top5-inner');
+  if(!allSorted.length){
+    inner.innerHTML='<div class="empty">변동지출 내역이 없어요</div>';
+    card.appendChild(inner);
+    return card;
+  }
+  const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
+  const list=mkDiv('top5-list');
+  sorted.forEach(([cat,amt],i)=>{
     const pct=total?Math.round(amt/total*100):0,color=PIE_COLORS[i];
     const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
     const row=mkDiv('top5-row');
     row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat}</div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div><div class="top5-pct">${pct}%</div></div>`;
     list.appendChild(row);
-  });}
-  const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
-  inner.appendChild(list);inner.appendChild(pw);card.appendChild(inner);
+  });
+  inner.appendChild(pw);inner.appendChild(list);card.appendChild(inner);
+  const moreBtn=document.createElement('button');
+  moreBtn.className='top5-more-btn';moreBtn.textContent='전체 카테고리 더보기';
+  moreBtn.onclick=()=>openCatAllPopup();
+  card.appendChild(moreBtn);
   if(pieChart)pieChart.destroy();
-  if(allSorted.length){
-    // 처음 5개(=TOP5)는 원래 색으로 살려서 튀어나오게 하고, 나머지는 톤다운된 회색으로 묶어서 보여줌.
-    const colors=allSorted.map((_,i)=>i<5?PIE_COLORS[i]:'#e5e7eb');
-    const offsets=allSorted.map((_,i)=>i<5?8:0);
-    pieChart=new Chart(canvas,{type:'doughnut',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff',offset:offsets}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
-  }
+  // 처음 5개(=TOP5)는 원래 색으로 살려서 튀어나오게 하고, 나머지는 톤다운된 회색으로 묶어서 보여줌.
+  const colors=allSorted.map((_,i)=>i<5?PIE_COLORS[i]:'#e5e7eb');
+  const offsets=allSorted.map((_,i)=>i<5?8:0);
+  pieChart=new Chart(canvas,{type:'doughnut',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff',offset:offsets}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
   return card;
 }
+
+// ─── 전체 카테고리 더보기 / 카테고리별 상세 내역 ─────────────────────────────────
+function openCatAllPopup(){
+  const sorted=expenseCatBreakdown();
+  const total=sorted.reduce((s,[,v])=>s+v,0);
+  document.getElementById('catAllSub').textContent=`${curY}년 ${curM+1}월 · 총 ${fmt(total)}`;
+  const wrap=document.getElementById('catAllList');wrap.innerHTML='';
+  if(!sorted.length){
+    wrap.innerHTML='<div class="empty">변동지출 내역이 없어요</div>';
+  }else{
+    sorted.forEach(([cat,amt],i)=>{
+      const pct=total?Math.round(amt/total*100):0;
+      const color=i<5?PIE_COLORS[i]:'#9ea3b8';
+      const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+      const row=mkDiv('top5-row clickable');
+      row.onclick=()=>openCatDetail(cat);
+      row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat}</div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div><div class="top5-pct">${pct}%</div></div>`;
+      wrap.appendChild(row);
+    });
+  }
+  document.getElementById('catAllPopup').classList.add('open');
+}
+function closeCatAllPopup(e){if(e.target===document.getElementById('catAllPopup'))document.getElementById('catAllPopup').classList.remove('open');}
+
+function openCatDetail(cat){
+  const entries=S.getEntries(curY,curM).filter(e=>e.type==='expense'&&e.cat===cat).sort((a,b)=>b.day-a.day);
+  const total=entries.reduce((s,e)=>s+e.amount,0);
+  const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+  document.getElementById('catDetailTitle').textContent=`${ci.e} ${cat}`;
+  document.getElementById('catDetailSub').textContent=`${curY}년 ${curM+1}월 · 총 ${fmt(total)} · ${entries.length}건`;
+  const wrap=document.getElementById('catDetailList');
+  if(!entries.length){
+    wrap.innerHTML='<div class="empty">내역이 없어요</div>';
+  }else{
+    wrap.innerHTML=entries.map(e=>`<div class="pe"><div class="pe-dot expense"></div><div class="pe-info"><div class="pe-name">${e.emoji||ci.e} ${e.name||cat}</div><div class="pe-cat">${curM+1}월 ${e.day}일</div></div><div class="pe-amt expense">−${fmt(e.amount)}</div></div>`).join('');
+  }
+  document.getElementById('catDetailPopup').classList.add('open');
+}
+function closeCatDetail(e){if(e.target===document.getElementById('catDetailPopup'))document.getElementById('catDetailPopup').classList.remove('open');}
 
 function buildFixed(){
   const checked=S.getChecked(curY,curM);
@@ -173,7 +224,8 @@ function buildYear(){
     yi+=fi;ye+=fe;
     const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer';
     row.onclick=()=>{curM=m;setView('month');};
-    row.innerHTML=`<span style="font-size:12px;font-weight:700;color:${m===curM?'var(--income)':'var(--muted)'};width:28px">${m+1}월</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--income);font-weight:700">${fmt(fi)}</span><span style="color:var(--expense);font-weight:700">${fmt(fe)}</span></div><div style="height:4px;background:#f0f0f5;border-radius:99px;overflow:hidden"><div style="height:100%;width:${fi?Math.min(100,Math.round(fe/fi*100)):0}%;background:var(--expense);border-radius:99px"></div></div></div><span style="font-size:11px;font-weight:800;color:${fi-fe>=0?'var(--remain)':'var(--expense)'}">${fmt(fi-fe)}</span>`;
+    const remain=fi-fe;
+    row.innerHTML=`<span style="font-size:12px;font-weight:700;color:${m===curM?'var(--income)':'var(--muted)'};width:28px;flex-shrink:0;">${m+1}월</span><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;margin-bottom:3px;"><span style="color:var(--income);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fmt(fi)}</span><span style="color:var(--expense);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fmt(fe)}</span></div><div style="height:4px;background:#f0f0f5;border-radius:99px;overflow:hidden"><div style="height:100%;width:${fi?Math.min(100,Math.round(fe/fi*100)):0}%;background:var(--expense);border-radius:99px"></div></div></div><div class="year-remain-pill"><span style="color:${remain>=0?'var(--remain)':'var(--expense)'}">${fmt(remain)}</span></div>`;
     inner.appendChild(row);
   }
   const tot=document.createElement('div');tot.style.cssText='border-top:2px solid var(--border);padding-top:10px;display:flex;justify-content:space-between';
