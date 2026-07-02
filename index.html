@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=13">
+<link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
 
@@ -292,6 +292,21 @@
   </div>
 </div>
 
+<!-- 외주 프로젝트 상세(정산 내역) 팝업 -->
+<div class="routine-mgmt-popup" id="freelanceDetailPopup" onclick="closeFreelanceDetail(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:16px;font-weight:800;" id="flDetailTitle">프로젝트명</div>
+      <button onclick="document.getElementById('freelanceDetailPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="flDetailSub"></div>
+    <div id="flDetailProgress" style="margin-bottom:18px;"></div>
+    <div class="add-routine-form-title" style="margin-bottom:8px;">💵 정산 내역</div>
+    <div id="flDetailPayments"></div>
+  </div>
+</div>
+
 <!-- 회고 작성 팝업 -->
 <div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
   <div class="popup">
@@ -374,19 +389,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=13"></script>
-<script src="js/data-state.js?v=13"></script>
-<script src="js/storage.js?v=13"></script>
-<script src="js/utils.js?v=13"></script>
-<script src="js/backup.js?v=13"></script>
-<script src="js/auth.js?v=13"></script>
-<script src="js/page-switch.js?v=13"></script>
-<script src="js/budget.js?v=13"></script>
-<script src="js/routine.js?v=13"></script>
-<script src="js/routine-mgmt.js?v=13"></script>
-<script src="js/workout.js?v=13"></script>
-<script src="js/review.js?v=13"></script>
-<script src="js/freelance.js?v=13"></script>
-<script src="js/main.js?v=13"></script>
+<script src="js/supabase-client.js?v=14"></script>
+<script src="js/data-state.js?v=14"></script>
+<script src="js/storage.js?v=14"></script>
+<script src="js/utils.js?v=14"></script>
+<script src="js/backup.js?v=14"></script>
+<script src="js/auth.js?v=14"></script>
+<script src="js/page-switch.js?v=14"></script>
+<script src="js/budget.js?v=14"></script>
+<script src="js/routine.js?v=14"></script>
+<script src="js/routine-mgmt.js?v=14"></script>
+<script src="js/workout.js?v=14"></script>
+<script src="js/review.js?v=14"></script>
+<script src="js/freelance.js?v=14"></script>
+<script src="js/main.js?v=14"></script>
 </body>
 </html>
