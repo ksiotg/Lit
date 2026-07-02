@@ -5,15 +5,18 @@
 // (작업완료/정산완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
 // 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
 // 때마다 프로젝트를 골라 클라이언트/프로젝트명을 자동으로 채워넣을 수 있게 함.
-let flView='project'; // 'project' | 'client' | 'month'
+let flView='month'; // 'month' | 'project' | 'client' — 탭에 들어갈 때마다 기본값은 '월간'
 let editingFlId=null;
 
 function setFreelanceView(v){
   flView=v;
-  document.getElementById('fvbtn-project').classList.toggle('active',v==='project');
-  document.getElementById('fvbtn-client').classList.toggle('active',v==='client');
-  document.getElementById('fvbtn-month').classList.toggle('active',v==='month');
   renderFreelance();
+}
+
+function flSyncViewButtons(){
+  document.getElementById('fvbtn-month').classList.toggle('active',flView==='month');
+  document.getElementById('fvbtn-project').classList.toggle('active',flView==='project');
+  document.getElementById('fvbtn-client').classList.toggle('active',flView==='client');
 }
 
 function chFlMonth(d){flM+=d;if(flM>11){flM=0;flY++;}if(flM<0){flM=11;flY--;}renderFreelance();}
@@ -56,6 +59,7 @@ function ddayInfo(dueDate){
 function renderFreelance(){
   FREELANCE_PROJECTS=flApplyAutoTransitions(getFreelanceProjects());
   document.getElementById('flMonthLabel').textContent=`${flY}년 ${flM+1}월`;
+  flSyncViewButtons();
   const inProgress=FREELANCE_PROJECTS.filter(p=>p.status==='진행중');
   const workDone=FREELANCE_PROJECTS.filter(p=>p.status==='작업완료');
   const settledTotal=FREELANCE_PROJECTS.filter(p=>p.status==='정산완료').reduce((s,p)=>s+(p.amount||0),0);
@@ -69,9 +73,12 @@ function renderFreelance(){
   else listCard=buildFlProjectList();
   listCard.classList.add('card-wide');
   main.appendChild(listCard);
-  const calCard=buildFlCal();
-  calCard.classList.add('card-wide');
-  main.appendChild(calCard);
+  // 프로젝트 캘린더는 "월간" 뷰에서만 표시 (프로젝트/클라이언트 뷰에서는 숨김)
+  if(flView==='month'){
+    const calCard=buildFlCal();
+    calCard.classList.add('card-wide');
+    main.appendChild(calCard);
+  }
 }
 
 // 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌. 하나만 있으면 그것만 표시.

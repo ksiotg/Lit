@@ -7,5 +7,5 @@ function switchPage(page){
   else if(page==='routine') renderRoutine();
   else if(page==='workout') renderWorkout();
   else if(page==='review') renderReview();
-  else if(page==='freelance') renderFreelance();
+  else if(page==='freelance'){flView='month';renderFreelance();} // 탭 클릭 시 항상 월간 뷰로 초기화
 }
