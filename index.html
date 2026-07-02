@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=31">
+<link rel="stylesheet" href="css/style.css?v=32">
 </head>
 <body>
 
@@ -59,9 +59,9 @@
       </div>
     </div>
     <div class="sum-grid">
-      <div class="sum-card"><div class="sum-icon">↑</div><div class="sum-label">수입</div><div class="sum-val income" id="sumIncome">₩0</div></div>
-      <div class="sum-card"><div class="sum-icon">↓</div><div class="sum-label">지출</div><div class="sum-val expense" id="sumExpense">₩0</div></div>
-      <div class="sum-card"><div class="sum-icon">₩</div><div class="sum-label">잔여</div><div class="sum-val remain" id="sumRemain">₩0</div></div>
+      <div class="sum-card"><div class="sum-label">수입</div><div class="sum-val income" id="sumIncome">+0</div></div>
+      <div class="sum-card"><div class="sum-label">지출</div><div class="sum-val expense" id="sumExpense">-0</div></div>
+      <div class="sum-card"><div class="sum-label">잔여</div><div class="sum-val remain" id="sumRemain">₩0</div></div>
     </div>
   </div>
   <main id="budgetMain"></main>
@@ -285,7 +285,7 @@
       <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16"></span> 가계부 설정</div>
       <button onclick="document.getElementById('budgetSettingsPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
-    <div class="add-routine-form-title" style="margin-bottom:8px;">💼 고정 수입 (매월 자동 반영)</div>
+    <div class="add-routine-form-title" style="margin-bottom:8px;">💼 고정 수입</div>
     <div id="fixedIncomeList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
       <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14"></span> 고정 수입 추가</div>
@@ -299,7 +299,7 @@
       </div>
       <button class="add-btn" onclick="saveNewFixedIncome()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
     </div>
-    <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">📌 고정지출 (매월 자동 반영)</div>
+    <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">📌 고정지출</div>
     <div id="fixedItemsList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
       <div class="add-routine-form-title" id="fiItemFormTitle"><span class="ico" data-icon="plus-circle" data-size="14"></span> 고정지출 추가</div>
@@ -411,6 +411,19 @@
   </div>
 </div>
 
+<!-- 고정지출 납부 완료 시 실제 출금액 입력 팝업 -->
+<div class="routine-mgmt-popup" id="fixedActualPopup" onclick="closeFixedActualPopup(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;" id="fixedActualTitle">고정지출</div>
+      <button onclick="closeFixedActualPopup()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div class="fg" style="margin-bottom:14px;"><label class="fl">실제 출금액</label><input class="fi" id="fixedActualInput" type="number" placeholder="0"></div>
+    <button class="add-btn" style="background:var(--budget);" onclick="saveFixedActual()">확인</button>
+  </div>
+</div>
+
 <!-- 회고 작성 팝업 -->
 <div class="overlay" id="reviewOverlay" onclick="closeReviewPopup(event)">
   <div class="popup">
@@ -450,10 +463,10 @@
       <div class="fg" id="incomeCatRow" style="display:none;margin-bottom:8px"><label class="fl">카테고리</label><select class="fi" id="fCategory" onchange="onIncomeCatChange()"></select></div>
       <div class="fg-freelance" id="freelanceFields">
         <div class="fg" style="margin-bottom:8px;">
-          <label class="fl">등록된 프로젝트에서 불러오기 (선택)</label>
-          <select class="fi" id="fProjectPicker" onchange="applyFlProjectPick()"><option value="">직접 입력</option></select>
+          <label class="fl">등록된 프로젝트에서 불러오기</label>
+          <select class="fi" id="fProjectPicker" onchange="applyFlProjectPick()"><option value="">프로젝트를 선택하세요</option></select>
         </div>
-        <div class="fg-freelance-grid">
+        <div class="fg-freelance-grid" style="display:none;">
           <div class="fg"><label class="fl">클라이언트명</label><input class="fi" id="fClient" placeholder="클라이언트"></div>
           <div class="fg"><label class="fl">프로젝트명</label><input class="fi" id="fProject" placeholder="프로젝트"></div>
         </div>
@@ -494,19 +507,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=31"></script>
-<script src="js/data-state.js?v=31"></script>
-<script src="js/storage.js?v=31"></script>
-<script src="js/utils.js?v=31"></script>
-<script src="js/backup.js?v=31"></script>
-<script src="js/auth.js?v=31"></script>
-<script src="js/page-switch.js?v=31"></script>
-<script src="js/budget.js?v=31"></script>
-<script src="js/routine.js?v=31"></script>
-<script src="js/routine-mgmt.js?v=31"></script>
-<script src="js/workout.js?v=31"></script>
-<script src="js/review.js?v=31"></script>
-<script src="js/freelance.js?v=31"></script>
-<script src="js/main.js?v=31"></script>
+<script src="js/supabase-client.js?v=32"></script>
+<script src="js/data-state.js?v=32"></script>
+<script src="js/storage.js?v=32"></script>
+<script src="js/utils.js?v=32"></script>
+<script src="js/backup.js?v=32"></script>
+<script src="js/auth.js?v=32"></script>
+<script src="js/page-switch.js?v=32"></script>
+<script src="js/budget.js?v=32"></script>
+<script src="js/routine.js?v=32"></script>
+<script src="js/routine-mgmt.js?v=32"></script>
+<script src="js/workout.js?v=32"></script>
+<script src="js/review.js?v=32"></script>
+<script src="js/freelance.js?v=32"></script>
+<script src="js/main.js?v=32"></script>
 </body>
 </html>
