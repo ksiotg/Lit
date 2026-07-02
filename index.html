@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
@@ -213,6 +213,21 @@
       </div>
       <button class="add-btn" onclick="saveNewFixedIncome()">추가하기</button>
     </div>
+    <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">📌 고정지출 (매월 자동 반영)</div>
+    <div id="fixedItemsList" style="margin-bottom:14px;"></div>
+    <div class="add-routine-form">
+      <div class="add-routine-form-title" id="fiItemFormTitle">+ 고정지출 추가</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">이름</label><input class="fi" id="newFItemName" placeholder="월세"></div>
+        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newFItemEmoji" placeholder="🏠" style="font-size:18px;text-align:center;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="fg"><label class="fl">분류</label><input class="fi" id="newFItemCat" placeholder="주거"></div>
+        <div class="fg"><label class="fl">납부일 (일)</label><input class="fi" id="newFItemDay" type="number" min="1" max="31" placeholder="10"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;"><label class="fl">금액</label><input class="fi" id="newFItemAmount" type="number" placeholder="0"></div>
+      <button class="add-btn" id="fiItemSaveBtn" onclick="saveFixedItemForm()">추가하기</button>
+    </div>
   </div>
 </div>
 
@@ -287,18 +302,18 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=5"></script>
-<script src="js/data-state.js?v=5"></script>
-<script src="js/storage.js?v=5"></script>
-<script src="js/utils.js?v=5"></script>
-<script src="js/backup.js?v=5"></script>
-<script src="js/auth.js?v=5"></script>
-<script src="js/page-switch.js?v=5"></script>
-<script src="js/budget.js?v=5"></script>
-<script src="js/routine.js?v=5"></script>
-<script src="js/routine-mgmt.js?v=5"></script>
-<script src="js/workout.js?v=5"></script>
-<script src="js/review.js?v=5"></script>
-<script src="js/main.js?v=5"></script>
+<script src="js/supabase-client.js?v=6"></script>
+<script src="js/data-state.js?v=6"></script>
+<script src="js/storage.js?v=6"></script>
+<script src="js/utils.js?v=6"></script>
+<script src="js/backup.js?v=6"></script>
+<script src="js/auth.js?v=6"></script>
+<script src="js/page-switch.js?v=6"></script>
+<script src="js/budget.js?v=6"></script>
+<script src="js/routine.js?v=6"></script>
+<script src="js/routine-mgmt.js?v=6"></script>
+<script src="js/workout.js?v=6"></script>
+<script src="js/review.js?v=6"></script>
+<script src="js/main.js?v=6"></script>
 </body>
 </html>
