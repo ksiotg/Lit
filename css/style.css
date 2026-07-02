@@ -3,6 +3,7 @@
   --bg:#f4f6fb;--white:#fff;--border:#eef0f5;--text:#1a1d2e;--muted:#9ea3b8;
   --income:#3b82f6;--expense:#ef4444;--remain:#8b5cf6;
   --selfcare:#f59e0b;--health:#ef4444;--growth:#3b82f6;--life:#22c55e;
+  --freelance:#8b5cf6;--freelance-tint:#ede9fe;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -37,8 +38,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.workout-tl{background:#ef4444;box-shadow:0 0 0 3px #fee2e2,0 0 10px 3px #ef444499;}
 .tl-btn.review-tl{background:#1e3a5f;}
 .tl-btn.on.review-tl{background:#3b82f6;box-shadow:0 0 0 3px #dbeafe,0 0 10px 3px #3b82f699;}
-.tl-btn.freelance-tl{background:#0f766e;}
-.tl-btn.on.freelance-tl{background:#14b8a6;box-shadow:0 0 0 3px #ccfbf1,0 0 10px 3px #14b8a699;}
+.tl-btn.freelance-tl{background:#5b21b6;}
+.tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 3px #ede9fe,0 0 10px 3px #8b5cf699;}
 .tl-label{font-size:11px;font-weight:700;color:var(--muted);margin-left:auto;}
 
 /* ── 공통 헤더 ── */
@@ -343,22 +344,27 @@ flex-shrink:0;
 .fl-badge.over{background:#fee2e2;color:#b91c1c;}
 .fl-badge.done{background:#e5e7eb;color:#6b7280;}
 .fl-row-bottom{display:flex;justify-content:space-between;align-items:center;}
-.fl-row-amt{font-size:13px;font-weight:800;color:var(--income);}
+.fl-row-amt{font-size:13px;font-weight:800;color:var(--freelance);}
 .fl-row-actions{display:flex;align-items:center;gap:4px;}
 .fl-act{background:#fff;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;}
-.fl-act.primary{background:var(--text);color:#fff;border-color:var(--text);}
+.fl-act.primary{background:var(--freelance);color:#fff;border-color:var(--freelance);}
 .fl-icon{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 4px;}
-.fl-icon:hover{color:var(--income);}
+.fl-icon:hover{color:var(--freelance);}
 .fl-icon.del{font-size:17px;}
 .fl-icon.del:hover{color:var(--expense);}
 .fl-client-group{background:#fff!important;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;}
 .fl-client-head{display:flex;justify-content:space-between;align-items:center;}
 .fl-client-name{font-size:13px;font-weight:800;}
-.fl-client-total{font-size:11px;color:var(--muted);font-weight:700;}
+.fl-client-total{font-size:11px;color:var(--freelance);font-weight:700;}
 .fl-row-info{cursor:pointer;}
-.fl-row-info:hover .fl-row-name{text-decoration:underline;}
+.fl-row-info:hover .fl-row-name{text-decoration:underline;color:var(--freelance);}
 .fl-payment-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:10px;padding:9px 12px;margin-bottom:6px;}
 .fl-payment-row:last-child{margin-bottom:0;}
 .fl-payment-date{font-size:12px;color:var(--muted);font-weight:600;}
-.fl-payment-amt{font-size:13px;font-weight:800;color:var(--income);}
+.fl-payment-amt{font-size:13px;font-weight:800;color:var(--freelance);}
+/* 외주 탭 전용 포인트 컬러 오버라이드 (다른 탭에서 재사용하는 공용 클래스는 스코프를 좁혀서 여기서만 보라색 적용) */
+#page-freelance .view-btn.active{background:var(--freelance);}
+#freelanceFormPopup .tax-preview{background:var(--freelance-tint);}
+#freelanceFormPopup .tax-item-val{color:var(--freelance);}
+#freelanceFormPopup .fi:focus{border-color:var(--freelance);}
 </style>
