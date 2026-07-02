@@ -63,7 +63,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .sum-val{font-size:12px;font-weight:800;}
 .sum-val.income{color:var(--income);}
 .sum-val.expense{color:var(--expense);}
-.sum-val.remain{color:var(--remain);}
+.sum-val.remain{color:var(--budget);}
 
 /* ── 공통 카드 ── */
 main{padding:14px;display:flex;flex-direction:column;gap:14px;}
@@ -82,7 +82,7 @@ main{padding:14px;display:flex;flex-direction:column;gap:14px;}
 .top5-bar-fill{height:100%;border-radius:99px;}
 .top5-right{text-align:right;flex-shrink:0;}
 .top5-amt{font-size:11px;font-weight:700;}
-.top5-pct{font-size:9px;color:var(--muted);}
+.top5-pct{font-size:9px;color:var(--muted);font-weight:500;margin-left:2px;}
 .pie-wrap{width:100%;height:190px;}
 .top5-more-btn{display:block;width:calc(100% - 32px);margin:12px 16px 16px;padding:10px;background:var(--bg);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;}
 .top5-more-btn:hover{color:var(--text);}
@@ -113,8 +113,8 @@ main{padding:14px;display:flex;flex-direction:column;gap:14px;}
 .fixed-cat-badge{display:inline-flex;align-items:center;border-radius:6px;padding:3px 7px;font-size:17px;}
 .fixed-name-text{font-size:12px;font-weight:600;}
 .fixed-name-text.done{color:#ccc;text-decoration:line-through;}
-.fixed-amt-text{font-size:12px;font-weight:700;color:var(--expense);text-align:right;display:block;}
-.fixed-amt-text.done{color:#ccc;}
+.fixed-amt-text{font-size:12px;font-weight:700;color:#4b5563;text-align:right;display:block;}
+.fixed-amt-text.done{color:var(--budget);}
 .fixed-footer{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 14px;border-top:1px solid var(--border);}
 .fixed-footer-label{font-size:11px;color:var(--muted);font-weight:600;}
 .fixed-footer-val{font-size:13px;font-weight:800;color:var(--income);}
@@ -239,15 +239,20 @@ flex-shrink:0;
 .popup-date-label{font-size:16px;font-weight:800;margin-bottom:4px;}
 .popup-entries{padding:10px 16px;display:flex;flex-direction:column;gap:6px;}
 .pe{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:9px 12px;}
+.pe.income{background:#eff6ff;}
+.pe.expense{background:#fef2f2;}
+.pe.fixed{background:var(--budget-tint);}
 .pe-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .pe-dot.income{background:var(--income);}
 .pe-dot.expense{background:var(--expense);}
+.pe-dot.fixed{background:var(--budget);}
 .pe-info{flex:1;}
 .pe-name{font-size:13px;font-weight:600;}
 .pe-cat{font-size:11px;color:var(--muted);}
 .pe-amt{font-size:13px;font-weight:800;}
 .pe-amt.income{color:var(--income);}
 .pe-amt.expense{color:var(--expense);}
+.pe-amt.fixed{color:var(--budget);}
 .pe-edit{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px;}
 .pe-edit:hover{color:var(--income);}
 .pe-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:17px;padding:2px;}
@@ -331,6 +336,10 @@ flex-shrink:0;
 .rmgmt-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 .rmgmt-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:18px;padding:4px;}
 .rmgmt-del:hover{color:var(--expense);}
+#budgetSettingsPopup .fi{background:#fff;}
+#budgetSettingsPopup .add-btn{background:var(--budget);}
+#budgetSettingsPopup .rmgmt-del{color:#6b7280;font-size:14px;display:inline-flex;align-items:center;}
+#entrySaveBtn{background:var(--budget);}
 .rmgmt-edit{background:none;border:none;color:#ddd;cursor:pointer;font-size:14px;padding:4px;}
 .rmgmt-edit:hover{color:var(--income);}
 .add-routine-form{background:var(--bg);border-radius:14px;padding:14px;margin-top:12px;}
