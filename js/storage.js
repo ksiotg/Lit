@@ -50,6 +50,11 @@ function getFixedIncome(){
 }
 function saveFixedIncome(arr){Storage._set('fixed_income',arr);}
 
+function getFixedItems(){
+  return Storage._get('fixed_items',null)||DEFAULT_FIXED_ITEMS;
+}
+function saveFixedItems(arr){Storage._set('fixed_items',arr);}
+
 const S={
   getChecked(y,m){return Storage._get('ck_'+mk(y,m),[])},
   setChecked(y,m,a){Storage._set('ck_'+mk(y,m),a)},

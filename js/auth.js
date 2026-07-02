@@ -45,6 +45,7 @@ async function onAuthReady(user){
   await Storage.loadAll(user.id);
   ROUTINES=getRoutines();
   FIXED_INCOME=getFixedIncome();
+  FIXED_ITEMS=getFixedItems();
   hideAuthGate();
   switchPage('routine');
 }

@@ -13,11 +13,22 @@ function activeFixedIncome(y,m){
   });
 }
 
+// 특정 연/월에 "적용 중"인 고정지출만 골라냄 (startYm~endYm 기준).
+// 고정지출을 수정/종료해도 그게 적용되던 과거 달의 기록은 그대로 유지됨.
+function activeFixedItems(y,m){
+  const ym=mk(y,m);
+  return FIXED_ITEMS.filter(fi=>{
+    if(fi.startYm&&ym<fi.startYm)return false;
+    if(fi.endYm&&ym>fi.endYm)return false;
+    return true;
+  });
+}
+
 function renderBudget(){
   document.getElementById('monthLabel').textContent=`${curY}년 ${curM+1}월`;
   const entries=S.getEntries(curY,curM),checked=S.getChecked(curY,curM);
   const fi=activeFixedIncome(curY,curM).reduce((s,i)=>s+i.amount,0)+entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
-  const fe=FIXED_ITEMS.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0)+entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const fe=activeFixedItems(curY,curM).filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0)+entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
   const rem=fi-fe;
   document.getElementById('sumIncome').textContent=fmt(fi);
   document.getElementById('sumExpense').textContent=fmt(fe);
@@ -72,19 +83,20 @@ function buildTop5(){
 
 function buildFixed(){
   const checked=S.getChecked(curY,curM);
+  const items=activeFixedItems(curY,curM);
   const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">고정지출</span></div>';
   const table=document.createElement('table');table.className='fixed-table';
   table.innerHTML='<thead><tr><th style="width:33px">일</th><th style="width:40px">납부</th><th style="width:45px">분류</th><th>내역</th><th>금액</th></tr></thead>';
   const tbody=document.createElement('tbody');
-  FIXED_ITEMS.forEach(f=>{
+  items.forEach(f=>{
     const done=checked.includes(f.id);
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><span class="fixed-day">${f.day}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(f.amount)}</span></td>`;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);card.appendChild(table);
-  const da=FIXED_ITEMS.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0);
-  const ta=FIXED_ITEMS.reduce((s,f)=>s+f.amount,0);
+  const da=items.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0);
+  const ta=items.reduce((s,f)=>s+f.amount,0);
   const footer=mkDiv('fixed-footer');footer.innerHTML=`<span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val">${fmt(da)} / ${fmt(ta)}</span>`;
   card.appendChild(footer);return card;
 }
@@ -143,7 +155,7 @@ function buildYear(){
   for(let m=0;m<12;m++){
     const e=S.getEntries(curY,m),c=S.getChecked(curY,m);
     const fi=activeFixedIncome(curY,m).reduce((s,i)=>s+i.amount,0)+e.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);
-    const fe=FIXED_ITEMS.filter(f=>c.includes(f.id)).reduce((s,f)=>s+f.amount,0)+e.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);
+    const fe=activeFixedItems(curY,m).filter(f=>c.includes(f.id)).reduce((s,f)=>s+f.amount,0)+e.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);
     yi+=fi;ye+=fe;
     const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer';
     row.onclick=()=>{curM=m;setView('month');};
@@ -237,6 +249,7 @@ function delEntry(id){S.setEntries(curY,curM,S.getEntries(curY,curM).filter(e=>e
 // ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
 function openBudgetSettings(){
   renderFixedIncomeList();
+  renderFixedItemsList();
   document.getElementById('budgetSettingsPopup').classList.add('open');
 }
 function closeBudgetSettings(e){if(e.target===document.getElementById('budgetSettingsPopup'))document.getElementById('budgetSettingsPopup').classList.remove('open');}
@@ -277,5 +290,69 @@ function endFixedIncome(id){
   FIXED_INCOME=FIXED_INCOME.map(f=>f.id===id?{...f,endYm:mk(TODAY.getFullYear(),TODAY.getMonth())}:f);
   saveFixedIncome(FIXED_INCOME);
   renderFixedIncomeList();
+  renderBudget();
+}
+
+// ─── 가계부 설정 (고정지출 관리) ────────────────────────────────────────────
+let editingFixedItemId=null;
+
+function renderFixedItemsList(){
+  const wrap=document.getElementById('fixedItemsList');wrap.innerHTML='';
+  if(!FIXED_ITEMS.length){wrap.innerHTML='<div class="empty">등록된 고정지출이 없어요</div>';return;}
+  FIXED_ITEMS.forEach(f=>{
+    const item=mkDiv('rmgmt-item');
+    const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
+    const rightBtns=f.endYm?'':`<button class="rmgmt-del" style="font-size:13px;" onclick="editFixedItemStart('${f.id}')" title="수정">수정</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">종료</button>`;
+    item.innerHTML=`<div class="rmgmt-icon">${f.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">매월 ${f.day}일 · ${fmt(f.amount)} · ${period}</div></div><div style="display:flex;gap:2px;">${rightBtns}</div>`;
+    if(f.endYm)item.style.opacity='0.55';
+    wrap.appendChild(item);
+  });
+}
+
+function editFixedItemStart(id){
+  const f=FIXED_ITEMS.find(x=>x.id===id);
+  if(!f)return;
+  editingFixedItemId=id;
+  document.getElementById('newFItemName').value=f.name;
+  document.getElementById('newFItemEmoji').value=f.emoji;
+  document.getElementById('newFItemCat').value=f.cat;
+  document.getElementById('newFItemDay').value=f.day;
+  document.getElementById('newFItemAmount').value=f.amount;
+  document.getElementById('fiItemFormTitle').textContent='✏️ 고정지출 수정 (이번 달부터 적용)';
+  document.getElementById('fiItemSaveBtn').textContent='수정 완료';
+}
+
+// 새 고정지출 추가 / 기존 항목 수정 저장.
+// 수정은 기존 항목을 이번 달까지만 반영하고 종료 + 이번 달부터 새 값으로 새 항목을 시작하는 방식.
+// (가계부 고정 수입과 동일한 원리 — 지난 달 기록은 예전 값 그대로 유지됨)
+function saveFixedItemForm(){
+  const name=document.getElementById('newFItemName').value.trim();
+  const emoji=document.getElementById('newFItemEmoji').value.trim()||'📌';
+  const cat=document.getElementById('newFItemCat').value.trim()||'기타';
+  const day=Math.min(31,Math.max(1,parseInt(document.getElementById('newFItemDay').value)||1));
+  const amount=parseInt(document.getElementById('newFItemAmount').value)||0;
+  if(!name||!amount){alert('이름과 금액을 입력해줘');return;}
+  const curYm=mk(TODAY.getFullYear(),TODAY.getMonth());
+  if(editingFixedItemId){
+    FIXED_ITEMS=FIXED_ITEMS.map(f=>f.id===editingFixedItemId?{...f,endYm:curYm}:f);
+    FIXED_ITEMS=[...FIXED_ITEMS,{id:'f'+Date.now(),name,emoji,cat,day,amount,startYm:curYm}];
+    editingFixedItemId=null;
+  }else{
+    FIXED_ITEMS=[...FIXED_ITEMS,{id:'f'+Date.now(),name,emoji,cat,day,amount,startYm:curYm}];
+  }
+  saveFixedItems(FIXED_ITEMS);
+  ['newFItemName','newFItemEmoji','newFItemCat','newFItemDay','newFItemAmount'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('fiItemFormTitle').textContent='+ 고정지출 추가';
+  document.getElementById('fiItemSaveBtn').textContent='추가하기';
+  renderFixedItemsList();
+  renderBudget();
+}
+
+// 고정지출을 "삭제"하는 대신 이번 달까지만 반영하고 이번 달 기준으로 종료함.
+function endFixedItem(id){
+  if(!confirm('이번 달까지만 반영하고 종료할까요? 지난 기록은 그대로 남아요.'))return;
+  FIXED_ITEMS=FIXED_ITEMS.map(f=>f.id===id?{...f,endYm:mk(TODAY.getFullYear(),TODAY.getMonth())}:f);
+  saveFixedItems(FIXED_ITEMS);
+  renderFixedItemsList();
   renderBudget();
 }

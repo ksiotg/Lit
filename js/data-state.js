@@ -1,5 +1,5 @@
 // ─── DATA ─────────────────────────────────────────────────────────────────────
-const FIXED_ITEMS=[
+const DEFAULT_FIXED_ITEMS=[
   {id:'f01',day:1,name:'변제금',cat:'상환',emoji:'💸',amount:223000},
   {id:'f02',day:1,name:'교통비',cat:'교통',emoji:'🚕',amount:55000},
   {id:'f03',day:1,name:'식비',cat:'식비',emoji:'🛒',amount:100000},
@@ -58,6 +58,7 @@ const REVIEW_QUESTIONS=[
 // 로그인 후 데이터를 불러오기 전까지는 기본값으로 시작.
 let ROUTINES=DEFAULT_ROUTINES;
 let FIXED_INCOME=DEFAULT_FIXED_INCOME;
+let FIXED_ITEMS=DEFAULT_FIXED_ITEMS;
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];
