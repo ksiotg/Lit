@@ -42,17 +42,26 @@ function renderFreelance(){
   main.appendChild(flView==='project'?buildFlProjectList():buildFlClientList());
 }
 
+// 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌. 하나만 있으면 그것만 표시.
+function flPeriodLabel(p){
+  if(p.startDate&&p.dueDate)return `${p.startDate} ~ ${p.dueDate}`;
+  if(p.startDate)return `${p.startDate} ~ (마감 미정)`;
+  if(p.dueDate)return `~ ${p.dueDate}`;
+  return '';
+}
+
 function buildFlRow(p){
   const row=mkDiv('fl-row');
   const dd=p.status==='완료'?null:ddayInfo(p.dueDate);
   const badge=p.status==='완료'
     ?'<span class="fl-badge done">완료</span>'
     :(dd?`<span class="fl-badge ${dd.cls}">${dd.label}</span>`:'<span class="fl-badge safe">기한없음</span>');
+  const period=flPeriodLabel(p);
   row.innerHTML=`
     <div class="fl-row-top">
       <div class="fl-row-info">
         <div class="fl-row-name">${p.project||'(제목없음)'}</div>
-        <div class="fl-row-client">🏢 ${p.client||'미지정'}${p.dueDate?' · 마감 '+p.dueDate:''}</div>
+        <div class="fl-row-client">🏢 ${p.client||'미지정'}${period?' · '+period:''}</div>
       </div>
       ${badge}
     </div>
@@ -113,7 +122,7 @@ function openFreelanceForm(){
   editingFlId=null;
   document.getElementById('flFormTitle').textContent='+ 새 프로젝트';
   document.getElementById('flSaveBtn').textContent='추가하기';
-  ['flClient','flProject','flAmount','flDueDate','flMemo'].forEach(id=>{document.getElementById(id).value='';});
+  ['flClient','flProject','flAmount','flStartDate','flDueDate','flMemo'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('flTaxRate').value='3.3';
   document.getElementById('flTaxPreview').classList.remove('show');
   document.getElementById('freelanceFormPopup').classList.add('open');
@@ -138,6 +147,7 @@ function editFreelanceProject(id){
   document.getElementById('flProject').value=p.project||'';
   document.getElementById('flAmount').value=p.amount||'';
   document.getElementById('flTaxRate').value=p.taxRate||3.3;
+  document.getElementById('flStartDate').value=p.startDate||'';
   document.getElementById('flDueDate').value=p.dueDate||'';
   document.getElementById('flMemo').value=p.memo||'';
   calcFlTax();
@@ -149,13 +159,15 @@ function saveFreelanceForm(){
   const project=document.getElementById('flProject').value.trim();
   const amount=parseInt(document.getElementById('flAmount').value)||0;
   const taxRate=parseFloat(document.getElementById('flTaxRate').value)||3.3;
+  const startDate=document.getElementById('flStartDate').value;
   const dueDate=document.getElementById('flDueDate').value;
   const memo=document.getElementById('flMemo').value.trim();
   if(!client||!project){alert('클라이언트명과 프로젝트명을 입력해줘');return;}
+  if(startDate&&dueDate&&startDate>dueDate){alert('마감일이 착수일보다 빠를 수 없어요');return;}
   if(editingFlId){
-    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(p=>p.id===editingFlId?{...p,client,project,amount,taxRate,dueDate,memo}:p);
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(p=>p.id===editingFlId?{...p,client,project,amount,taxRate,startDate,dueDate,memo}:p);
   }else{
-    FREELANCE_PROJECTS=[...FREELANCE_PROJECTS,{id:'fp'+Date.now(),client,project,amount,taxRate,dueDate,memo,status:'진행중',createdAt:Date.now()}];
+    FREELANCE_PROJECTS=[...FREELANCE_PROJECTS,{id:'fp'+Date.now(),client,project,amount,taxRate,startDate,dueDate,memo,status:'진행중',createdAt:Date.now()}];
   }
   saveFreelanceProjects(FREELANCE_PROJECTS);
   document.getElementById('freelanceFormPopup').classList.remove('open');
