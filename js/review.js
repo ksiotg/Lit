@@ -38,7 +38,6 @@ function buildReviewToday(){
     done.appendChild(editBtn);card.appendChild(done);
   } else {
     const empty=mkDiv('');empty.style.cssText='padding:14px 16px;';
-    empty.innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">오늘 하루를 돌아볼 시간이에요 🌙</div>`;
     const btn=document.createElement('button');btn.className='add-btn';btn.textContent='회고 작성하기';
     btn.onclick=()=>openReviewPopup(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
     empty.appendChild(btn);card.appendChild(empty);
@@ -88,14 +87,9 @@ function buildWeeklySummary(){
   const weekKeys=Object.keys(weeks);
   weekKeys.forEach((wk,wi)=>{
     const w=weeks[wk];
-    const weekEnd=new Date(w.start);weekEnd.setDate(w.start.getDate()+6);
-    const startM=w.start.getMonth();
-    const startW=getWeekOfMonth(w.start.getFullYear(),startM,w.start.getDate());
-    const endM=weekEnd.getMonth();
-    const endW=getWeekOfMonth(weekEnd.getFullYear(),endM,weekEnd.getDate());
-    // 주가 두 달에 걸치면(예: 6월 마지막 주 = 7월 첫째 주) 두 라벨을 함께 표시해서
-    // "6월 5주"만 보고 실제로는 7월 날짜라 헷갈리는 걸 방지함.
-    w.label = startM===endM ? `${startM+1}월 ${startW}주차` : `${startM+1}월 ${startW}주차 / ${endM+1}월 ${endW}주차`;
+    // 경계 주(예: 6월 마지막 주 = 7월 첫째 주)는 "이전달 마지막주/다음달 1주차" 식
+    // 이중 라벨 대신 그냥 이번 달 기준 순번으로 단순 표기.
+    w.label = `${wi+1}주차`;
     let done=0,total=0;
     w.days.forEach(d=>{
       const date=new Date(rvY,rvM,d);
@@ -106,7 +100,7 @@ function buildWeeklySummary(){
     if(total===0)return;
     const pct=Math.round(done/total*100);
     const row=mkDiv('weekly-sum-row');
-    row.innerHTML=`<span class="weekly-sum-week">${w.label}</span><div class="weekly-sum-bar-wrap"><div class="weekly-sum-bar"><div class="weekly-sum-fill" style="width:${pct}%"></div></div></div><span class="weekly-sum-pct">${total}일 중 ${done}일</span>`;
+    row.innerHTML=`<span class="weekly-sum-week">${w.label}</span><div class="weekly-sum-bar-wrap"><div class="weekly-sum-bar"><div class="weekly-sum-fill" style="width:${pct}%"></div></div></div><span class="weekly-sum-pct">${done}/${total}</span>`;
     inner.appendChild(row);
   });
   if(!inner.children.length)inner.innerHTML='<div class="empty">아직 기록이 없어요</div>';
