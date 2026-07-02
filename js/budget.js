@@ -243,7 +243,7 @@ function renderPopupEntries(){
   const all=[...auto.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries];
   const el=document.getElementById('popupEntries');
   if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
-  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">✏️</button><button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
+  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">${icon('edit',14)}</button><button class="pe-del" onclick="delEntry('${e.id}')">${icon('x-circle',15)}</button>`}</div>`).join('');
 }
 // 등록된 항목의 모든 필드(날짜/금액/카테고리/메모/이모지 등)를 아래 "내역 추가" 폼에 그대로 채워서
 // 편집 모드로 전환함. 저장은 saveEntryForm()이 처리 (추가/수정 공용).
@@ -279,7 +279,7 @@ function editEntry(id){
   const dateStr=`${curY}-${String(curM+1).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
   document.getElementById('editDateInput').value=dateStr;
   document.getElementById('editDateRow').style.display='block';
-  document.getElementById('entrySaveBtn').textContent='수정 완료';
+  document.getElementById('entrySaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
   document.getElementById('entryCancelBtn').style.display='block';
 }
 function cancelEditEntry(){
@@ -293,7 +293,7 @@ function resetEntryFormUI(){
   editingEntryId=null;
   document.getElementById('editDateRow').style.display='none';
   document.getElementById('editDateInput').value='';
-  document.getElementById('entrySaveBtn').textContent='추가하기';
+  document.getElementById('entrySaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   document.getElementById('entryCancelBtn').style.display='none';
 }
 function clearEntryFormFields(){
@@ -445,7 +445,7 @@ function renderFixedItemsList(){
   FIXED_ITEMS.forEach(f=>{
     const item=mkDiv('rmgmt-item');
     const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
-    const rightBtns=f.endYm?'':`<button class="rmgmt-del" style="font-size:13px;" onclick="editFixedItemStart('${f.id}')" title="수정">수정</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">종료</button>`;
+    const rightBtns=f.endYm?'':`<button class="rmgmt-del" style="font-size:13px;" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">종료</button>`;
     item.innerHTML=`<div class="rmgmt-icon">${f.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">매월 ${f.day}일 · ${fmt(f.amount)} · ${period}</div></div><div style="display:flex;gap:2px;">${rightBtns}</div>`;
     if(f.endYm)item.style.opacity='0.55';
     wrap.appendChild(item);
@@ -461,8 +461,8 @@ function editFixedItemStart(id){
   document.getElementById('newFItemCat').value=f.cat;
   document.getElementById('newFItemDay').value=f.day;
   document.getElementById('newFItemAmount').value=f.amount;
-  document.getElementById('fiItemFormTitle').textContent='✏️ 고정지출 수정 (이번 달부터 적용)';
-  document.getElementById('fiItemSaveBtn').textContent='수정 완료';
+  document.getElementById('fiItemFormTitle').innerHTML=`${icon('edit',14)} 고정지출 수정 (이번 달부터 적용)`;
+  document.getElementById('fiItemSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
 }
 
 // 새 고정지출 추가 / 기존 항목 수정 저장.
@@ -485,8 +485,8 @@ function saveFixedItemForm(){
   }
   saveFixedItems(FIXED_ITEMS);
   ['newFItemName','newFItemEmoji','newFItemCat','newFItemDay','newFItemAmount'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('fiItemFormTitle').textContent='+ 고정지출 추가';
-  document.getElementById('fiItemSaveBtn').textContent='추가하기';
+  document.getElementById('fiItemFormTitle').innerHTML=`${icon('plus-circle',14)} 고정지출 추가`;
+  document.getElementById('fiItemSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderFixedItemsList();
   renderBudget();
 }

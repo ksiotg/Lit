@@ -2,7 +2,7 @@
 function openRoutineMgmt(){
   rmgmtEditMode=false;
   const toggleBtn=document.getElementById('rmgmtEditToggle');
-  if(toggleBtn){toggleBtn.textContent='✏️ 수정';toggleBtn.classList.remove('active');}
+  if(toggleBtn){toggleBtn.innerHTML=`${icon('edit',13)} 수정`;toggleBtn.classList.remove('active');}
   const hint=document.getElementById('rmgmtEditHint');
   if(hint)hint.textContent='';
   renderRoutineMgmtList();
@@ -38,13 +38,13 @@ function renderRoutineMgmtList(){
         // 수정 모드: 칸이 부족해서 항목별 수정 버튼을 따로 못 두니, 항목 자체를 눌러서 수정 팝업을 열게 함
         item.style.cursor='pointer';
         item.onclick=()=>openRoutineEdit(r.id);
-        item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div><span style="font-size:14px;color:var(--muted);flex-shrink:0;">✏️</span>`;
+        item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div><span style="color:var(--muted);flex-shrink:0;">${icon('edit',14)}</span>`;
       }else{
         const moveBtns=`<div style="display:flex;flex-direction:column;">
           <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===0?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',-1)" title="위로">▲</button>
           <button class="rmgmt-edit" style="font-size:10px;padding:0;line-height:1;${i===items.length-1?'opacity:0.25;pointer-events:none;':''}" onclick="moveRoutine('${r.id}',1)" title="아래로">▼</button>
         </div>`;
-        item.innerHTML=`${moveBtns}<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div>${isAuto?'<span style="font-size:10px;color:var(--muted);padding:4px 8px;background:#f0f0f5;border-radius:6px;">자동</span>':`<button class="rmgmt-del" onclick="deleteRoutine('${r.id}')">×</button>`}`;
+        item.innerHTML=`${moveBtns}<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div><div class="rmgmt-sub">${freqLabel(r)} · ${CAT_LABELS[r.cat]}</div></div>${isAuto?'<span style="font-size:10px;color:var(--muted);padding:4px 8px;background:#f0f0f5;border-radius:6px;">자동</span>':`<button class="rmgmt-del" onclick="deleteRoutine('${r.id}')">${icon('x-circle',15)}</button>`}`;
       }
       wrap.appendChild(item);
     });
@@ -58,7 +58,7 @@ let rmgmtEditMode=false;
 function toggleRmgmtEditMode(){
   rmgmtEditMode=!rmgmtEditMode;
   const btn=document.getElementById('rmgmtEditToggle');
-  btn.textContent=rmgmtEditMode?'✓ 완료':'✏️ 수정';
+  btn.innerHTML=rmgmtEditMode?'✓ 완료':`${icon('edit',13)} 수정`;
   btn.classList.toggle('active',rmgmtEditMode);
   document.getElementById('rmgmtEditHint').textContent=rmgmtEditMode?'항목을 눌러 수정하세요':'';
   renderRoutineMgmtList();

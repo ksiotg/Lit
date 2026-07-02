@@ -33,7 +33,7 @@ function buildReviewToday(){
       const memo=mkDiv('');memo.style.cssText='background:var(--bg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);margin-top:8px;';
       memo.textContent=todayReview.memo;done.appendChild(memo);
     }
-    const editBtn=document.createElement('button');editBtn.className='add-btn';editBtn.style.cssText='margin-top:12px;';editBtn.textContent='수정하기';
+    const editBtn=document.createElement('button');editBtn.className='add-btn';editBtn.style.cssText='margin-top:12px;';editBtn.innerHTML=`${icon('edit',14)} 수정하기`;
     editBtn.onclick=()=>openReviewPopup(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
     done.appendChild(editBtn);card.appendChild(done);
   } else {
@@ -149,7 +149,7 @@ function openReviewPopup(y,m,d){
   document.getElementById('reviewMemoInput').value=existing.memo||'';
   const hasReview=!!S.getReview(y,m,d);
   const actions=document.getElementById('reviewPopupActions');
-  actions.innerHTML = hasReview ? `<button onclick="editReviewDate()">📅 날짜 변경</button><button class="danger" onclick="deleteReview()">🗑 삭제</button>` : '';
+  actions.innerHTML = hasReview ? `<button onclick="editReviewDate()">📅 날짜 변경</button><button class="danger" onclick="deleteReview()">${icon('trash-2',14)} 삭제</button>` : '';
   document.getElementById('reviewOverlay').classList.add('open');
 }
 // 잘못 입력한 날짜의 회고를 다른 날짜로 이동

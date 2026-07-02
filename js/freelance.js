@@ -121,8 +121,8 @@ function buildFlRow(p){
       <div class="fl-row-amt">${fmt(p.amount||0)}</div>
       <div class="fl-row-actions">
         ${actions}
-        <button class="fl-icon" onclick="editFreelanceProject('${p.id}')" title="수정">✏️</button>
-        <button class="fl-icon del" onclick="deleteFreelanceProject('${p.id}')" title="삭제">×</button>
+        <button class="fl-icon" onclick="editFreelanceProject('${p.id}')" title="수정">${icon('edit',14)}</button>
+        <button class="fl-icon del" onclick="deleteFreelanceProject('${p.id}')" title="삭제">${icon('x-circle',15)}</button>
       </div>
     </div>`;
   return row;
@@ -280,8 +280,8 @@ function closeFlDayPopupAndOpen(id){document.getElementById('flDayPopup').classL
 // ─── 추가/수정 폼 ──────────────────────────────────────────────────────────────
 function openFreelanceForm(){
   editingFlId=null;
-  document.getElementById('flFormTitle').textContent='+ 새 프로젝트';
-  document.getElementById('flSaveBtn').textContent='추가하기';
+  document.getElementById('flFormTitle').innerHTML=`${icon('plus-circle',16)} 새 프로젝트`;
+  document.getElementById('flSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   ['flClient','flProject','flAmount','flStartDate','flDueDate','flMemo'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('flTaxRate').value='3.3';
   document.getElementById('flTaxPreview').classList.remove('show');
@@ -301,8 +301,8 @@ function editFreelanceProject(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
   editingFlId=id;
-  document.getElementById('flFormTitle').textContent='✏️ 프로젝트 수정';
-  document.getElementById('flSaveBtn').textContent='수정 완료';
+  document.getElementById('flFormTitle').innerHTML=`${icon('edit',16)} 프로젝트 수정`;
+  document.getElementById('flSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
   document.getElementById('flClient').value=p.client||'';
   document.getElementById('flProject').value=p.project||'';
   document.getElementById('flAmount').value=p.amount||'';
