@@ -4,6 +4,7 @@
   --income:#3b82f6;--expense:#ef4444;--remain:#8b5cf6;
   --selfcare:#f59e0b;--health:#ef4444;--growth:#3b82f6;--life:#22c55e;
   --freelance:#8b5cf6;--freelance-tint:#ede9fe;
+  --review:#0080f5;--review-tint:#dceeff;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -36,8 +37,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.routine-tl{background:#fde047;box-shadow:0 0 0 3px #fef9c3,0 0 10px 3px #fde04799;}
 .tl-btn.on.budget-tl{background:#22c55e;box-shadow:0 0 0 3px #dcfce7,0 0 10px 3px #22c55e99;}
 .tl-btn.on.workout-tl{background:#ef4444;box-shadow:0 0 0 3px #fee2e2,0 0 10px 3px #ef444499;}
-.tl-btn.review-tl{background:#1e3a5f;}
-.tl-btn.on.review-tl{background:#3b82f6;box-shadow:0 0 0 3px #dbeafe,0 0 10px 3px #3b82f699;}
+.tl-btn.review-tl{background:#004c8f;}
+.tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 3px var(--review-tint),0 0 10px 3px #0080f599;}
 .tl-btn.freelance-tl{background:#5b21b6;}
 .tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 3px #ede9fe,0 0 10px 3px #8b5cf699;}
 .tl-label{font-size:11px;font-weight:700;color:var(--muted);margin-left:auto;}
@@ -291,27 +292,27 @@ flex-shrink:0;
 .review-q-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:0.3px;}
 .review-q-text{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;}
 .review-q-answer{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;resize:none;min-height:56px;transition:border-color 0.15s;}
-.review-q-answer:focus{border-color:var(--income);}
+.review-q-answer:focus{border-color:var(--review);}
 .review-q-answer-done{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);white-space:pre-wrap;}
 .review-memo-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;resize:none;min-height:72px;transition:border-color 0.15s;}
-.review-memo-input:focus{border-color:var(--income);}
+.review-memo-input:focus{border-color:var(--review);}
 .review-save-btn{width:calc(100% - 32px);margin:12px 16px 16px;padding:13px;background:var(--text);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
 .review-cal-cell{border-radius:8px;padding:4px 2px;min-height:48px;cursor:pointer;transition:background 0.1s;display:flex;flex-direction:column;align-items:center;border:1px solid transparent;}
-.review-cal-cell:hover{background:#f0f4ff;}
+.review-cal-cell:hover{background:var(--review-tint);}
 .review-cal-cell.empty{cursor:default;pointer-events:none;}
-.review-cal-cell.today{border-color:var(--income);background:#eff6ff;}
+.review-cal-cell.today{border-color:var(--review);background:var(--review-tint);}
 .review-cal-cell.has-review{background:#f0fdf4;}
 .review-cal-day{font-size:11px;font-weight:700;margin-bottom:2px;}
 .review-cal-cell.sun .review-cal-day{color:var(--expense);}
-.review-cal-cell.sat .review-cal-day{color:var(--income);}
-.review-dot{width:6px;height:6px;border-radius:50%;background:var(--income);margin-top:2px;}
+.review-cal-cell.sat .review-cal-day{color:var(--review);}
+.review-dot{width:6px;height:6px;border-radius:50%;background:var(--review);margin-top:2px;}
 .weekly-sum-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
 .weekly-sum-row:last-child{border-bottom:none;}
 .weekly-sum-week{font-size:10.5px;font-weight:700;color:var(--muted);min-width:74px;max-width:84px;line-height:1.35;}
 .weekly-sum-bar-wrap{flex:1;margin:0 8px;}
 .weekly-sum-bar{height:6px;background:#f0f0f5;border-radius:99px;overflow:hidden;}
-.weekly-sum-fill{height:100%;border-radius:99px;background:var(--income);}
-.weekly-sum-pct{font-size:11px;font-weight:800;color:var(--income);min-width:58px;text-align:right;white-space:nowrap;}
+.weekly-sum-fill{height:100%;border-radius:99px;background:var(--review);}
+.weekly-sum-pct{font-size:11px;font-weight:800;color:var(--review);min-width:58px;text-align:right;white-space:nowrap;}
 .streak-badge{display:inline-flex;align-items:center;gap:4px;background:#fef3c7;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:800;color:#b45309;}
 
 /* ── 루틴 관리 팝업 ── */
