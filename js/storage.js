@@ -55,6 +55,11 @@ function getFixedItems(){
 }
 function saveFixedItems(arr){Storage._set('fixed_items',arr);}
 
+function getFreelanceProjects(){
+  return Storage._get('freelance_projects',[]);
+}
+function saveFreelanceProjects(arr){Storage._set('freelance_projects',arr);}
+
 const S={
   getChecked(y,m){return Storage._get('ck_'+mk(y,m),[])},
   setChecked(y,m,a){Storage._set('ck_'+mk(y,m),a)},

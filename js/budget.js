@@ -253,7 +253,7 @@ function resetEntryFormUI(){
   document.getElementById('entryCancelBtn').style.display='none';
 }
 function clearEntryFormFields(){
-  ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo','fProjectPicker'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
 }
 function setType(type,btn){
@@ -279,7 +279,7 @@ function onIncomeCatChange(){
   const isFreelance=(cat==='외주');
   document.getElementById('freelanceFields').classList.toggle('show',isFreelance);
   document.getElementById('incomeSimpleFields').style.display=isFreelance?'none':'grid';
-  if(isFreelance)calcTax();
+  if(isFreelance){populateFlProjectPicker();calcTax();}
 }
 function calcTax(){
   const amt=parseFloat(document.getElementById('fAmount').value)||0;

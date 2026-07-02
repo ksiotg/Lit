@@ -59,6 +59,7 @@ const REVIEW_QUESTIONS=[
 let ROUTINES=DEFAULT_ROUTINES;
 let FIXED_INCOME=DEFAULT_FIXED_INCOME;
 let FIXED_ITEMS=DEFAULT_FIXED_ITEMS;
+let FREELANCE_PROJECTS=[];
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];
