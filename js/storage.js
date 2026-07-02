@@ -60,6 +60,12 @@ function getFreelanceProjects(){
 }
 function saveFreelanceProjects(arr){Storage._set('freelance_projects',arr);}
 
+// 'en_YYYY-MM' 형태로 저장된 모든 달의 가계부 항목을 한번에 훑어볼 때 사용.
+// (예: 외주 프로젝트 상세보기에서 여러 달에 걸쳐 나눠 입금된 정산 내역을 모아 보여줄 때)
+function getAllEntryMonths(){
+  return Object.keys(Storage._cache).filter(k=>k.startsWith('en_')).map(k=>({ym:k.slice(3),entries:Storage._cache[k]||[]}));
+}
+
 const S={
   getChecked(y,m){return Storage._get('ck_'+mk(y,m),[])},
   setChecked(y,m,a){Storage._set('ck_'+mk(y,m),a)},

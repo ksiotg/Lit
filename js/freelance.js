@@ -59,7 +59,7 @@ function buildFlRow(p){
   const period=flPeriodLabel(p);
   row.innerHTML=`
     <div class="fl-row-top">
-      <div class="fl-row-info">
+      <div class="fl-row-info" onclick="openFreelanceDetail('${p.id}')" title="정산 내역 보기">
         <div class="fl-row-name">${p.project||'(제목없음)'}</div>
         <div class="fl-row-client">🏢 ${p.client||'미지정'}${period?' · '+period:''}</div>
       </div>
@@ -217,6 +217,7 @@ function populateFlProjectPicker(){
 }
 function applyFlProjectPick(){
   const id=document.getElementById('fProjectPicker').value;
+  pickedFlProjectId=id||null;
   if(!id)return;
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
@@ -226,3 +227,58 @@ function applyFlProjectPick(){
   if(p.taxRate)document.getElementById('fTaxRate').value=p.taxRate;
   calcTax();
 }
+
+// ─── 프로젝트 상세보기 (정산 내역) ──────────────────────────────────────────────
+function flProjectLabel(p){return [p.client,p.project].filter(Boolean).join(' / ');}
+
+// 이 프로젝트로 등록된 가계부 외주 수입 항목을 모든 달에 걸쳐 찾아냄.
+// projectId로 연결된 항목을 우선 찾고(등록된 프로젝트 불러오기로 입력한 경우),
+// projectId가 없는 옛날 항목은 "클라이언트 / 프로젝트명" 문구가 정확히 일치하는 것으로 대신 매칭함.
+function getProjectPayments(project){
+  const label=flProjectLabel(project);
+  const payments=[];
+  getAllEntryMonths().forEach(({ym,entries})=>{
+    entries.forEach(e=>{
+      if(e.type!=='income'||e.cat!=='외주')return;
+      const matched=e.projectId?e.projectId===project.id:(e.name===label);
+      if(matched)payments.push({...e,ym});
+    });
+  });
+  payments.sort((a,b)=>(a.ym+String(a.day).padStart(2,'0')).localeCompare(b.ym+String(b.day).padStart(2,'0')));
+  return payments;
+}
+
+function openFreelanceDetail(id){
+  const p=FREELANCE_PROJECTS.find(x=>x.id===id);
+  if(!p)return;
+  const payments=getProjectPayments(p);
+  const received=payments.reduce((s,e)=>s+e.amount,0);
+  const contract=p.amount||0;
+  const pct=contract?Math.min(100,Math.round(received/contract*100)):0;
+  const remain=contract-received;
+  const period=flPeriodLabel(p);
+
+  document.getElementById('flDetailTitle').textContent=p.project||'(제목없음)';
+  document.getElementById('flDetailSub').textContent=`🏢 ${p.client||'미지정'}${period?' · '+period:''}`;
+  document.getElementById('flDetailProgress').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px;">
+      <span>정산 ${fmt(received)} / 계약 ${fmt(contract)}</span>
+      <span style="color:${remain>0?'var(--expense)':'var(--remain)'}">${contract?(remain>0?'미정산 '+fmt(remain):'정산 완료'):''}</span>
+    </div>
+    <div style="height:8px;background:#f0f0f5;border-radius:99px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:var(--income);border-radius:99px;"></div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:4px;">${pct}%</div>`;
+
+  const list=document.getElementById('flDetailPayments');
+  if(!payments.length){
+    list.innerHTML='<div class="empty">아직 등록된 정산 내역이 없어요</div>';
+  }else{
+    list.innerHTML=payments.map(e=>{
+      const [y,m]=e.ym.split('-');
+      return `<div class="fl-payment-row"><span class="fl-payment-date">${y}.${m}.${String(e.day).padStart(2,'0')}</span><span class="fl-payment-amt">+${fmt(e.amount)}</span></div>`;
+    }).join('');
+  }
+  document.getElementById('freelanceDetailPopup').classList.add('open');
+}
+function closeFreelanceDetail(e){if(e.target===document.getElementById('freelanceDetailPopup'))document.getElementById('freelanceDetailPopup').classList.remove('open');}

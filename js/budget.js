@@ -183,6 +183,9 @@ function buildYear(){
 
 // ─── BUDGET POPUP ─────────────────────────────────────────────────────────────
 let editingEntryId=null;
+// 외주 수입을 "등록된 프로젝트에서 불러오기"로 선택하면 그 프로젝트 id를 기억해뒀다가
+// 저장되는 항목에 함께 저장함 (외주 탭 프로젝트 상세보기에서 정산 내역을 역으로 찾을 때 사용).
+let pickedFlProjectId=null;
 function openPopup(day){
   popupDay=day;popupType='expense';
   const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -223,6 +226,8 @@ function editEntry(id){
       document.getElementById('fProject').value=parts[1]||'';
       document.getElementById('fAmount').value=e.amount;
       calcTax();
+      pickedFlProjectId=e.projectId||null;
+      if(e.projectId)document.getElementById('fProjectPicker').value=e.projectId;
     }else{
       document.getElementById('fSimpleAmount').value=e.amount;
       document.getElementById('fSimpleMemo').value=e.name||'';
@@ -255,6 +260,7 @@ function resetEntryFormUI(){
 function clearEntryFormFields(){
   ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo','fProjectPicker'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
+  pickedFlProjectId=null;
 }
 function setType(type,btn){
   popupType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
@@ -304,6 +310,9 @@ function saveEntryForm(){
   }else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
   if(!amount||amount<=0){alert('금액을 입력해주세요');return;}
   const ci=[...CATS.income,...CATS.expense].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
+  // 외주 수입을 "등록된 프로젝트에서 불러오기"로 선택했으면 그 프로젝트 id를 항목에 같이 저장함
+  // (외주 탭 프로젝트 상세보기에서 이 항목을 정산 내역으로 역추적할 수 있게).
+  const projectId=(isI&&cat==='외주')?pickedFlProjectId||undefined:undefined;
 
   if(editingEntryId){
     // 수정 모드: 날짜 입력값을 검증하고, 필요하면 다른 달/연도로도 옮김.
@@ -315,7 +324,7 @@ function saveEntryForm(){
     if(!newY||newM<0||newM>11||newD<1||newD>dim){alert('날짜가 올바르지 않아요');return;}
     const remaining=S.getEntries(curY,curM).filter(x=>x.id!==editingEntryId);
     S.setEntries(curY,curM,remaining);
-    const updated={id:editingEntryId,type:popupType,day:newD,amount,cat,emoji,name:memo};
+    const updated={id:editingEntryId,type:popupType,day:newD,amount,cat,emoji,name:memo,projectId};
     if(newY===curY&&newM===curM){
       const list=S.getEntries(curY,curM);
       list.push(updated);
@@ -327,7 +336,7 @@ function saveEntryForm(){
     }
     resetEntryFormUI();
   }else{
-    const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo});
+    const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo,projectId});
     S.setEntries(curY,curM,entries);
   }
   clearEntryFormFields();
