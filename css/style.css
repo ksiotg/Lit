@@ -16,21 +16,6 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 /* ── 브랜드 ── */
 .brand{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:0.5px;padding:10px 16px 0;}
 
-/* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 그리드 대시보드로 나란히 배치됨 ── */
-@media (min-width:860px){
-  html{background:#eef0f6!important;}
-  body{max-width:1120px;margin:0 auto;padding-bottom:60px;}
-  .page-header{padding-left:8px;padding-right:8px;}
-  .nav-row,.traffic-light,.sum-grid{padding-left:24px;padding-right:24px;}
-  main{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;align-items:start;padding:22px 26px;}
-  .card{margin-bottom:0;}
-  /* 캘린더, 연간 요약, 프로젝트 목록처럼 넓게 봐야 하는 카드는 항상 grid 전체 폭을 차지함 */
-  .card.card-wide{grid-column:1/-1;}
-  .popup,.workout-inner,.routine-mgmt-inner{max-width:520px;}
-}
-@media (min-width:1300px){
-  main{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
-}
 
 /* ── 신호등 ── */
 .traffic-light{display:flex;gap:8px;align-items:center;padding:14px 16px 10px;}
@@ -386,4 +371,21 @@ flex-shrink:0;
 #freelanceFormPopup .tax-preview{background:var(--freelance-tint);}
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
+
+/* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 그리드 대시보드로 나란히 배치됨 ──
+   (반드시 이 파일의 다른 main/.card 등 기본 규칙들보다 뒤에 와야 우선순위가 밀리지 않음) */
+@media (min-width:860px){
+  html{background:#eef0f6!important;}
+  body{max-width:1120px;margin:0 auto;padding-bottom:60px;}
+  .page-header{padding-left:8px;padding-right:8px;}
+  .nav-row,.traffic-light,.sum-grid{padding-left:24px;padding-right:24px;}
+  main{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;align-items:start;padding:22px 26px;}
+  .card{margin-bottom:0;}
+  /* 캘린더, 연간 요약, 프로젝트 목록처럼 넓게 봐야 하는 카드는 항상 grid 전체 폭을 차지함 */
+  .card.card-wide{grid-column:1/-1;}
+  .popup,.workout-inner,.routine-mgmt-inner{max-width:520px;}
+}
+@media (min-width:1300px){
+  main{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
+}
 </style>
