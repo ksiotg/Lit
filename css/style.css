@@ -13,26 +13,24 @@
 html{color-scheme:light only;background:#fff!important;}
 body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6fb!important;color:#1a1d2e!important;max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px;-webkit-text-size-adjust:100%;}
 
-/* ── 신호등 + 탭 이모지 타이틀 ── */
-/* 이모지가 탭 제목 역할(왼쪽), 신호등 점들은 오른쪽 정렬 */
-.traffic-light{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;}
-.tab-emoji{font-size:32px;line-height:1;}
+/* ── 신호등 (텍스트/이모지 제목 없이 점만, 가운데 정렬) ── */
+.traffic-light{display:flex;align-items:center;justify-content:center;padding:14px 24px 10px;}
 .tl-dots{display:flex;gap:8px;align-items:center;}
-.tl-btn{width:14.4px;height:14.4px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
+.tl-btn{width:11px;height:11px;border-radius:50%;border:none;cursor:pointer;position:relative;transition:all 0.2s;}
 .tl-btn.routine-tl{background:#9c5b0a;}
 .tl-btn.budget-tl{background:#166534;}
 .tl-btn.workout-tl{background:#991b1b;}
-.tl-btn.on.routine-tl{background:var(--routine);box-shadow:0 0 0 2px var(--routine-tint),0 0 6px 1px #f0932b;}
-.tl-btn.on.budget-tl{background:var(--budget);box-shadow:0 0 0 2px #dcfce7,0 0 6px 1px #22c55e;}
-.tl-btn.on.workout-tl{background:var(--workout);box-shadow:0 0 0 2px #fee2e2,0 0 6px 1px #ef4444;}
+.tl-btn.on.routine-tl{background:var(--routine);box-shadow:0 0 0 1px var(--routine-tint),0 0 6px 1px #f0932b;}
+.tl-btn.on.budget-tl{background:var(--budget);box-shadow:0 0 0 1px #dcfce7,0 0 6px 1px #22c55e;}
+.tl-btn.on.workout-tl{background:var(--workout);box-shadow:0 0 0 1px #fee2e2,0 0 6px 1px #ef4444;}
 .tl-btn.review-tl{background:#004c8f;}
-.tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 2px var(--review-tint),0 0 6px 1px #0080f5;}
+.tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 1px var(--review-tint),0 0 6px 1px #0080f5;}
 .tl-btn.freelance-tl{background:#5b21b6;}
-.tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 2px #ede9fe,0 0 6px 1px #8b5cf6;}
+.tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 1px #ede9fe,0 0 6px 1px #8b5cf6;}
 
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
-.nav-row{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;}
+.nav-row{display:flex;align-items:center;justify-content:space-between;padding:0 24px 8px;}
 .nav-btn{background:var(--bg);border:none;width:32px;height:32px;border-radius:9px;font-size:15px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
 .page-title{font-size:16px;font-weight:800;letter-spacing:-0.5px;}
 /* ── 상단 월 표기를 각 탭 테마색으로 볼드 강조 ── */
@@ -46,7 +44,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .view-btn.active{background:var(--text);color:#fff;}
 
 /* ── 가계부 summary ── */
-.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px;}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 21px;}
 .sum-card{background:var(--bg);border-radius:11px;padding:9px 6px;text-align:center;}
 .sum-icon{font-size:12px;margin-bottom:2px;}
 .sum-label{font-size:9px;color:var(--muted);font-weight:600;margin-bottom:2px;}
