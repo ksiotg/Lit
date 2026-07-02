@@ -23,6 +23,15 @@ const Storage={
   },
 
   _set(key,value){
+    if(value===null||value===undefined){
+      // value 컬럼이 NOT NULL이라 null을 upsert하면 조용히 실패함(콘솔에만 에러 로그).
+      // "삭제"는 null을 저장하는 게 아니라 행 자체를 지워야 함.
+      delete this._cache[key];
+      if(!this._userId)return;
+      sb.from('kv_store').delete().eq('user_id',this._userId).eq('key',key)
+        .then(({error})=>{if(error)console.error('삭제 실패',key,error);});
+      return;
+    }
     this._cache[key]=value;
     if(!this._userId)return;
     sb.from('kv_store')
