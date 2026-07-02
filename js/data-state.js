@@ -61,7 +61,7 @@ let FIXED_INCOME=DEFAULT_FIXED_INCOME;
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];
-const WORKOUT_EMOJIS={'러닝':'🏃','홈트':'🏋️','걷기':'🚶','자전거':'🚲'};
+const WORKOUT_EMOJIS={'러닝':'🏃','홈트':'🏋️','걷기':'🚶','자전거':'🚲','등산':'⛰️','클라이밍':'🧗'};
 
 // ─── STATE ─────────────────────────────────────────────────────────────────────
 const TODAY=new Date();
