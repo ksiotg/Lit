@@ -252,9 +252,9 @@ flex-shrink:0;
 .pe-edit:hover{color:var(--income);}
 .pe-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:17px;padding:2px;}
 .pe-del:hover{color:var(--expense);}
-.popup-day-actions{display:flex;gap:6px;justify-content:center;padding:0 16px 10px;}
-.popup-day-actions button{background:var(--bg);border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;}
-.popup-day-actions button.danger{color:var(--expense);}
+.popup-day-actions{display:flex;gap:6px;}
+.popup-day-actions button{background:var(--bg);border:none;border-radius:8px;width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#4b5563;cursor:pointer;flex-shrink:0;}
+.popup-day-actions button.danger{color:#4b5563;}
 .popup-divider{height:1px;background:var(--border);margin:6px 16px;}
 .popup-form{padding:8px 16px;}
 .form-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px;}
@@ -285,7 +285,7 @@ flex-shrink:0;
 .workout-inner{background:#fff!important;border-radius:22px 22px 0 0;width:100%;max-width:430px;padding:20px 20px 40px;}
 .workout-title{font-size:16px;font-weight:800;margin-bottom:4px;}
 .workout-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
-.workout-type{flex:1;padding:8px 0;border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.1s;}
+.workout-type{flex:1;padding:8px 0;border:1px solid var(--border);background:#fff;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.1s;}
 .workout-type.active{background:#fef2f2;color:var(--expense);border-color:var(--expense);}
 .workout-save{width:100%;padding:13px;background:var(--expense);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;margin-top:12px;}
 .empty{text-align:center;padding:20px;color:var(--muted);font-size:12px;}
@@ -306,7 +306,7 @@ flex-shrink:0;
 .review-cal-cell:hover{background:var(--review-tint);}
 .review-cal-cell.empty{cursor:default;pointer-events:none;}
 .review-cal-cell.today{border-color:var(--review);background:var(--review-tint);}
-.review-cal-cell.has-review{background:#f0fdf4;}
+.review-cal-cell.has-review{background:#e0f2fe;}
 .review-cal-day{font-size:11px;font-weight:700;margin-bottom:2px;}
 .review-cal-cell.sun .review-cal-day{color:var(--expense);}
 .review-cal-cell.sat .review-cal-day{color:var(--review);}
