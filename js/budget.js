@@ -182,6 +182,7 @@ function buildYear(){
 }
 
 // ─── BUDGET POPUP ─────────────────────────────────────────────────────────────
+let editingEntryId=null;
 function openPopup(day){
   popupDay=day;popupType='expense';
   const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -189,6 +190,7 @@ function openPopup(day){
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('.type-btn.expense').classList.add('active');
   setType('expense',document.querySelector('.type-btn.expense'));
+  resetEntryFormUI();
   renderPopupEntries();document.getElementById('overlay').classList.add('open');
 }
 function closePopup(e){if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
@@ -199,31 +201,60 @@ function renderPopupEntries(){
   const all=[...auto.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries];
   const el=document.getElementById('popupEntries');
   if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
-  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntryDate('${e.id}')" title="날짜 수정">📅</button><button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
+  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">✏️</button><button class="pe-del" onclick="delEntry('${e.id}')">×</button>`}</div>`).join('');
 }
-// 잘못 입력한 날짜를 수정 (같은 달 안에서 일자만 바꾸거나, 다른 달/연도로도 이동 가능)
-function editEntryDate(id){
+// 등록된 항목의 모든 필드(날짜/금액/카테고리/메모/이모지 등)를 아래 "내역 추가" 폼에 그대로 채워서
+// 편집 모드로 전환함. 저장은 saveEntryForm()이 처리 (추가/수정 공용).
+function editEntry(id){
   const entries=S.getEntries(curY,curM);
   const e=entries.find(x=>x.id===id);
   if(!e)return;
-  const cur=`${curY}-${String(curM+1).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
-  const input=prompt('날짜를 수정해줘 (YYYY-MM-DD)',cur);
-  if(!input)return;
-  const mch=input.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if(!mch){alert('날짜 형식이 올바르지 않아요 (예: 2026-07-15)');return;}
-  const newY=parseInt(mch[1]),newM=parseInt(mch[2])-1,newD=parseInt(mch[3]);
-  const dim=new Date(newY,newM+1,0).getDate();
-  if(newM<0||newM>11||newD<1||newD>dim){alert('날짜가 올바르지 않아요');return;}
-  const rest=entries.filter(x=>x.id!==id);
-  const moved={...e,day:newD};
-  if(newY===curY&&newM===curM){
-    rest.push(moved);S.setEntries(curY,curM,rest);
+  editingEntryId=id;
+  const btn=document.querySelector(`.type-btn.${e.type}`);
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  setType(e.type,btn);
+  if(e.type==='income'){
+    document.getElementById('fCategory').value=e.cat;
+    onIncomeCatChange();
+    if(e.cat==='외주'){
+      const parts=(e.name||'').split(' / ');
+      document.getElementById('fClient').value=parts[0]||'';
+      document.getElementById('fProject').value=parts[1]||'';
+      document.getElementById('fAmount').value=e.amount;
+      calcTax();
+    }else{
+      document.getElementById('fSimpleAmount').value=e.amount;
+      document.getElementById('fSimpleMemo').value=e.name||'';
+    }
   }else{
-    S.setEntries(curY,curM,rest);
-    const target=S.getEntries(newY,newM);
-    target.push(moved);S.setEntries(newY,newM,target);
+    document.getElementById('nCategory').value=e.cat;
+    document.getElementById('nAmount').value=e.amount;
+    document.getElementById('nMemo').value=e.name||'';
   }
-  renderPopupEntries();renderBudget();
+  const dateStr=`${curY}-${String(curM+1).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
+  document.getElementById('editDateInput').value=dateStr;
+  document.getElementById('editDateRow').style.display='block';
+  document.getElementById('entrySaveBtn').textContent='수정 완료';
+  document.getElementById('entryCancelBtn').style.display='block';
+}
+function cancelEditEntry(){
+  resetEntryFormUI();
+  clearEntryFormFields();
+  setType('expense',document.querySelector('.type-btn.expense'));
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.type-btn.expense').classList.add('active');
+}
+function resetEntryFormUI(){
+  editingEntryId=null;
+  document.getElementById('editDateRow').style.display='none';
+  document.getElementById('editDateInput').value='';
+  document.getElementById('entrySaveBtn').textContent='추가하기';
+  document.getElementById('entryCancelBtn').style.display='none';
+}
+function clearEntryFormFields(){
+  ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
 }
 function setType(type,btn){
   popupType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
@@ -257,7 +288,7 @@ function calcTax(){
   if(amt>0){prev.classList.add('show');document.getElementById('taxKip').textContent=fmt(Math.round(amt*rate/100));document.getElementById('taxNet').textContent=fmt(amt-Math.round(amt*rate/100));}
   else prev.classList.remove('show');
 }
-function addEntry(){
+function saveEntryForm(){
   const isI=popupType==='income';
   let amount,cat,memo,emoji;
   if(isI){
@@ -273,13 +304,42 @@ function addEntry(){
   }else{amount=parseInt(document.getElementById('nAmount').value)||0;cat=document.getElementById('nCategory').value;memo=document.getElementById('nMemo').value.trim()||cat;}
   if(!amount||amount<=0){alert('금액을 입력해주세요');return;}
   const ci=[...CATS.income,...CATS.expense].find(c=>c.n===cat)||{e:'📌'};emoji=ci.e;
-  const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo});
-  S.setEntries(curY,curM,entries);
-  ['fAmount','fClient','fProject','fSimpleAmount','fSimpleMemo','nAmount','nMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('fTaxRate').value='3.3';document.getElementById('taxPreview').classList.remove('show');
+
+  if(editingEntryId){
+    // 수정 모드: 날짜 입력값을 검증하고, 필요하면 다른 달/연도로도 옮김.
+    const dateVal=document.getElementById('editDateInput').value;
+    if(!dateVal){alert('날짜를 입력해주세요');return;}
+    const parts=dateVal.split('-').map(Number);
+    const newY=parts[0],newM=parts[1]-1,newD=parts[2];
+    const dim=new Date(newY,newM+1,0).getDate();
+    if(!newY||newM<0||newM>11||newD<1||newD>dim){alert('날짜가 올바르지 않아요');return;}
+    const remaining=S.getEntries(curY,curM).filter(x=>x.id!==editingEntryId);
+    S.setEntries(curY,curM,remaining);
+    const updated={id:editingEntryId,type:popupType,day:newD,amount,cat,emoji,name:memo};
+    if(newY===curY&&newM===curM){
+      const list=S.getEntries(curY,curM);
+      list.push(updated);
+      S.setEntries(curY,curM,list);
+    }else{
+      const target=S.getEntries(newY,newM);
+      target.push(updated);
+      S.setEntries(newY,newM,target);
+    }
+    resetEntryFormUI();
+  }else{
+    const entries=S.getEntries(curY,curM);entries.push({id:'e'+Date.now(),type:popupType,day:popupDay,amount,cat,emoji,name:memo});
+    S.setEntries(curY,curM,entries);
+  }
+  clearEntryFormFields();
+  setType('expense',document.querySelector('.type-btn.expense'));
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.type-btn.expense').classList.add('active');
   renderPopupEntries();renderBudget();
 }
-function delEntry(id){S.setEntries(curY,curM,S.getEntries(curY,curM).filter(e=>e.id!==id));renderPopupEntries();renderBudget();}
+function delEntry(id){
+  if(editingEntryId===id)resetEntryFormUI();
+  S.setEntries(curY,curM,S.getEntries(curY,curM).filter(e=>e.id!==id));renderPopupEntries();renderBudget();
+}
 
 // ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
 function openBudgetSettings(){
