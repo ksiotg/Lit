@@ -30,9 +30,9 @@ function renderBudget(){
   const fi=activeFixedIncome(curY,curM).reduce((s,i)=>s+i.amount,0)+entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
   const fe=activeFixedItems(curY,curM).filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0)+entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
   const rem=fi-fe;
-  document.getElementById('sumIncome').textContent=fmt(fi);
-  document.getElementById('sumExpense').textContent=fmt(fe);
-  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color=rem<0?'var(--expense)':'var(--remain)';
+  document.getElementById('sumIncome').textContent='+'+fi.toLocaleString('ko-KR');
+  document.getElementById('sumExpense').textContent='-'+fe.toLocaleString('ko-KR');
+  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color=rem<0?'var(--expense)':'var(--budget)';
   const mc=document.getElementById('budgetMain');mc.innerHTML='';
   // "이달의 외주수입" 위젯은 제거함 — 외주 탭이 따로 생겨서 거기서 확인하면 되고,
   // 가계부에 중복으로 보여줄 필요가 없어짐.
@@ -54,11 +54,11 @@ function expenseCatBreakdown(){
 }
 
 function buildTop5(){
-  // 전체 카테고리 비율(도넛차트)을 위에 크게 배치 → TOP5 리스트 → 더보기 버튼 순서로 구성.
+  // 전체 카테고리 비율(파이차트)을 위에 크게 배치 → 변동지출 순위 리스트 → 더보기 버튼 순서로 구성.
   const allSorted=expenseCatBreakdown();
   const sorted=allSorted.slice(0,5);
-  const total=sorted.reduce((s,[,v])=>s+v,0);
-  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">변동지출 TOP 5</span></div>';
+  const grandTotal=allSorted.reduce((s,[,v])=>s+v,0);
+  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">변동지출 순위</span></div>';
   const inner=mkDiv('top5-inner');
   if(!allSorted.length){
     inner.innerHTML='<div class="empty">변동지출 내역이 없어요</div>';
@@ -67,11 +67,13 @@ function buildTop5(){
   }
   const pw=mkDiv('pie-wrap');const canvas=document.createElement('canvas');pw.appendChild(canvas);
   const list=mkDiv('top5-list');
+  const pieLabels=[];
   sorted.forEach(([cat,amt],i)=>{
-    const pct=total?Math.round(amt/total*100):0,color=PIE_COLORS[i];
+    const pct=grandTotal?Math.round(amt/grandTotal*100):0,color=expenseCatColor(cat,i);
     const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
+    pieLabels.push(`${ci.e} ${pct}%`);
     const row=mkDiv('top5-row');
-    row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat}</div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div><div class="top5-pct">${pct}%</div></div>`;
+    row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat} <span class="top5-pct">${pct}%</span></div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div></div>`;
     list.appendChild(row);
   });
   inner.appendChild(pw);inner.appendChild(list);card.appendChild(inner);
@@ -80,10 +82,30 @@ function buildTop5(){
   moreBtn.onclick=()=>openCatAllPopup();
   card.appendChild(moreBtn);
   if(pieChart)pieChart.destroy();
-  // 처음 5개(=TOP5)는 원래 색으로 살려서 튀어나오게 하고, 나머지는 톤다운된 회색으로 묶어서 보여줌.
-  const colors=allSorted.map((_,i)=>i<5?PIE_COLORS[i]:'#e5e7eb');
-  const offsets=allSorted.map((_,i)=>i<5?8:0);
-  pieChart=new Chart(canvas,{type:'doughnut',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff',offset:offsets}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+  // 카테고리별 고정 색상 적용. TOP5 이후 항목은 톤다운된 회색으로 묶어서 보여줌.
+  const colors=allSorted.map(([cat],i)=>i<5?expenseCatColor(cat,i):'#e5e7eb');
+  // 완전한 파이(도넛 아님) + TOP5 조각에 이모지·퍼센트 라벨을 직접 그려주는 커스텀 플러그인.
+  const pieLabelPlugin={
+    id:'pieTop5Labels',
+    afterDatasetsDraw(chart){
+      const {ctx}=chart;
+      const meta=chart.getDatasetMeta(0);
+      meta.data.forEach((arc,i)=>{
+        if(i>=pieLabels.length)return;
+        const props=arc.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'],true);
+        const mid=(props.startAngle+props.endAngle)/2;
+        const r=(props.innerRadius+props.outerRadius)/2*0.72;
+        const lx=props.x+Math.cos(mid)*r,ly=props.y+Math.sin(mid)*r;
+        ctx.save();
+        ctx.font='700 11px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillStyle='#fff';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(pieLabels[i],lx,ly);
+        ctx.restore();
+      });
+    }
+  };
+  pieChart=new Chart(canvas,{type:'pie',data:{labels:allSorted.map(([c])=>c),datasets:[{data:allSorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}},plugins:[pieLabelPlugin]});
   return card;
 }
 
@@ -98,11 +120,11 @@ function openCatAllPopup(){
   }else{
     sorted.forEach(([cat,amt],i)=>{
       const pct=total?Math.round(amt/total*100):0;
-      const color=i<5?PIE_COLORS[i]:'#9ea3b8';
+      const color=expenseCatColor(cat,i);
       const ci=CATS.expense.find(c=>c.n===cat)||{e:'📦'};
       const row=mkDiv('top5-row clickable');
       row.onclick=()=>openCatDetail(cat);
-      row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat}</div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div><div class="top5-pct">${pct}%</div></div>`;
+      row.innerHTML=`<div class="top5-num">${i+1}</div><div class="top5-info"><div class="top5-name">${ci.e} ${cat} <span class="top5-pct">${pct}%</span></div><div class="top5-bar-track"><div class="top5-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="top5-right"><div class="top5-amt" style="color:${color}">${fmt(amt)}</div></div>`;
       wrap.appendChild(row);
     });
   }
@@ -128,6 +150,7 @@ function closeCatDetail(e){if(e.target===document.getElementById('catDetailPopup
 
 function buildFixed(){
   const checked=S.getChecked(curY,curM);
+  const actualMap=S.getFixedActual(curY,curM);
   const items=activeFixedItems(curY,curM);
   const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">고정지출</span></div>';
   const table=document.createElement('table');table.className='fixed-table';
@@ -135,17 +158,50 @@ function buildFixed(){
   const tbody=document.createElement('tbody');
   items.forEach(f=>{
     const done=checked.includes(f.id);
+    const amt=done&&actualMap[f.id]!=null?actualMap[f.id]:f.amount;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><span class="fixed-day">${f.day}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(f.amount)}</span></td>`;
+    tr.innerHTML=`<td><span class="fixed-day">${f.day}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(amt)}</span></td>`;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);card.appendChild(table);
-  const da=items.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0);
+  const da=items.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+(actualMap[f.id]!=null?actualMap[f.id]:f.amount),0);
   const ta=items.reduce((s,f)=>s+f.amount,0);
   const footer=mkDiv('fixed-footer');footer.innerHTML=`<span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val">${fmt(da)} / ${fmt(ta)}</span>`;
   card.appendChild(footer);return card;
 }
-function toggleFixed(id){let c=S.getChecked(curY,curM);c=c.includes(id)?c.filter(x=>x!==id):[...c,id];S.setChecked(curY,curM,c);renderBudget();}
+// 고정지출 체크(납부 완료 처리) 시 예정 금액과 실제 출금액이 다를 수 있어서
+// 곧바로 체크하지 않고 "실제 출금액" 팝업을 띄워서 확인/수정 후 저장함.
+// 체크 해제는 되돌리는 동작이라 바로 처리.
+let pendingFixedActualId=null;
+function toggleFixed(id){
+  const checked=S.getChecked(curY,curM);
+  if(checked.includes(id)){
+    S.setChecked(curY,curM,checked.filter(x=>x!==id));
+    const fa=S.getFixedActual(curY,curM);delete fa[id];S.setFixedActual(curY,curM,fa);
+    renderBudget();
+  }else{
+    openFixedActualPopup(id);
+  }
+}
+function openFixedActualPopup(id){
+  const f=activeFixedItems(curY,curM).find(x=>x.id===id);
+  if(!f)return;
+  pendingFixedActualId=id;
+  document.getElementById('fixedActualTitle').textContent=`${f.emoji} ${f.name}`;
+  document.getElementById('fixedActualInput').value=f.amount;
+  document.getElementById('fixedActualPopup').classList.add('open');
+}
+function closeFixedActualPopup(e){if(!e||e.target===document.getElementById('fixedActualPopup'))document.getElementById('fixedActualPopup').classList.remove('open');}
+function saveFixedActual(){
+  if(!pendingFixedActualId)return;
+  const amt=parseInt(document.getElementById('fixedActualInput').value)||0;
+  const checked=S.getChecked(curY,curM);
+  if(!checked.includes(pendingFixedActualId))S.setChecked(curY,curM,[...checked,pendingFixedActualId]);
+  const fa=S.getFixedActual(curY,curM);fa[pendingFixedActualId]=amt;S.setFixedActual(curY,curM,fa);
+  document.getElementById('fixedActualPopup').classList.remove('open');
+  pendingFixedActualId=null;
+  renderBudget();
+}
 
 function buildBudgetCal(){
   const entries=S.getEntries(curY,curM);
@@ -249,11 +305,16 @@ function closePopup(e){if(e.target===document.getElementById('overlay'))document
 function renderPopupEntries(){
   if(popupDay===null)return;
   const entries=S.getEntries(curY,curM).filter(e=>e.day===popupDay);
-  const auto=activeFixedIncome(curY,curM).filter(f=>f.day===popupDay);
-  const all=[...auto.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries];
+  const autoInc=activeFixedIncome(curY,curM).filter(f=>f.day===popupDay);
+  const fixedExp=activeFixedItems(curY,curM).filter(f=>f.day===popupDay);
+  // 정렬 순서: 고정지출 → 수입 → 지출
+  const fixedRows=fixedExp.map(f=>({...f,type:'fixed',auto:true,id:'x_'+f.id}));
+  const incRows=[...autoInc.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries.filter(e=>e.type==='income')];
+  const expRows=entries.filter(e=>e.type==='expense');
+  const all=[...fixedRows,...incRows,...expRows];
   const el=document.getElementById('popupEntries');
   if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
-  el.innerHTML=all.map(e=>`<div class="pe"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">${icon('edit',14)}</button><button class="pe-del" onclick="delEntry('${e.id}')">${icon('x-circle',15)}</button>`}</div>`).join('');
+  el.innerHTML=all.map(e=>`<div class="pe ${e.type}"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">${icon('edit',14)}</button><button class="pe-del" onclick="delEntry('${e.id}')">${icon('x-circle',15)}</button>`}</div>`).join('');
 }
 // 등록된 항목의 모든 필드(날짜/금액/카테고리/메모/이모지 등)를 아래 "내역 추가" 폼에 그대로 채워서
 // 편집 모드로 전환함. 저장은 saveEntryForm()이 처리 (추가/수정 공용).
@@ -413,7 +474,7 @@ function renderFixedIncomeList(){
   FIXED_INCOME.forEach(fi=>{
     const item=mkDiv('rmgmt-item');
     const period=fi.endYm?`${fi.startYm||'처음'}~${fi.endYm} · 종료됨`:`${fi.startYm?fi.startYm+'~':''}매월 자동 반영중`;
-    const rightBtn=fi.endYm?'':`<button class="rmgmt-del" onclick="endFixedIncome('${fi.id}')" title="이번 달까지만 반영하고 종료">종료</button>`;
+    const rightBtn=fi.endYm?'':`<button class="rmgmt-del" onclick="endFixedIncome('${fi.id}')" title="이번 달까지만 반영하고 종료">${icon('x',14)}</button>`;
     item.innerHTML=`<div class="rmgmt-icon">${fi.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${fi.name}</div><div class="rmgmt-sub">매월 ${fi.day}일 · ${fmt(fi.amount)} · ${period}</div></div>${rightBtn}`;
     if(fi.endYm)item.style.opacity='0.55';
     wrap.appendChild(item);
@@ -455,7 +516,7 @@ function renderFixedItemsList(){
   FIXED_ITEMS.forEach(f=>{
     const item=mkDiv('rmgmt-item');
     const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
-    const rightBtns=f.endYm?'':`<button class="rmgmt-del" style="font-size:13px;" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">종료</button>`;
+    const rightBtns=f.endYm?'':`<button class="rmgmt-del" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">${icon('x',14)}</button>`;
     item.innerHTML=`<div class="rmgmt-icon">${f.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">매월 ${f.day}일 · ${fmt(f.amount)} · ${period}</div></div><div style="display:flex;gap:2px;">${rightBtns}</div>`;
     if(f.endYm)item.style.opacity='0.55';
     wrap.appendChild(item);

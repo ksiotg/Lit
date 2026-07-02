@@ -83,4 +83,7 @@ const S={
   setReview(y,m,d,v){Storage._set('rv_'+dk(y,m,d),v)},
   getWeekStreak(){return Storage._get('week_streak',0)},
   setWeekStreak(n){Storage._set('week_streak',n)},
+  // 고정지출 체크 완료 시 입력한 "실제 출금액" (예정 금액과 다를 수 있음). {fixedItemId: amount} 형태.
+  getFixedActual(y,m){return Storage._get('fa_'+mk(y,m),{})},
+  setFixedActual(y,m,v){Storage._set('fa_'+mk(y,m),v)},
 };

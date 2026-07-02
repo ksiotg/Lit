@@ -378,9 +378,11 @@ function flRevertStatus(id){
 function populateFlProjectPicker(){
   const sel=document.getElementById('fProjectPicker');
   if(!sel)return;
-  const list=[...FREELANCE_PROJECTS].sort((a,b)=>(a.status==='정산완료')-(b.status==='정산완료'));
-  sel.innerHTML='<option value="">직접 입력</option>'+list.map(p=>
-    `<option value="${p.id}">${p.client||'?'} · ${p.project||'?'}${p.status==='정산완료'?' (정산완료)':''}</option>`
+  // 완전히 정산 끝난(정산완료) 프로젝트는 목록에서 아예 제외. 아직 안 끝난(진행중/작업완료 등
+  // 부분 정산 상태) 프로젝트만 골라서 등록할 수 있게 함.
+  const list=FREELANCE_PROJECTS.filter(p=>p.status!=='정산완료');
+  sel.innerHTML='<option value="">프로젝트를 선택하세요</option>'+list.map(p=>
+    `<option value="${p.id}">${p.client||'?'} · ${p.project||'?'}</option>`
   ).join('');
   sel.value='';
 }
