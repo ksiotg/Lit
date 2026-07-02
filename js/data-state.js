@@ -70,6 +70,7 @@ const TODAY=new Date();
 let curY=TODAY.getFullYear(),curM=TODAY.getMonth();
 let rY=TODAY.getFullYear(),rM=TODAY.getMonth();
 let wY=TODAY.getFullYear(),wM=TODAY.getMonth();
+let flY=TODAY.getFullYear(),flM=TODAY.getMonth();
 let rvY=TODAY.getFullYear(),rvM=TODAY.getMonth();
 let curView='month',popupDay=null,popupType='income';
 let pieChart=null;

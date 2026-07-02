@@ -4,15 +4,18 @@
 // (완료 ≠ 입금이라, 입금은 가계부에서 직접 등록하는 게 맞음). 대신 가계부의 외주
 // 수입 입력 폼에 "등록된 프로젝트에서 불러오기" 드롭다운을 연동해서, 실제 입금될
 // 때마다 프로젝트를 골라 클라이언트/프로젝트명을 자동으로 채워넣을 수 있게 함.
-let flView='project'; // 'project' | 'client'
+let flView='project'; // 'project' | 'client' | 'month'
 let editingFlId=null;
 
 function setFreelanceView(v){
   flView=v;
   document.getElementById('fvbtn-project').classList.toggle('active',v==='project');
   document.getElementById('fvbtn-client').classList.toggle('active',v==='client');
+  document.getElementById('fvbtn-month').classList.toggle('active',v==='month');
   renderFreelance();
 }
+
+function chFlMonth(d){flM+=d;if(flM>11){flM=0;flY++;}if(flM<0){flM=11;flY--;}renderFreelance();}
 
 // dueDate(YYYY-MM-DD) 기준 D-day 계산. 완료된 프로젝트는 호출 안 함.
 function ddayInfo(dueDate){
@@ -32,16 +35,25 @@ function ddayInfo(dueDate){
 
 function renderFreelance(){
   FREELANCE_PROJECTS=getFreelanceProjects();
-  const progress=FREELANCE_PROJECTS.filter(p=>p.status!=='완료');
-  const dueSoon=progress.filter(p=>{const dd=ddayInfo(p.dueDate);return dd&&dd.diff<=3;});
+  document.getElementById('flMonthLabel').textContent=`${flY}년 ${flM+1}월`;
+  const inProgress=FREELANCE_PROJECTS.filter(p=>p.status==='진행중');
+  const settling=FREELANCE_PROJECTS.filter(p=>p.status==='정산중');
+  const dueSoon=inProgress.filter(p=>{const dd=ddayInfo(p.dueDate);return dd&&dd.diff<=3;});
   const doneTotal=FREELANCE_PROJECTS.filter(p=>p.status==='완료').reduce((s,p)=>s+(p.amount||0),0);
-  document.getElementById('flSumProgress').textContent=progress.length+'건';
+  document.getElementById('flSumProgress').textContent=inProgress.length+'건';
+  document.getElementById('flSumSettling').textContent=settling.length+'건';
   document.getElementById('flSumDday').textContent=dueSoon.length+'건';
   document.getElementById('flSumDone').textContent=fmt(doneTotal);
   const main=document.getElementById('freelanceMain');main.innerHTML='';
-  const listCard=flView==='project'?buildFlProjectList():buildFlClientList();
+  let listCard;
+  if(flView==='month')listCard=buildFlMonthView();
+  else if(flView==='client')listCard=buildFlClientList();
+  else listCard=buildFlProjectList();
   listCard.classList.add('card-wide');
   main.appendChild(listCard);
+  const calCard=buildFlCal();
+  calCard.classList.add('card-wide');
+  main.appendChild(calCard);
 }
 
 // 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌. 하나만 있으면 그것만 표시.
@@ -52,13 +64,26 @@ function flPeriodLabel(p){
   return '';
 }
 
+// 상태별 배지: 진행중은 마감 D-day, 정산중/완료는 전용 배지.
+function flStatusBadge(p){
+  if(p.status==='완료')return '<span class="fl-badge done">✅ 완료</span>';
+  if(p.status==='정산중')return '<span class="fl-badge settling">💰 정산중</span>';
+  const dd=ddayInfo(p.dueDate);
+  return dd?`<span class="fl-badge ${dd.cls}">${dd.label}</span>`:'<span class="fl-badge safe">기한없음</span>';
+}
+
 function buildFlRow(p){
   const row=mkDiv('fl-row');
-  const dd=p.status==='완료'?null:ddayInfo(p.dueDate);
-  const badge=p.status==='완료'
-    ?'<span class="fl-badge done">완료</span>'
-    :(dd?`<span class="fl-badge ${dd.cls}">${dd.label}</span>`:'<span class="fl-badge safe">기한없음</span>');
+  const badge=flStatusBadge(p);
   const period=flPeriodLabel(p);
+  let actions;
+  if(p.status==='진행중'){
+    actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">작업 완료</button>`;
+  }else if(p.status==='정산중'){
+    actions=`<button class="fl-act primary" onclick="flAdvanceStatus('${p.id}')">입금 완료</button><button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
+  }else{
+    actions=`<button class="fl-act" onclick="flRevertStatus('${p.id}')">되돌리기</button>`;
+  }
   row.innerHTML=`
     <div class="fl-row-top">
       <div class="fl-row-info" onclick="openFreelanceDetail('${p.id}')" title="정산 내역 보기">
@@ -70,9 +95,7 @@ function buildFlRow(p){
     <div class="fl-row-bottom">
       <div class="fl-row-amt">${fmt(p.amount||0)}</div>
       <div class="fl-row-actions">
-        ${p.status==='완료'
-          ?`<button class="fl-act" onclick="revertFreelanceProject('${p.id}')">되돌리기</button>`
-          :`<button class="fl-act primary" onclick="completeFreelanceProject('${p.id}')">완료 처리</button>`}
+        ${actions}
         <button class="fl-icon" onclick="editFreelanceProject('${p.id}')" title="수정">✏️</button>
         <button class="fl-icon del" onclick="deleteFreelanceProject('${p.id}')" title="삭제">×</button>
       </div>
@@ -86,10 +109,11 @@ function buildFlProjectList(){
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
-    // 진행중인 것 먼저(마감 임박 순), 완료는 아래로.
+    // 진행중 → 정산중 → 완료 순, 그 안에서는 마감 임박 순.
+    const rank={'진행중':0,'정산중':1,'완료':2};
     const sorted=[...FREELANCE_PROJECTS].sort((a,b)=>{
-      const aDone=a.status==='완료',bDone=b.status==='완료';
-      if(aDone!==bDone)return aDone?1:-1;
+      const r=(rank[a.status]??0)-(rank[b.status]??0);
+      if(r)return r;
       return (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99');
     });
     sorted.forEach(p=>wrap.appendChild(buildFlRow(p)));
@@ -118,6 +142,115 @@ function buildFlClientList(){
   }
   card.appendChild(wrap);return card;
 }
+
+// ─── 월간 뷰: 이 달에 정산된 외주 수입 모아보기 ──────────────────────────────────
+function buildFlMonthView(){
+  const entries=S.getEntries(flY,flM).filter(e=>e.type==='income'&&e.cat==='외주');
+  const total=entries.reduce((s,e)=>s+e.amount,0);
+  const card=mkDiv('card');
+  card.innerHTML=`<div class="card-header"><span class="card-title">${flY}년 ${flM+1}월 정산 내역</span></div>`;
+  const summary=document.createElement('div');
+  summary.style.cssText='padding:0 16px 12px;display:flex;justify-content:space-between;align-items:center;';
+  summary.innerHTML=`<span style="font-size:12px;color:var(--muted);font-weight:700;">이번 달 정산 합계</span><span style="font-size:16px;font-weight:800;color:var(--freelance);">${fmt(total)}</span>`;
+  card.appendChild(summary);
+  const list=document.createElement('div');
+  list.style.cssText='padding:0 16px 16px;display:flex;flex-direction:column;gap:6px;';
+  if(!entries.length){
+    list.innerHTML='<div class="empty">이번 달 정산 내역이 없어요</div>';
+  }else{
+    [...entries].sort((a,b)=>a.day-b.day).forEach(e=>{
+      const row=document.createElement('div');row.className='fl-payment-row';
+      row.innerHTML=`<span class="fl-payment-date">${flM+1}.${String(e.day).padStart(2,'0')}</span><span style="flex:1;font-size:12px;font-weight:600;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name||''}</span><span class="fl-payment-amt">+${fmt(e.amount)}</span>`;
+      list.appendChild(row);
+    });
+  }
+  card.appendChild(list);
+  return card;
+}
+
+// ─── 프로젝트 캘린더: 작업기간(착수~마감)+정산일을 한 달력에 표시 ─────────────────
+const FL_CAL_PALETTE=['#8b5cf6','#f59e0b','#10b981','#3b82f6','#ec4899','#ef4444','#06b6d4','#84cc16'];
+function buildFlCal(){
+  const dim=new Date(flY,flM+1,0).getDate();
+  const fd=new Date(flY,flM,1).getDay();
+  const pad=n=>String(n).padStart(2,'0');
+  const monthStart=`${flY}-${pad(flM+1)}-01`,monthEnd=`${flY}-${pad(flM+1)}-${pad(dim)}`;
+  // 이 달과 기간이 겹치는 프로젝트만 색상 배정 (착수/마감 중 하나만 있어도 그 날 하루짜리로 취급)
+  const activeProjects=FREELANCE_PROJECTS.filter(p=>{
+    if(!p.startDate&&!p.dueDate)return false;
+    const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
+    return s<=monthEnd&&e>=monthStart;
+  });
+  const colorOf={};
+  activeProjects.forEach((p,i)=>{colorOf[p.id]=FL_CAL_PALETTE[i%FL_CAL_PALETTE.length];});
+  const settleEntries=S.getEntries(flY,flM).filter(e=>e.type==='income'&&e.cat==='외주');
+  const settleByDay={};
+  settleEntries.forEach(e=>{(settleByDay[e.day]=settleByDay[e.day]||[]).push(e);});
+
+  const card=mkDiv('card');
+  card.innerHTML=`<div class="card-header" style="padding-bottom:4px"><span class="card-title">🗓️ ${flY}년 ${flM+1}월 프로젝트 캘린더</span></div>`;
+  const dow=mkDiv('cal-dow-row');
+  ['일','월','화','수','목','금','토'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===0?'sun':i===6?'sat':''}`);e.textContent=d;dow.appendChild(e);});
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fd;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fd+d-1)%7;
+    const isT=TODAY.getFullYear()===flY&&TODAY.getMonth()===flM&&TODAY.getDate()===d;
+    const dateStr=`${flY}-${pad(flM+1)}-${pad(d)}`;
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===0?'sun':''} ${dow2===6?'sat':''}`);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    const dayProjects=activeProjects.filter(p=>{
+      const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
+      return dateStr>=s&&dateStr<=e;
+    });
+    if(dayProjects.length){
+      const dotsWrap=mkDiv('');dotsWrap.style.cssText='display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;';
+      dayProjects.slice(0,4).forEach(p=>{
+        const dot=mkDiv('');dot.style.cssText=`width:5px;height:5px;border-radius:50%;background:${colorOf[p.id]};`;
+        dot.title=flProjectLabel(p);
+        dotsWrap.appendChild(dot);
+      });
+      cell.appendChild(dotsWrap);
+    }
+    const daySettles=settleByDay[d]||[];
+    if(daySettles.length){
+      cell.style.background='var(--freelance-tint)';
+      const mark=mkDiv('');mark.style.cssText='position:absolute;top:3px;right:4px;font-size:8px;';mark.textContent='💰';
+      cell.appendChild(mark);
+    }
+    if(dayProjects.length||daySettles.length)cell.onclick=()=>openFlDayDetail(dateStr,dayProjects,daySettles);
+    grid.appendChild(cell);
+  }
+  card.appendChild(dow);card.appendChild(grid);
+  if(activeProjects.length){
+    const legend=document.createElement('div');
+    legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
+    legend.innerHTML=activeProjects.map(p=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${colorOf[p.id]};display:inline-block;"></span>${p.project||'(제목없음)'}</span>`).join('')
+      +`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);">💰 정산일</span>`;
+    card.appendChild(legend);
+  }
+  return card;
+}
+
+function openFlDayDetail(dateStr,dayProjects,settlements){
+  const [y,m,d]=dateStr.split('-');
+  document.getElementById('flDayTitle').textContent=`${y}.${m}.${d}`;
+  const parts=[];
+  if(dayProjects.length){
+    parts.push(`<div><div class="add-routine-form-title" style="margin-bottom:8px;">📁 진행 중인 프로젝트</div><div style="display:flex;flex-direction:column;gap:6px;">${dayProjects.map(p=>
+      `<div class="fl-payment-row" style="cursor:pointer;" onclick="closeFlDayPopupAndOpen('${p.id}')"><span style="font-size:12px;font-weight:700;">${p.project||'(제목없음)'}</span><span style="font-size:11px;color:var(--muted);">🏢 ${p.client||'미지정'}</span></div>`
+    ).join('')}</div></div>`);
+  }
+  if(settlements.length){
+    parts.push(`<div><div class="add-routine-form-title" style="margin-bottom:8px;">💰 정산</div><div style="display:flex;flex-direction:column;gap:6px;">${settlements.map(e=>
+      `<div class="fl-payment-row"><span style="font-size:12px;font-weight:600;">${e.name||''}</span><span class="fl-payment-amt">+${fmt(e.amount)}</span></div>`
+    ).join('')}</div></div>`);
+  }
+  document.getElementById('flDayContent').innerHTML=parts.join('')||'<div class="empty">내역이 없어요</div>';
+  document.getElementById('flDayPopup').classList.add('open');
+}
+function closeFlDayPopup(e){if(e.target===document.getElementById('flDayPopup'))document.getElementById('flDayPopup').classList.remove('open');}
+function closeFlDayPopupAndOpen(id){document.getElementById('flDayPopup').classList.remove('open');openFreelanceDetail(id);}
 
 // ─── 추가/수정 폼 ──────────────────────────────────────────────────────────────
 function openFreelanceForm(){
@@ -183,24 +316,32 @@ function deleteFreelanceProject(id){
   renderFreelance();
 }
 
-// 완료 처리: 프로젝트 상태만 완료로 바꿈. 가계부에는 아무것도 자동으로 등록하지 않음.
-// (외주는 완료≠입금이라, 실제 입금 시점에 가계부에서 "등록된 프로젝트에서 불러오기"로
-// 직접 수입을 등록하는 방식을 사용함 — 분할 입금/입금 지연도 자연스럽게 처리됨)
-function completeFreelanceProject(id){
+// 상태를 한 단계 진행시킴: 진행중(작업 중) → 정산중(작업 끝, 입금 대기) → 완료(입금까지 끝나서 수입으로 기재됨).
+// 완료 처리는 여전히 프로젝트 상태만 바꿀 뿐 가계부에는 아무것도 자동 등록하지 않음
+// (실제 입금은 가계부에서 "등록된 프로젝트에서 불러오기"로 직접 등록 — 분할 입금/지연도 자연스럽게 처리됨).
+function flAdvanceStatus(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
-  if(!confirm('이 프로젝트를 완료 처리할까요?'))return;
-  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'완료'}:x);
+  if(p.status==='진행중'){
+    if(!confirm('작업을 완료하고 정산중 상태로 바꿀까요?'))return;
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'정산중'}:x);
+  }else if(p.status==='정산중'){
+    if(!confirm('입금까지 완료됐나요? 완료 처리할까요?'))return;
+    FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'완료'}:x);
+  }else return;
   saveFreelanceProjects(FREELANCE_PROJECTS);
   renderFreelance();
 }
 
-// 완료를 취소하고 다시 진행중으로 되돌림.
-function revertFreelanceProject(id){
+// 상태를 한 단계 되돌림: 완료 → 정산중, 정산중 → 진행중.
+function flRevertStatus(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
-  if(!confirm('완료를 취소하고 진행중으로 되돌릴까요?'))return;
-  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:'진행중'}:x);
+  let prev;
+  if(p.status==='완료'){prev='정산중';if(!confirm('완료를 취소하고 정산중으로 되돌릴까요?'))return;}
+  else if(p.status==='정산중'){prev='진행중';if(!confirm('정산중을 취소하고 진행중으로 되돌릴까요?'))return;}
+  else return;
+  FREELANCE_PROJECTS=FREELANCE_PROJECTS.map(x=>x.id===id?{...x,status:prev}:x);
   saveFreelanceProjects(FREELANCE_PROJECTS);
   renderFreelance();
 }
