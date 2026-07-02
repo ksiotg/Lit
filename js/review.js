@@ -149,7 +149,7 @@ function openReviewPopup(y,m,d){
   document.getElementById('reviewMemoInput').value=existing.memo||'';
   const hasReview=!!S.getReview(y,m,d);
   const actions=document.getElementById('reviewPopupActions');
-  actions.innerHTML = hasReview ? `<button onclick="editReviewDate()">📅 날짜 변경</button><button class="danger" onclick="deleteReview()">${icon('trash-2',14)} 삭제</button>` : '';
+  actions.innerHTML = hasReview ? `<button onclick="editReviewDate()" title="날짜 변경">${icon('calendar',14)}</button><button onclick="deleteReview()" title="삭제">${icon('trash-2',14)}</button>` : '';
   document.getElementById('reviewOverlay').classList.add('open');
 }
 // 잘못 입력한 날짜의 회고를 다른 날짜로 이동

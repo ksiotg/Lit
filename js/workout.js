@@ -76,7 +76,7 @@ function openWorkoutPopup(y,m,d){
     workouts.forEach(w => addWorkoutField(w.type, w.memo));
   }
   const actions=document.getElementById('workoutPopupActions');
-  actions.innerHTML = workouts.length ? `<button onclick="editWorkoutDate()">📅 날짜 변경</button><button class="danger" onclick="deleteWorkoutDay()">${icon('trash-2',14)} 이 날 기록 삭제</button>` : '';
+  actions.innerHTML = workouts.length ? `<button onclick="editWorkoutDate()" title="날짜 변경">${icon('calendar',14)}</button><button onclick="deleteWorkoutDay()" title="이 날 기록 삭제">${icon('trash-2',14)}</button>` : '';
 
   document.getElementById('workoutPopup').classList.add('open');
 }
