@@ -355,4 +355,10 @@ flex-shrink:0;
 .fl-client-head{display:flex;justify-content:space-between;align-items:center;}
 .fl-client-name{font-size:13px;font-weight:800;}
 .fl-client-total{font-size:11px;color:var(--muted);font-weight:700;}
+.fl-row-info{cursor:pointer;}
+.fl-row-info:hover .fl-row-name{text-decoration:underline;}
+.fl-payment-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:10px;padding:9px 12px;margin-bottom:6px;}
+.fl-payment-row:last-child{margin-bottom:0;}
+.fl-payment-date{font-size:12px;color:var(--muted);font-weight:600;}
+.fl-payment-amt{font-size:13px;font-weight:800;color:var(--income);}
 </style>
