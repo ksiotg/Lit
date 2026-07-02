@@ -32,7 +32,7 @@ function renderBudget(){
   const rem=fi-fe;
   document.getElementById('sumIncome').textContent='+'+fi.toLocaleString('ko-KR');
   document.getElementById('sumExpense').textContent='-'+fe.toLocaleString('ko-KR');
-  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color=rem<0?'var(--expense)':'var(--budget)';
+  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color='var(--budget)';
   const mc=document.getElementById('budgetMain');mc.innerHTML='';
   // "이달의 외주수입" 위젯은 제거함 — 외주 탭이 따로 생겨서 거기서 확인하면 되고,
   // 가계부에 중복으로 보여줄 필요가 없어짐.
