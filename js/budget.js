@@ -80,15 +80,16 @@ function buildTop5(){
   moreBtn.onclick=()=>openCatAllPopup();
   card.appendChild(moreBtn);
   if(pieChart)pieChart.destroy();
-  // 파이차트는 이제 전체 카테고리를 각자 고유 색으로 표시 (TOP5 톤다운 없음).
+  // 파이차트 조각 색은 전체 카테고리를 각자 고유 색으로 표시 (TOP5 톤다운 없음).
+  // 단, 바깥 리더라인 라벨은 TOP5까지만 그려서 카테고리가 많아져도 라벨이 화면 밖으로 넘치지 않게 함.
   const pieLabels=[];
   const colors=allSorted.map(([cat,amt],i)=>{
     const ci=EXPENSE_CATS.find(c=>c.n===cat)||{e:'📦',color:PIE_COLORS[i%PIE_COLORS.length]};
     const pct=grandTotal?Math.round(amt/grandTotal*100):0;
-    pieLabels.push(`${ci.e} ${pct}%`);
+    pieLabels.push(i<5?`${ci.e} ${pct}%`:null);
     return ci.color;
   });
-  // 완전한 파이(도넛 아님) + 각 조각 바깥쪽에 리더라인 + 이모지·퍼센트 라벨을 그려주는 커스텀 플러그인.
+  // 완전한 파이(도넛 아님) + TOP5 조각 바깥쪽에 리더라인 + 이모지·퍼센트 라벨을 그려주는 커스텀 플러그인.
   // (파이 안쪽에 그리면 조각이 좁을 때 라벨이 잘려서, 조각 밖으로 선을 빼서 라벨을 붙임)
   const pieLabelPlugin={
     id:'pieOuterLabels',
@@ -96,7 +97,7 @@ function buildTop5(){
       const {ctx}=chart;
       const meta=chart.getDatasetMeta(0);
       meta.data.forEach((arc,i)=>{
-        if(i>=pieLabels.length)return;
+        if(i>=pieLabels.length||!pieLabels[i])return;
         const props=arc.getProps(['startAngle','endAngle','outerRadius','x','y'],true);
         const mid=(props.startAngle+props.endAngle)/2;
         const cos=Math.cos(mid),sin=Math.sin(mid);
