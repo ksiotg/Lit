@@ -84,11 +84,10 @@ let FREELANCE_PROJECTS=[];
 let EXPENSE_CATS=CATS.expense.map((c,i)=>({n:c.n,e:c.e,color:EXPENSE_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
 
 // ─── 프로젝트 탭 ───────────────────────────────────────────────────────────────
-// 인생의 크고 작은 목표/프로젝트 관리. 카테고리는 루틴 탭과 동일한 방식 —
-// 사용자가 추가/수정하는 게 아니라 고정된 프리셋 목록 + 이모지/라벨/색상을 코드에서 관리함.
-const PJ_CAT_LIST=['career','selfdev','organize','record','hobby','misc'];
-const PJ_CAT_LABELS={career:'💼 커리어',selfdev:'🌱 자기계발',organize:'🧹 정리',record:'📸 기록',hobby:'🎨 취미',misc:'📌 기타'};
-const PJ_CAT_COLORS={career:'#0ea5e9',selfdev:'#a855f7',organize:'#f59e0b',record:'#06b6d4',hobby:'#22c55e',misc:'#64748b'};
+// 인생의 크고 작은 목표/프로젝트 관리. 카테고리는 루틴 탭 것을 "그대로" 재사용함 —
+// 별도 목록을 만드는 게 아니라 루틴과 완전히 동일한 4개(케어/건강/성장/생활)를 그대로 씀.
+// 그래서 라벨/색상도 위에서 정의된 CAT_LABELS/CAT_COLORS를 그대로 참조함(중복 정의 X).
+const PJ_CAT_LIST=['selfcare','health','growth','life'];
 let PROJECTS=[];
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};

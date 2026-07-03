@@ -1,7 +1,8 @@
 // ─── 프로젝트(PROJECT) ────────────────────────────────────────────────────────
 // 인생의 크고 작은 목표/프로젝트를 정리하는 탭. 외주 탭의 카드/아코디언 패턴을 재사용하고,
-// 카테고리는 루틴 탭과 동일하게 고정 프리셋(PJ_CAT_LIST, data-state.js)을 쓴다 —
-// 가계부처럼 사용자가 이름/이모지/색을 추가·수정하는 방식이 아니라 코드에 박힌 목록.
+// 카테고리는 루틴 탭 것을 완전히 그대로 재사용함 — 케어/건강/성장/생활 4개, 라벨/색상도
+// CAT_LABELS/CAT_COLORS(data-state.js) 그대로. 가계부처럼 사용자가 이름/이모지/색을
+// 추가·수정하는 방식이 아니라 루틴과 동일한 고정 목록(PJ_CAT_LIST).
 // 상태(대기/진행중/완료/보류)는 사용자가 직접 지정하는 필드. 체크리스트가 있는
 // 프로젝트는 체크된 비율로 진행률(%)을 자동 계산해서 보여주지만, 그렇다고 상태가
 // 자동으로 바뀌진 않음 — "완료" 처리는 항상 사용자가 상태 버튼으로 직접 함.
@@ -23,7 +24,8 @@ function pjProgress(p){
   return Math.round(done/p.checklist.length*100);
 }
 function pjCatInfo(catKey){
-  return {label:PJ_CAT_LABELS[catKey]||PJ_CAT_LABELS.misc,color:PJ_CAT_COLORS[catKey]||PJ_CAT_COLORS.misc};
+  // 루틴 탭과 동일한 CAT_LABELS/CAT_COLORS(data-state.js)를 그대로 씀.
+  return {label:CAT_LABELS[catKey]||CAT_LABELS.selfcare,color:CAT_COLORS[catKey]||CAT_COLORS.selfcare};
 }
 function pjBadge(status){
   const cls=PJ_STATUS_BADGE[status]||'wait';
