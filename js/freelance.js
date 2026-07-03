@@ -173,7 +173,7 @@ function buildFlProjectList(){
         done.sort((a,b)=>(b.dueDate||'').localeCompare(a.dueDate||''));
         const moreBtn=document.createElement('button');
         moreBtn.className='fl-more-btn';
-        moreBtn.textContent=flDoneExpanded?'완료된 프로젝트 접기':`완료된 프로젝트 더보기 (${done.length}건)`;
+        moreBtn.textContent=flDoneExpanded?'접기':`완료 (${done.length}건)`;
         moreBtn.onclick=toggleFlDoneList;
         wrap.appendChild(moreBtn);
         if(flDoneExpanded){
