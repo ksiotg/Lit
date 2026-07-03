@@ -381,6 +381,8 @@ flex-shrink:0;
 .fl-icon:hover{color:var(--freelance);}
 .fl-icon.del{font-size:17px;}
 .fl-icon.del:hover{color:var(--expense);}
+.fl-more-btn{display:block;width:100%;margin-top:4px;padding:10px;background:var(--freelance-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--freelance);cursor:pointer;}
+.fl-more-btn:hover{opacity:0.8;}
 .fl-client-group{background:#fff!important;border-radius:var(--radius);border:1px solid var(--border);box-shadow:none;padding:14px 16px;}
 .fl-client-head{display:flex;justify-content:space-between;align-items:center;}
 .fl-client-name{font-size:13px;font-weight:800;}
