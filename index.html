@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=59">
+<link rel="stylesheet" href="css/style.css?v=60">
 </head>
 <body>
 
@@ -189,6 +189,10 @@
     <div class="nav-row">
       <span class="page-title">🎯 프로젝트</span>
       <div style="display:flex;align-items:center;gap:4px">
+        <div class="view-toggle">
+          <button class="view-btn active" id="pvbtn-status" onclick="setProjectView('status')" title="상태별"><span class="ico" data-icon="list" data-size="14"></span></button>
+          <button class="view-btn" id="pvbtn-category" onclick="setProjectView('category')" title="카테고리별"><span class="ico" data-icon="tag" data-size="14"></span></button>
+        </div>
         <button class="nav-btn" onclick="openProjectForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
     </div>
@@ -586,13 +590,24 @@
         <button type="button" class="cat-btn life" data-cat="life" onclick="selPjCat(this)">💚 생활</button>
       </div>
     </div>
-    <div class="fg" style="margin-bottom:10px;"><label class="fl">목표일 (선택)</label><input class="fi" id="pjDueDate" type="date"></div>
-    <div class="fg" style="margin-bottom:14px;"><label class="fl">메모 (선택)</label><input class="fi" id="pjMemo" placeholder="내용"></div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label class="fl">중요도</label>
+      <div id="pjImportanceBtnWrap" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div class="fg"><label class="fl">착수일 (선택)</label><input class="fi" id="pjStartDate" type="date"></div>
+      <div class="fg"><label class="fl">마감일 (선택)</label><input class="fi" id="pjDueDate" type="date"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;"><label class="fl">메모 (선택)</label><input class="fi" id="pjMemo" placeholder="내용"></div>
+    <div class="fg" id="pjCompletionNoteRow" style="margin-bottom:14px;display:none;">
+      <label class="fl">완료 소감 (선택)</label>
+      <input class="fi" id="pjCompletionNote" placeholder="한 줄 소감/회고">
+    </div>
     <button class="add-btn" id="pjSaveBtn" onclick="saveProjectForm()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
   </div>
 </div>
 
-<!-- 프로젝트 상세(체크리스트) 팝업 -->
+<!-- 프로젝트 상세(체크리스트/일지) 팝업 -->
 <div class="routine-mgmt-popup" id="projectDetailPopup" onclick="closeProjectDetail(event)">
   <div class="routine-mgmt-inner">
     <div class="popup-bar" style="margin:0 auto 16px"></div>
@@ -601,32 +616,39 @@
       <button onclick="document.getElementById('projectDetailPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;" id="pjDetailSub"></div>
-    <div style="font-size:12px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:14px;" id="pjDetailMemo"></div>
+    <div style="font-size:12px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:10px;" id="pjDetailMemo"></div>
+    <div style="font-size:12px;color:var(--text);background:var(--project-tint);border-radius:10px;padding:10px 12px;margin-bottom:14px;" id="pjDetailCompletionNote"></div>
     <div id="pjDetailProgress" style="margin-bottom:14px;"></div>
     <div class="add-routine-form-title" style="margin-bottom:8px;">☑️ 체크리스트</div>
-    <div id="pjChecklist" style="margin-bottom:10px;"></div>
+    <div id="pjSectionsList" style="margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:18px;">
+      <input class="fi" id="pjNewSectionTitle" placeholder="큰 항목 추가 (예: 리서치)" style="flex:1;" onkeydown="if(event.key==='Enter')addPjSection()">
+      <button class="add-btn" style="width:auto;margin-top:0;padding:0 16px;background:var(--project);" onclick="addPjSection()">추가</button>
+    </div>
+    <div class="add-routine-form-title" style="margin-bottom:8px;">📝 일지</div>
+    <div id="pjNotesList" style="margin-bottom:10px;"></div>
     <div style="display:flex;gap:8px;">
-      <input class="fi" id="pjNewCheckText" placeholder="할 일 추가" style="flex:1;" onkeydown="if(event.key==='Enter')addPjCheckItem()">
-      <button class="add-btn" style="width:auto;margin-top:0;padding:0 16px;background:var(--project);" onclick="addPjCheckItem()">추가</button>
+      <input class="fi" id="pjNewNoteText" placeholder="오늘의 진행 상황 기록" style="flex:1;" onkeydown="if(event.key==='Enter')addPjNote()">
+      <button class="add-btn" style="width:auto;margin-top:0;padding:0 16px;background:var(--project);" onclick="addPjNote()">기록</button>
     </div>
   </div>
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=59"></script>
-<script src="js/data-state.js?v=59"></script>
-<script src="js/storage.js?v=59"></script>
-<script src="js/utils.js?v=59"></script>
-<script src="js/backup.js?v=59"></script>
-<script src="js/auth.js?v=59"></script>
-<script src="js/page-switch.js?v=59"></script>
-<script src="js/budget.js?v=59"></script>
-<script src="js/routine.js?v=59"></script>
-<script src="js/routine-mgmt.js?v=59"></script>
-<script src="js/workout.js?v=59"></script>
-<script src="js/review.js?v=59"></script>
-<script src="js/freelance.js?v=59"></script>
-<script src="js/project.js?v=59"></script>
-<script src="js/main.js?v=59"></script>
+<script src="js/supabase-client.js?v=60"></script>
+<script src="js/data-state.js?v=60"></script>
+<script src="js/storage.js?v=60"></script>
+<script src="js/utils.js?v=60"></script>
+<script src="js/backup.js?v=60"></script>
+<script src="js/auth.js?v=60"></script>
+<script src="js/page-switch.js?v=60"></script>
+<script src="js/budget.js?v=60"></script>
+<script src="js/routine.js?v=60"></script>
+<script src="js/routine-mgmt.js?v=60"></script>
+<script src="js/workout.js?v=60"></script>
+<script src="js/review.js?v=60"></script>
+<script src="js/freelance.js?v=60"></script>
+<script src="js/project.js?v=60"></script>
+<script src="js/main.js?v=60"></script>
 </body>
 </html>
