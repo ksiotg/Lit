@@ -67,13 +67,6 @@ function getFreelanceProjects(){
 }
 function saveFreelanceProjects(arr){Storage._set('freelance_projects',arr);}
 
-function getProjectCats(){
-  const custom=Storage._get('project_cats',null);
-  if(custom&&custom.length)return custom;
-  return DEFAULT_PROJECT_CATS.map((c,i)=>({n:c.n,e:c.e,color:PROJECT_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
-}
-function saveProjectCats(arr){Storage._set('project_cats',arr);}
-
 function getProjects(){
   return Storage._get('projects',[]);
 }

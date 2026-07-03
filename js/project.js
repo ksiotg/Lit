@@ -1,6 +1,7 @@
 // ─── 프로젝트(PROJECT) ────────────────────────────────────────────────────────
-// 인생의 크고 작은 목표/프로젝트를 정리하는 탭. 외주 탭의 카드/아코디언 패턴과
-// 가계부의 카테고리 관리 패턴을 그대로 재사용해서 톤을 통일함.
+// 인생의 크고 작은 목표/프로젝트를 정리하는 탭. 외주 탭의 카드/아코디언 패턴을 재사용하고,
+// 카테고리는 루틴 탭과 동일하게 고정 프리셋(PJ_CAT_LIST, data-state.js)을 쓴다 —
+// 가계부처럼 사용자가 이름/이모지/색을 추가·수정하는 방식이 아니라 코드에 박힌 목록.
 // 상태(대기/진행중/완료/보류)는 사용자가 직접 지정하는 필드. 체크리스트가 있는
 // 프로젝트는 체크된 비율로 진행률(%)을 자동 계산해서 보여주지만, 그렇다고 상태가
 // 자동으로 바뀌진 않음 — "완료" 처리는 항상 사용자가 상태 버튼으로 직접 함.
@@ -9,9 +10,7 @@ let pjDoneExpanded=false; // "완료" 아코디언 펼침 여부
 let pjHoldExpanded=false; // "보류" 아코디언 펼침 여부
 let pjDetailId=null;      // 상세 팝업에서 체크리스트 추가/삭제할 때 대상 프로젝트
 let pjStatusSel='대기';   // 추가/수정 폼에서 현재 선택된 상태
-let pjCatSel=null;        // 추가/수정 폼에서 현재 선택된 카테고리명
-let editingProjectCatName=null;
-let pendingPjCatColor=null;
+let pjCatSel=null;        // 추가/수정 폼에서 현재 선택된 카테고리 키(PJ_CAT_LIST 중 하나)
 
 const PJ_STATUS_LIST=['대기','진행중','완료','보류'];
 const PJ_STATUS_BADGE={'대기':'wait','진행중':'progress','완료':'done','보류':'hold'};
@@ -23,8 +22,8 @@ function pjProgress(p){
   const done=p.checklist.filter(c=>c.done).length;
   return Math.round(done/p.checklist.length*100);
 }
-function pjCatInfo(catName){
-  return PROJECT_CATS.find(c=>c.n===catName)||{n:catName||'기타',e:'📌',color:'#94a3b8'};
+function pjCatInfo(catKey){
+  return {label:PJ_CAT_LABELS[catKey]||PJ_CAT_LABELS.misc,color:PJ_CAT_COLORS[catKey]||PJ_CAT_COLORS.misc};
 }
 function pjBadge(status){
   const cls=PJ_STATUS_BADGE[status]||'wait';
@@ -34,7 +33,6 @@ function pjBadge(status){
 
 function renderProjects(){
   PROJECTS=getProjects();
-  PROJECT_CATS=getProjectCats();
   const main=document.getElementById('projectMain');main.innerHTML='';
   const card=buildProjectList();
   card.classList.add('card-wide');
@@ -47,7 +45,7 @@ function buildPjRow(p){
   const progress=pjProgress(p);
   const badge=pjBadge(p.status);
   const dueLabel=p.dueDate?`🎯 ${p.dueDate}`:'';
-  const subParts=[`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.e} ${cat.n}</span>`];
+  const subParts=[`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.label}</span>`];
   if(dueLabel)subParts.push(`<span>${dueLabel}</span>`);
   let progressHtml='';
   if(progress!==null){
@@ -114,78 +112,9 @@ function buildProjectList(){
 function togglePjDoneList(){pjDoneExpanded=!pjDoneExpanded;renderProjects();}
 function togglePjHoldList(){pjHoldExpanded=!pjHoldExpanded;renderProjects();}
 
-// ─── 프로젝트 설정 (카테고리 관리, 가계부 변동지출 카테고리 관리와 동일 패턴) ─────
-function openProjectSettings(){
-  PROJECT_CATS=getProjectCats();
-  editingProjectCatName=null;
-  renderProjectCatsList();
-  document.getElementById('newPjCatName').value='';
-  document.getElementById('newPjCatEmoji').value='';
-  document.getElementById('pjCatFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--project)')} 카테고리 추가`;
-  document.getElementById('pjCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
-  renderPjCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
-  document.getElementById('projectSettingsPopup').classList.add('open');
-}
-function closeProjectSettings(e){if(!e||e.target===document.getElementById('projectSettingsPopup'))document.getElementById('projectSettingsPopup').classList.remove('open');}
-
-function renderProjectCatsList(){
-  const wrap=document.getElementById('projectCatsList');wrap.innerHTML='';
-  if(!PROJECT_CATS.length){wrap.innerHTML='<div class="empty">등록된 카테고리가 없어요</div>';return;}
-  PROJECT_CATS.forEach(c=>{
-    const item=mkDiv('rmgmt-item');
-    item.innerHTML=`<div class="rmgmt-icon">${c.e}</div><div class="rmgmt-info"><div class="rmgmt-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:5px;vertical-align:middle;"></span>${c.n}</div></div><button class="rmgmt-del" onclick="editProjectCatStart('${c.n}')" title="수정">${icon('edit',14)}</button>`;
-    wrap.appendChild(item);
-  });
-}
-function renderPjCatColorSwatches(selected){
-  const wrap=document.getElementById('pjCatColorSwatches');
-  if(!wrap)return;
-  pendingPjCatColor=selected||FL_COLOR_PALETTE[0];
-  wrap.innerHTML=FL_COLOR_PALETTE.map(c=>`<div class="fl-color-swatch ${c===pendingPjCatColor?'active':''}" style="background:${c};" onclick="selPjCatColor('${c}')"></div>`).join('');
-}
-function selPjCatColor(c){renderPjCatColorSwatches(c);}
-
-function editProjectCatStart(name){
-  const c=PROJECT_CATS.find(x=>x.n===name);
-  if(!c)return;
-  editingProjectCatName=name;
-  document.getElementById('newPjCatName').value=c.n;
-  document.getElementById('newPjCatEmoji').value=c.e;
-  renderPjCatColorSwatches(c.color);
-  document.getElementById('pjCatFormTitle').innerHTML=`${icon('edit',14,'color:var(--project)')} 카테고리 수정`;
-  document.getElementById('pjCatSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
-}
-
-function saveProjectCatForm(){
-  const name=document.getElementById('newPjCatName').value.trim();
-  const emoji=document.getElementById('newPjCatEmoji').value.trim()||'📌';
-  const color=pendingPjCatColor||FL_COLOR_PALETTE[0];
-  if(!name){alert('카테고리 이름을 입력해줘');return;}
-  if(editingProjectCatName){
-    if(name!==editingProjectCatName&&PROJECT_CATS.some(c=>c.n===name)){alert('이미 있는 카테고리 이름이에요');return;}
-    if(name!==editingProjectCatName)renameProjectCatInProjects(editingProjectCatName,name);
-    PROJECT_CATS=PROJECT_CATS.map(c=>c.n===editingProjectCatName?{n:name,e:emoji,color}:c);
-    editingProjectCatName=null;
-  }else{
-    if(PROJECT_CATS.some(c=>c.n===name)){alert('이미 있는 카테고리 이름이에요');return;}
-    PROJECT_CATS=[...PROJECT_CATS,{n:name,e:emoji,color}];
-  }
-  saveProjectCats(PROJECT_CATS);
-  document.getElementById('newPjCatName').value='';
-  document.getElementById('newPjCatEmoji').value='';
-  document.getElementById('pjCatFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--project)')} 카테고리 추가`;
-  document.getElementById('pjCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
-  renderPjCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
-  renderProjectCatsList();
-  renderProjects();
-}
-// 카테고리 이름을 바꿀 때, 이미 등록된 프로젝트들의 카테고리 값도 함께 갱신.
-function renameProjectCatInProjects(oldName,newName){
-  PROJECTS=PROJECTS.map(p=>p.cat===oldName?{...p,cat:newName}:p);
-  saveProjects(PROJECTS);
-}
-
 // ─── 프로젝트 추가/수정 ────────────────────────────────────────────────────────
+// 카테고리는 루틴 탭과 동일하게 고정 프리셋 버튼(PJ_CAT_LIST)을 index.html에 정적으로
+// 박아두고, 여기서는 선택 상태만 토글함 (가계부처럼 사용자가 추가/수정하는 방식이 아님).
 function populatePjStatusButtons(){
   const wrap=document.getElementById('pjStatusBtnWrap');
   if(!wrap)return;
@@ -193,26 +122,24 @@ function populatePjStatusButtons(){
 }
 function selPjStatus(btn){pjStatusSel=btn.dataset.status;populatePjStatusButtons();}
 
-function populatePjCatButtons(){
-  const wrap=document.getElementById('pjCatBtnWrap');
-  if(!wrap)return;
-  wrap.innerHTML=PROJECT_CATS.map(c=>{
-    const active=pjCatSel===c.n;
-    const style=active?`background:${c.color}22;color:${c.color};border-color:${c.color};`:'';
-    return `<button type="button" class="cat-btn ${active?'active':''}" data-cat="${c.n}" onclick="selPjCat(this)" style="${style}">${c.e} ${c.n}</button>`;
-  }).join('');
+function selPjCat(btn){
+  document.querySelectorAll('#pjCatBtnWrap .cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  pjCatSel=btn.dataset.cat;
 }
-function selPjCat(btn){pjCatSel=btn.dataset.cat;populatePjCatButtons();}
+function syncPjCatButtons(){
+  document.querySelectorAll('#pjCatBtnWrap .cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===pjCatSel));
+}
 
 function openProjectForm(){
   editingPjId=null;
   pjStatusSel='대기';
-  pjCatSel=PROJECT_CATS[0]?PROJECT_CATS[0].n:null;
+  pjCatSel=PJ_CAT_LIST[0];
   document.getElementById('pjFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--project)')} 새 프로젝트`;
   document.getElementById('pjSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   ['pjTitle','pjEmoji','pjDueDate','pjMemo'].forEach(id=>{document.getElementById(id).value='';});
   populatePjStatusButtons();
-  populatePjCatButtons();
+  syncPjCatButtons();
   document.getElementById('projectFormPopup').classList.add('open');
 }
 function closeProjectForm(e){if(!e||e.target===document.getElementById('projectFormPopup'))document.getElementById('projectFormPopup').classList.remove('open');}
@@ -222,7 +149,7 @@ function editProjectStart(id){
   if(!p)return;
   editingPjId=id;
   pjStatusSel=p.status||'대기';
-  pjCatSel=p.cat||(PROJECT_CATS[0]?PROJECT_CATS[0].n:null);
+  pjCatSel=p.cat||PJ_CAT_LIST[0];
   document.getElementById('pjFormTitle').innerHTML=`${icon('edit',16,'color:var(--project)')} 프로젝트 수정`;
   document.getElementById('pjSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
   document.getElementById('pjTitle').value=p.title||'';
@@ -230,7 +157,7 @@ function editProjectStart(id){
   document.getElementById('pjDueDate').value=p.dueDate||'';
   document.getElementById('pjMemo').value=p.memo||'';
   populatePjStatusButtons();
-  populatePjCatButtons();
+  syncPjCatButtons();
   document.getElementById('projectFormPopup').classList.add('open');
 }
 
@@ -279,7 +206,7 @@ function renderProjectDetail(){
   const cat=pjCatInfo(p.cat);
   document.getElementById('pjDetailTitle').textContent=`${p.emoji||'🎯'} ${p.title||'(제목없음)'}`;
   const dueLabel=p.dueDate?`🎯 ${p.dueDate}`:'목표일 없음';
-  document.getElementById('pjDetailSub').innerHTML=`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.e} ${cat.n}</span><span>${dueLabel}</span>${pjBadge(p.status)}`;
+  document.getElementById('pjDetailSub').innerHTML=`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.label}</span><span>${dueLabel}</span>${pjBadge(p.status)}`;
   const memoEl=document.getElementById('pjDetailMemo');
   if(p.memo){memoEl.textContent=p.memo;memoEl.style.display='';}
   else{memoEl.style.display='none';}

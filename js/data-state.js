@@ -84,14 +84,11 @@ let FREELANCE_PROJECTS=[];
 let EXPENSE_CATS=CATS.expense.map((c,i)=>({n:c.n,e:c.e,color:EXPENSE_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
 
 // ─── 프로젝트 탭 ───────────────────────────────────────────────────────────────
-// 인생의 크고 작은 목표/프로젝트 관리. 카테고리는 가계부 변동지출 카테고리와 동일한
-// 패턴(이름/이모지/색상, 사용자 커스터마이징 가능)으로 시드함.
-const DEFAULT_PROJECT_CATS=[
-  {n:'커리어',e:'💼'},{n:'자기계발',e:'🌱'},{n:'정리',e:'🧹'},
-  {n:'기록',e:'📸'},{n:'취미',e:'🎨'},{n:'기타',e:'📌'},
-];
-const PROJECT_CAT_COLORS={'커리어':'#0ea5e9','자기계발':'#8b5cf6','정리':'#f59e0b','기록':'#ec4899','취미':'#22c55e','기타':'#64748b'};
-let PROJECT_CATS=DEFAULT_PROJECT_CATS.map((c,i)=>({n:c.n,e:c.e,color:PROJECT_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
+// 인생의 크고 작은 목표/프로젝트 관리. 카테고리는 루틴 탭과 동일한 방식 —
+// 사용자가 추가/수정하는 게 아니라 고정된 프리셋 목록 + 이모지/라벨/색상을 코드에서 관리함.
+const PJ_CAT_LIST=['career','selfdev','organize','record','hobby','misc'];
+const PJ_CAT_LABELS={career:'💼 커리어',selfdev:'🌱 자기계발',organize:'🧹 정리',record:'📸 기록',hobby:'🎨 취미',misc:'📌 기타'};
+const PJ_CAT_COLORS={career:'#0ea5e9',selfdev:'#a855f7',organize:'#f59e0b',record:'#06b6d4',hobby:'#22c55e',misc:'#64748b'};
 let PROJECTS=[];
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
