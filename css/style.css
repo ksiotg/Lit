@@ -8,6 +8,7 @@
   --routine:#f0932b;--routine-tint:#fef3e2;
   --budget:#22c55e;--budget-tint:#dcfce7;
   --workout:#ef4444;--workout-tint:#fee2e2;
+  --project:#14b8a6;--project-tint:#ccfbf1;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -28,6 +29,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 1px var(--review-tint),0 0 6px 1px #0080f5;}
 .tl-btn.freelance-tl{background:#5b21b6;}
 .tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 1px #ede9fe,0 0 6px 1px #8b5cf6;}
+.tl-btn.project-tl{background:#0f766e;}
+.tl-btn.on.project-tl{background:var(--project);box-shadow:0 0 0 1px var(--project-tint),0 0 6px 1px #14b8a6;}
 
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
@@ -40,6 +43,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-workout .page-title{color:var(--workout);font-weight:800;}
 #page-review .page-title{color:var(--review);font-weight:800;}
 #page-freelance .page-title{color:var(--freelance);font-weight:800;}
+#page-project .page-title{color:var(--project);font-weight:800;}
 .view-toggle{display:flex;gap:3px;}
 .view-btn{background:var(--bg);border:none;height:32px;padding:0 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;}
 .view-btn.active{background:var(--text);color:#fff;}
@@ -54,6 +58,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-review .view-btn.active{background:var(--review);color:#fff;}
 #page-freelance .nav-btn,#page-freelance .view-btn{background:var(--freelance-tint);color:var(--freelance);}
 #page-freelance .view-btn.active{background:var(--freelance);color:#fff;}
+#page-project .nav-btn,#page-project .view-btn{background:var(--project-tint);color:var(--project);}
+#page-project .view-btn.active{background:var(--project);color:#fff;}
 
 /* ── 가계부 summary ── */
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 21px;}
@@ -400,6 +406,47 @@ flex-shrink:0;
 #freelanceFormPopup .tax-preview{background:var(--freelance-tint);}
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
+
+/* ── 프로젝트 탭 (외주 탭 카드 패턴 재사용, 청록 테마) ── */
+.pj-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.pj-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.pj-row-info{flex:1;min-width:0;cursor:pointer;}
+.pj-row-info:hover .pj-row-name{text-decoration:underline;color:var(--project);}
+.pj-row-name-line{display:flex;align-items:center;gap:6px;min-height:20px;}
+.pj-row-emoji{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.pj-row-name{font-size:13px;font-weight:700;}
+.pj-row-sub{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.pj-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+.pj-badge.wait{background:#f1f5f9;color:#64748b;}
+.pj-badge.progress{background:var(--project-tint);color:var(--project);}
+.pj-badge.done{background:#ede9fe;color:#7c3aed;}
+.pj-badge.hold{background:#fef3c7;color:#b45309;}
+.pj-cat-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;}
+.pj-row-actions{display:flex;align-items:center;gap:4px;}
+.pj-icon{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 4px;}
+.pj-icon:hover{color:var(--project);}
+.pj-icon.del{font-size:17px;}
+.pj-icon.del:hover{color:var(--expense);}
+.pj-progress-track{height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden;flex:1;}
+.pj-progress-fill{height:100%;border-radius:99px;background:var(--project);}
+.pj-progress-pct{font-size:10px;font-weight:800;color:var(--project);flex-shrink:0;}
+.pj-more-btn{display:block;width:100%;margin-top:4px;padding:10px;background:var(--project-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--project);cursor:pointer;}
+.pj-more-btn:hover{opacity:0.8;}
+.pj-status-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.pj-status-btn.active.wait{background:#f1f5f9;color:#64748b;border-color:#cbd5e1;}
+.pj-status-btn.active.progress{background:var(--project-tint);color:var(--project);border-color:var(--project);}
+.pj-status-btn.active.done{background:#ede9fe;color:#7c3aed;border-color:#7c3aed;}
+.pj-status-btn.active.hold{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
+.pj-check-item{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;}
+.pj-check-item:last-child{margin-bottom:0;}
+.pj-check-text{flex:1;font-size:12px;font-weight:600;}
+.pj-check-text.done{color:#ccc;text-decoration:line-through;}
+#projectFormPopup .add-btn{background:var(--project);}
+#projectFormPopup .fi:focus{border-color:var(--project);}
+#projectSettingsPopup .fi{background:#fff;}
+#projectSettingsPopup .add-btn{background:var(--project);}
+#projectDetailPopup .add-btn{background:var(--project);}
+#projectDetailPopup .cb.on{background:var(--project);border-color:var(--project);}
 
 /* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 그리드 대시보드로 나란히 배치됨 ──
    (반드시 이 파일의 다른 main/.card 등 기본 규칙들보다 뒤에 와야 우선순위가 밀리지 않음) */
