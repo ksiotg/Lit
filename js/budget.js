@@ -292,7 +292,7 @@ function buildYear(){
     inner.appendChild(row);
   }
   const tot=document.createElement('div');tot.style.cssText='border-top:2px solid var(--border);padding-top:10px;display:flex;justify-content:space-between';
-  tot.innerHTML=`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 수입</div><div style="font-size:14px;font-weight:800;color:var(--income)">+${yi.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 지출</div><div style="font-size:14px;font-weight:800;color:var(--expense)">-${ye.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 잔여</div><div style="font-size:14px;font-weight:800;color:var(--remain)">${fmt(yi-ye)}</div></div>`;
+  tot.innerHTML=`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 수입</div><div style="font-size:14px;font-weight:800;color:var(--income)">+${yi.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 지출</div><div style="font-size:14px;font-weight:800;color:var(--expense)">-${ye.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 잔여</div><div style="font-size:14px;font-weight:800;color:var(--budget)">${fmt(yi-ye)}</div></div>`;
   inner.appendChild(tot);card.appendChild(inner);return card;
 }
 
