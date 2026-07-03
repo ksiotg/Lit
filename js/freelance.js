@@ -10,6 +10,7 @@
 let flView='month'; // 'month' | 'project' | 'client' — 탭에 들어갈 때마다 기본값은 '월간'
 let editingFlId=null;
 let flLastGroups=null; // 마지막 렌더링 시점의 {진행중:[],정산대기:[],완료:[]} — 요약카드 클릭 팝업에서 재사용
+let flDoneExpanded=false; // 프로젝트 목록에서 "완료" 프로젝트 아코디언 펼침 여부
 // 프로젝트 커스텀 컬러용 24색 팔레트 (흰색/검정 제외)
 const FL_COLOR_PALETTE=['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78716c','#64748b','#6b7280','#7c3aed','#db2777','#059669','#ca8a04'];
 let pendingFlColor=null;
@@ -154,16 +155,39 @@ function buildFlProjectList(){
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
-    // 진행중 → 정산대기 → 완료 순, 그 안에서는 마감 임박 순.
-    const rank={'진행중':0,'정산대기':1,'완료':2};
-    const sorted=[...FREELANCE_PROJECTS].sort((a,b)=>{
+    // 진행중/정산대기는 항상 위에 보여주고, 완료된 프로젝트는 아코디언으로 접어둠.
+    const active=FREELANCE_PROJECTS.filter(p=>flComputeStatus(p)!=='완료');
+    const done=FREELANCE_PROJECTS.filter(p=>flComputeStatus(p)==='완료');
+    const rank={'진행중':0,'정산대기':1};
+    active.sort((a,b)=>{
       const r=rank[flComputeStatus(a)]-rank[flComputeStatus(b)];
       if(r)return r;
       return (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99');
     });
-    sorted.forEach(p=>wrap.appendChild(buildFlRow(p)));
+    if(!active.length&&!done.length){
+      wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
+    }else{
+      if(!active.length)wrap.innerHTML='<div class="empty">진행중/정산대기 프로젝트가 없어요</div>';
+      active.forEach(p=>wrap.appendChild(buildFlRow(p)));
+      if(done.length){
+        done.sort((a,b)=>(b.dueDate||'').localeCompare(a.dueDate||''));
+        const moreBtn=document.createElement('button');
+        moreBtn.className='fl-more-btn';
+        moreBtn.textContent=flDoneExpanded?'완료된 프로젝트 접기':`완료된 프로젝트 더보기 (${done.length}건)`;
+        moreBtn.onclick=toggleFlDoneList;
+        wrap.appendChild(moreBtn);
+        if(flDoneExpanded){
+          done.forEach(p=>wrap.appendChild(buildFlRow(p)));
+        }
+      }
+    }
   }
   card.appendChild(wrap);return card;
+}
+
+function toggleFlDoneList(){
+  flDoneExpanded=!flDoneExpanded;
+  renderFreelance();
 }
 
 function buildFlClientList(){
