@@ -439,10 +439,37 @@ flex-shrink:0;
 .pj-status-btn.active.progress{background:var(--project-tint);color:var(--project);border-color:var(--project);}
 .pj-status-btn.active.done{background:#ede9fe;color:#7c3aed;border-color:#7c3aed;}
 .pj-status-btn.active.hold{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
-.pj-check-item{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;}
+.pj-check-item{display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:8px 10px;margin-bottom:6px;}
 .pj-check-item:last-child{margin-bottom:0;}
 .pj-check-text{flex:1;font-size:12px;font-weight:600;}
 .pj-check-text.done{color:#ccc;text-decoration:line-through;}
+.pj-icon.pinned{color:var(--project);}
+/* D-day 배지 (외주 탭 .fl-badge와 같은 색 규칙) */
+.pj-dday{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;}
+.pj-dday.safe{background:var(--project-tint);color:var(--project);}
+.pj-dday.soon{background:#ffedd5;color:#c2410c;}
+.pj-dday.over{background:#fee2e2;color:#b91c1c;}
+/* 중요도 버튼 */
+.pj-imp-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.pj-imp-btn.active{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
+/* 카테고리별 보기 그룹 (외주 탭 .fl-client-group과 같은 패턴) */
+.pj-cat-group{background:#fff!important;border-radius:var(--radius);border:1px solid var(--border);box-shadow:none;padding:14px 16px;}
+.pj-cat-group-head{display:flex;justify-content:space-between;align-items:center;}
+.pj-cat-group-name{font-size:13px;font-weight:800;}
+.pj-cat-group-total{font-size:11px;color:var(--project);font-weight:700;}
+/* 2단 체크리스트: 큰 항목(섹션) */
+.pj-section{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.pj-section:last-child{margin-bottom:0;}
+.pj-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.pj-section-title{font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;}
+.pj-section-title.done{color:var(--project);}
+.pj-section-check{width:16px;height:16px;border-radius:5px;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:#fff;}
+.pj-section-check.done{background:var(--project);border-color:var(--project);}
+/* 날짜순 메모/일지 */
+.pj-note-item{background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;}
+.pj-note-item:last-child{margin-bottom:0;}
+.pj-note-date{font-size:10px;font-weight:800;color:var(--project);}
+.pj-note-text{font-size:12px;font-weight:600;margin-top:2px;}
 #projectFormPopup .add-btn{background:var(--project);}
 #projectFormPopup .fi:focus{border-color:var(--project);}
 #projectDetailPopup .add-btn{background:var(--project);}
