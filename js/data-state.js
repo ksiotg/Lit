@@ -82,6 +82,17 @@ let FREELANCE_PROJECTS=[];
 // 변동지출 카테고리(이름/이모지/색상). 사용자가 직접 추가/수정 가능 — 기본값은 CATS.expense +
 // EXPENSE_CAT_COLORS(없으면 PIE_COLORS 순환)로 시드하고, 이후엔 이 배열 자체가 저장/로드됨.
 let EXPENSE_CATS=CATS.expense.map((c,i)=>({n:c.n,e:c.e,color:EXPENSE_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
+
+// ─── 프로젝트 탭 ───────────────────────────────────────────────────────────────
+// 인생의 크고 작은 목표/프로젝트 관리. 카테고리는 가계부 변동지출 카테고리와 동일한
+// 패턴(이름/이모지/색상, 사용자 커스터마이징 가능)으로 시드함.
+const DEFAULT_PROJECT_CATS=[
+  {n:'커리어',e:'💼'},{n:'자기계발',e:'🌱'},{n:'정리',e:'🧹'},
+  {n:'기록',e:'📸'},{n:'취미',e:'🎨'},{n:'기타',e:'📌'},
+];
+const PROJECT_CAT_COLORS={'커리어':'#0ea5e9','자기계발':'#8b5cf6','정리':'#f59e0b','기록':'#ec4899','취미':'#22c55e','기타':'#64748b'};
+let PROJECT_CATS=DEFAULT_PROJECT_CATS.map((c,i)=>({n:c.n,e:c.e,color:PROJECT_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
+let PROJECTS=[];
 const PERIOD_ICON={morning:'☀️',day:'✨',evening:'🌙'};
 const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];

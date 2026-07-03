@@ -67,6 +67,18 @@ function getFreelanceProjects(){
 }
 function saveFreelanceProjects(arr){Storage._set('freelance_projects',arr);}
 
+function getProjectCats(){
+  const custom=Storage._get('project_cats',null);
+  if(custom&&custom.length)return custom;
+  return DEFAULT_PROJECT_CATS.map((c,i)=>({n:c.n,e:c.e,color:PROJECT_CAT_COLORS[c.n]||PIE_COLORS[i%PIE_COLORS.length]}));
+}
+function saveProjectCats(arr){Storage._set('project_cats',arr);}
+
+function getProjects(){
+  return Storage._get('projects',[]);
+}
+function saveProjects(arr){Storage._set('projects',arr);}
+
 // 'en_YYYY-MM' 형태로 저장된 모든 달의 가계부 항목을 한번에 훑어볼 때 사용.
 // (예: 외주 프로젝트 상세보기에서 여러 달에 걸쳐 나눠 입금된 정산 내역을 모아 보여줄 때)
 function getAllEntryMonths(){
