@@ -5,8 +5,8 @@ function chReviewMonth(d){rvM+=d;if(rvM>11){rvM=0;rvY++;}if(rvM<0){rvM=11;rvY--;
 function renderReview(){
   document.getElementById('reviewMonthLabel').textContent=`${rvY}년 ${rvM+1}월`;
   const mc=document.getElementById('reviewMain');mc.innerHTML='';
-  mc.appendChild(buildReviewToday());
   const calCard=buildReviewCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
+  mc.appendChild(buildReviewToday());
   mc.appendChild(buildWeeklySummary());
 }
 

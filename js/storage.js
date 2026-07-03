@@ -93,4 +93,8 @@ const S={
   // 고정지출 체크 완료 시 입력한 "실제 출금액" (예정 금액과 다를 수 있음). {fixedItemId: amount} 형태.
   getFixedActual(y,m){return Storage._get('fa_'+mk(y,m),{})},
   setFixedActual(y,m,v){Storage._set('fa_'+mk(y,m),v)},
+  // 고정지출을 체크(납부 완료 처리)한 "실제 날짜". 예정일(day)과 다를 수 있어서 따로 저장.
+  // 달력 일별 목록에는 예정일이 아니라 이 날짜 기준으로 표시됨. {fixedItemId: day} 형태.
+  getFixedPaidDay(y,m){return Storage._get('pd_'+mk(y,m),{})},
+  setFixedPaidDay(y,m,v){Storage._set('pd_'+mk(y,m),v)},
 };

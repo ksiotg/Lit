@@ -188,6 +188,7 @@ function toggleFixed(id){
   if(checked.includes(id)){
     S.setChecked(curY,curM,checked.filter(x=>x!==id));
     const fa=S.getFixedActual(curY,curM);delete fa[id];S.setFixedActual(curY,curM,fa);
+    const pd=S.getFixedPaidDay(curY,curM);delete pd[id];S.setFixedPaidDay(curY,curM,pd);
     renderBudget();
   }else{
     openFixedActualPopup(id);
@@ -202,12 +203,21 @@ function openFixedActualPopup(id){
   document.getElementById('fixedActualPopup').classList.add('open');
 }
 function closeFixedActualPopup(e){if(!e||e.target===document.getElementById('fixedActualPopup'))document.getElementById('fixedActualPopup').classList.remove('open');}
+// 고정지출을 체크한 "실제 오늘 날짜"를 구함. 보고 있는 달(curY/curM)이 실제 이번 달이면
+// 오늘 날짜(TODAY.getDate())를 그대로 쓰고, 다른 달을 보면서 체크하는 드문 경우엔
+// 그 달의 마지막 날로 보정해서 범위를 벗어나지 않게 함.
+function fixedCheckDay(){
+  if(curY===TODAY.getFullYear()&&curM===TODAY.getMonth())return TODAY.getDate();
+  const dim=new Date(curY,curM+1,0).getDate();
+  return Math.min(TODAY.getDate(),dim);
+}
 function saveFixedActual(){
   if(!pendingFixedActualId)return;
   const amt=parseInt(document.getElementById('fixedActualInput').value)||0;
   const checked=S.getChecked(curY,curM);
   if(!checked.includes(pendingFixedActualId))S.setChecked(curY,curM,[...checked,pendingFixedActualId]);
   const fa=S.getFixedActual(curY,curM);fa[pendingFixedActualId]=amt;S.setFixedActual(curY,curM,fa);
+  const pd=S.getFixedPaidDay(curY,curM);pd[pendingFixedActualId]=fixedCheckDay();S.setFixedPaidDay(curY,curM,pd);
   document.getElementById('fixedActualPopup').classList.remove('open');
   pendingFixedActualId=null;
   renderBudget();
@@ -316,9 +326,20 @@ function renderPopupEntries(){
   if(popupDay===null)return;
   const entries=S.getEntries(curY,curM).filter(e=>e.day===popupDay);
   const autoInc=activeFixedIncome(curY,curM).filter(f=>f.day===popupDay);
-  const fixedExp=activeFixedItems(curY,curM).filter(f=>f.day===popupDay);
+  // 고정지출은 예정일이 와도 자동으로 나타나지 않고, 체크(납부 완료 처리)해서 실제 출금액을
+  // 입력한 시점에만 "그 체크한 날짜" 기준으로 여기 나타남 (예정일은 그냥 기준일일 뿐).
+  const checked=S.getChecked(curY,curM);
+  const paidDayMap=S.getFixedPaidDay(curY,curM);
+  const actualMap=S.getFixedActual(curY,curM);
+  // 이 업데이트 이전에 이미 체크된 항목은 paidDay 기록이 없을 수 있어서, 그런 경우만
+  // 예전처럼 예정일(f.day) 기준으로 대체 표시(하위 호환). 새로 체크되는 항목은 항상 paidDay를 씀.
+  const fixedExp=activeFixedItems(curY,curM).filter(f=>{
+    if(!checked.includes(f.id))return false;
+    const pd=paidDayMap[f.id]!=null?paidDayMap[f.id]:f.day;
+    return pd===popupDay;
+  });
   // 정렬 순서: 고정지출 → 수입 → 지출
-  const fixedRows=fixedExp.map(f=>({...f,type:'fixed',auto:true,id:'x_'+f.id}));
+  const fixedRows=fixedExp.map(f=>({...f,type:'fixed',auto:true,id:'x_'+f.id,amount:actualMap[f.id]!=null?actualMap[f.id]:f.amount}));
   const incRows=[...autoInc.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries.filter(e=>e.type==='income')];
   const expRows=entries.filter(e=>e.type==='expense');
   const all=[...fixedRows,...incRows,...expRows];
