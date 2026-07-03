@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=44">
+<link rel="stylesheet" href="css/style.css?v=45">
 </head>
 <body>
 
@@ -149,15 +149,15 @@
     <div class="nav-row">
       <button class="nav-btn" onclick="chFlMonth(-1)">‹</button>
       <span class="page-title" id="flMonthLabel"></span>
-      <button class="nav-btn" onclick="chFlMonth(1)">›</button>
-    </div>
-    <div class="nav-row">
-      <div class="view-toggle">
-        <button class="view-btn active" id="fvbtn-month" onclick="setFreelanceView('month')">월간</button>
-        <button class="view-btn" id="fvbtn-project" onclick="setFreelanceView('project')">프로젝트</button>
-        <button class="view-btn" id="fvbtn-client" onclick="setFreelanceView('client')">클라이언트</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="view-toggle">
+          <button class="view-btn active" id="fvbtn-month" onclick="setFreelanceView('month')" title="월간"><span class="ico" data-icon="calendar" data-size="14"></span></button>
+          <button class="view-btn" id="fvbtn-project" onclick="setFreelanceView('project')" title="프로젝트"><span class="ico" data-icon="folder" data-size="14"></span></button>
+          <button class="view-btn" id="fvbtn-client" onclick="setFreelanceView('client')" title="클라이언트"><span class="ico" data-icon="users" data-size="14"></span></button>
+        </div>
+        <button class="nav-btn" onclick="openFreelanceForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
+        <button class="nav-btn" onclick="chFlMonth(1)">›</button>
       </div>
-      <button class="nav-btn" onclick="openFreelanceForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
     </div>
     <div class="sum-grid">
       <div class="sum-card" onclick="flOpenStatusPopup('진행중')" style="cursor:pointer;"><div class="sum-icon">😈</div><div class="sum-label">진행중</div><div class="sum-val" id="flSumProgress" style="color:var(--freelance)">0건</div></div>
@@ -534,19 +534,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=44"></script>
-<script src="js/data-state.js?v=44"></script>
-<script src="js/storage.js?v=44"></script>
-<script src="js/utils.js?v=44"></script>
-<script src="js/backup.js?v=44"></script>
-<script src="js/auth.js?v=44"></script>
-<script src="js/page-switch.js?v=44"></script>
-<script src="js/budget.js?v=44"></script>
-<script src="js/routine.js?v=44"></script>
-<script src="js/routine-mgmt.js?v=44"></script>
-<script src="js/workout.js?v=44"></script>
-<script src="js/review.js?v=44"></script>
-<script src="js/freelance.js?v=44"></script>
-<script src="js/main.js?v=44"></script>
+<script src="js/supabase-client.js?v=45"></script>
+<script src="js/data-state.js?v=45"></script>
+<script src="js/storage.js?v=45"></script>
+<script src="js/utils.js?v=45"></script>
+<script src="js/backup.js?v=45"></script>
+<script src="js/auth.js?v=45"></script>
+<script src="js/page-switch.js?v=45"></script>
+<script src="js/budget.js?v=45"></script>
+<script src="js/routine.js?v=45"></script>
+<script src="js/routine-mgmt.js?v=45"></script>
+<script src="js/workout.js?v=45"></script>
+<script src="js/review.js?v=45"></script>
+<script src="js/freelance.js?v=45"></script>
+<script src="js/main.js?v=45"></script>
 </body>
 </html>
