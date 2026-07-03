@@ -342,6 +342,9 @@ flex-shrink:0;
 #budgetSettingsPopup .fi{background:#fff;}
 #budgetSettingsPopup .add-btn{background:var(--budget);}
 #budgetSettingsPopup .rmgmt-del{color:#6b7280;font-size:14px;display:inline-flex;align-items:center;}
+#routineMgmtPopup .fi,#routineEditPopup .fi{background:#fff;}
+#routineMgmtPopup .add-btn,#routineEditPopup .add-btn{background:var(--routine);}
+#routineMgmtPopup .freq-btn.active,#routineEditPopup .freq-btn.active{background:var(--routine);border-color:var(--routine);}
 #entrySaveBtn{background:var(--budget);}
 .rmgmt-edit{background:none;border:none;color:#ddd;cursor:pointer;font-size:14px;padding:4px;}
 .rmgmt-edit:hover{color:var(--income);}
