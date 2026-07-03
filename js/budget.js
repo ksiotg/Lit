@@ -250,16 +250,23 @@ function buildBudgetCal(){
     if(de.length){
       const totInc=de.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
       totExp=de.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
-
-      if(totExp > 0){
-        if(totExp <= 30000) cell.style.background = '#FADADD'; // 소액 지출 (연한 코랄)
-        else if(totExp <= 100000) cell.style.background = '#F8C3C3'; // 중간 지출 (코랄)
-        else { cell.style.background = '#F6A9A9'; } // 과소비 (진한 코랄)
-      } else if(totInc > 0){
-        if(totInc <= 100000) cell.style.background = '#DCEAFB'; // 소액 수입 (연한 파랑)
-        else if(totInc <= 500000) cell.style.background = '#B8D4F7'; // 중간 수입 (파랑)
-        else { cell.style.background = '#8FBEF3'; } // 고액 수입 (진한 파랑)
-      } else if (!isFuture) { cell.style.background = '#dcfce7'; } // 지출 0원 (초록)
+      // 그날의 수입-지출 "순액" 기준으로 배경색을 정함 (지출이 하나라도 있으면 무조건
+      // 빨강으로 표시되던 버그 수정). 순이익(수입>지출)=파랑, 순손실(지출>수입)=빨강,
+      // 완전 무지출(수입 0, 지출 0)=초록. 순액이 정확히 0(수입==지출, 둘 다 0은 아님)인
+      // 경우는 이득도 손해도 아니므로 별도 강조색 없이 기본 배경을 유지함.
+      const net=totInc-totExp;
+      if(totInc===0 && totExp===0){
+        if(!isFuture) cell.style.background = '#dcfce7'; // 완전 무지출 (초록)
+      } else if(net > 0){
+        if(net <= 100000) cell.style.background = '#DCEAFB'; // 소액 순이익 (연한 파랑)
+        else if(net <= 500000) cell.style.background = '#B8D4F7'; // 중간 순이익 (파랑)
+        else { cell.style.background = '#8FBEF3'; } // 고액 순이익 (진한 파랑)
+      } else if(net < 0){
+        const loss=-net;
+        if(loss <= 30000) cell.style.background = '#FADADD'; // 소액 순손실 (연한 코랄)
+        else if(loss <= 100000) cell.style.background = '#F8C3C3'; // 중간 순손실 (코랄)
+        else { cell.style.background = '#F6A9A9'; } // 큰 순손실 (진한 코랄)
+      }
 
       if(totInc > 0){
         const incDot=mkDiv('');incDot.style.cssText='position:absolute;top:6px;right:6px;width:5px;height:5px;background:var(--income);border-radius:50%;';
