@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=56">
+<link rel="stylesheet" href="css/style.css?v=57">
 </head>
 <body>
 
@@ -189,7 +189,6 @@
     <div class="nav-row">
       <span class="page-title">🎯 프로젝트</span>
       <div style="display:flex;align-items:center;gap:4px">
-        <button class="nav-btn" onclick="openProjectSettings()" title="프로젝트 설정"><span class="ico" data-icon="settings" data-size="15"></span></button>
         <button class="nav-btn" onclick="openProjectForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
     </div>
@@ -562,28 +561,6 @@
   </div>
 </div>
 
-<!-- 프로젝트 설정 팝업 -->
-<div class="routine-mgmt-popup" id="projectSettingsPopup" onclick="closeProjectSettings(event)">
-  <div class="routine-mgmt-inner">
-    <div class="popup-bar" style="margin:0 auto 16px"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16" data-color="var(--project)"></span> 프로젝트 설정</div>
-      <button onclick="document.getElementById('projectSettingsPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
-    </div>
-    <div class="add-routine-form-title" style="margin-bottom:8px;">🏷️ 카테고리</div>
-    <div id="projectCatsList" style="margin-bottom:14px;"></div>
-    <div class="add-routine-form">
-      <div class="add-routine-form-title" id="pjCatFormTitle"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--project)"></span> 카테고리 추가</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <div class="fg"><label class="fl">이름</label><input class="fi" id="newPjCatName" placeholder="커리어"></div>
-        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newPjCatEmoji" placeholder="💼" style="font-size:18px;text-align:center;"></div>
-      </div>
-      <div class="fg" style="margin-bottom:10px;"><label class="fl">색상</label><div id="pjCatColorSwatches" style="display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;"></div></div>
-      <button class="add-btn" id="pjCatSaveBtn" onclick="saveProjectCatForm()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
-    </div>
-  </div>
-</div>
-
 <!-- 프로젝트 추가/수정 팝업 -->
 <div class="routine-mgmt-popup" id="projectFormPopup" onclick="closeProjectForm(event)">
   <div class="routine-mgmt-inner">
@@ -602,7 +579,14 @@
     </div>
     <div class="fg" style="margin-bottom:10px;">
       <label class="fl">카테고리</label>
-      <div id="pjCatBtnWrap" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="pjCatBtnWrap">
+        <button type="button" class="cat-btn active career" data-cat="career" onclick="selPjCat(this)">💼 커리어</button>
+        <button type="button" class="cat-btn selfdev" data-cat="selfdev" onclick="selPjCat(this)">🌱 자기계발</button>
+        <button type="button" class="cat-btn organize" data-cat="organize" onclick="selPjCat(this)">🧹 정리</button>
+        <button type="button" class="cat-btn record" data-cat="record" onclick="selPjCat(this)">📸 기록</button>
+        <button type="button" class="cat-btn hobby" data-cat="hobby" onclick="selPjCat(this)">🎨 취미</button>
+        <button type="button" class="cat-btn misc" data-cat="misc" onclick="selPjCat(this)">📌 기타</button>
+      </div>
     </div>
     <div class="fg" style="margin-bottom:10px;"><label class="fl">목표일 (선택)</label><input class="fi" id="pjDueDate" type="date"></div>
     <div class="fg" style="margin-bottom:14px;"><label class="fl">메모 (선택)</label><input class="fi" id="pjMemo" placeholder="내용"></div>
@@ -631,20 +615,20 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=56"></script>
-<script src="js/data-state.js?v=56"></script>
-<script src="js/storage.js?v=56"></script>
-<script src="js/utils.js?v=56"></script>
-<script src="js/backup.js?v=56"></script>
-<script src="js/auth.js?v=56"></script>
-<script src="js/page-switch.js?v=56"></script>
-<script src="js/budget.js?v=56"></script>
-<script src="js/routine.js?v=56"></script>
-<script src="js/routine-mgmt.js?v=56"></script>
-<script src="js/workout.js?v=56"></script>
-<script src="js/review.js?v=56"></script>
-<script src="js/freelance.js?v=56"></script>
-<script src="js/project.js?v=56"></script>
-<script src="js/main.js?v=56"></script>
+<script src="js/supabase-client.js?v=57"></script>
+<script src="js/data-state.js?v=57"></script>
+<script src="js/storage.js?v=57"></script>
+<script src="js/utils.js?v=57"></script>
+<script src="js/backup.js?v=57"></script>
+<script src="js/auth.js?v=57"></script>
+<script src="js/page-switch.js?v=57"></script>
+<script src="js/budget.js?v=57"></script>
+<script src="js/routine.js?v=57"></script>
+<script src="js/routine-mgmt.js?v=57"></script>
+<script src="js/workout.js?v=57"></script>
+<script src="js/review.js?v=57"></script>
+<script src="js/freelance.js?v=57"></script>
+<script src="js/project.js?v=57"></script>
+<script src="js/main.js?v=57"></script>
 </body>
 </html>
