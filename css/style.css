@@ -8,7 +8,7 @@
   --routine:#f0932b;--routine-tint:#fef3e2;
   --budget:#22c55e;--budget-tint:#dcfce7;
   --workout:#ef4444;--workout-tint:#fee2e2;
-  --project:#14b8a6;--project-tint:#ccfbf1;
+  --project:#ec4899;--project-tint:#fce7f3;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -29,8 +29,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.review-tl{background:var(--review);box-shadow:0 0 0 1px var(--review-tint),0 0 6px 1px #0080f5;}
 .tl-btn.freelance-tl{background:#5b21b6;}
 .tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 1px #ede9fe,0 0 6px 1px #8b5cf6;}
-.tl-btn.project-tl{background:#0f766e;}
-.tl-btn.on.project-tl{background:var(--project);box-shadow:0 0 0 1px var(--project-tint),0 0 6px 1px #14b8a6;}
+.tl-btn.project-tl{background:#9d174d;}
+.tl-btn.on.project-tl{background:var(--project);box-shadow:0 0 0 1px var(--project-tint),0 0 6px 1px #ec4899;}
 
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
@@ -407,7 +407,13 @@ flex-shrink:0;
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
 
-/* ── 프로젝트 탭 (외주 탭 카드 패턴 재사용, 청록 테마) ── */
+/* ── 프로젝트 탭 (외주 탭 카드 패턴 재사용, 핑크 테마 / 카테고리는 루틴 탭처럼 고정 프리셋) ── */
+.cat-btn.active.career{background:#e0f2fe;color:#0369a1;border-color:#0ea5e9;}
+.cat-btn.active.selfdev{background:#f3e8ff;color:#7e22ce;border-color:#a855f7;}
+.cat-btn.active.organize{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
+.cat-btn.active.record{background:#cffafe;color:#0e7490;border-color:#06b6d4;}
+.cat-btn.active.hobby{background:#dcfce7;color:#15803d;border-color:#22c55e;}
+.cat-btn.active.misc{background:#f1f5f9;color:#475569;border-color:#64748b;}
 .pj-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
 .pj-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .pj-row-info{flex:1;min-width:0;cursor:pointer;}
@@ -443,8 +449,6 @@ flex-shrink:0;
 .pj-check-text.done{color:#ccc;text-decoration:line-through;}
 #projectFormPopup .add-btn{background:var(--project);}
 #projectFormPopup .fi:focus{border-color:var(--project);}
-#projectSettingsPopup .fi{background:#fff;}
-#projectSettingsPopup .add-btn{background:var(--project);}
 #projectDetailPopup .add-btn{background:var(--project);}
 #projectDetailPopup .cb.on{background:var(--project);border-color:var(--project);}
 
