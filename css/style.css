@@ -407,13 +407,9 @@ flex-shrink:0;
 #freelanceFormPopup .tax-item-val{color:var(--freelance);}
 #freelanceFormPopup .fi:focus{border-color:var(--freelance);}
 
-/* ── 프로젝트 탭 (외주 탭 카드 패턴 재사용, 핑크 테마 / 카테고리는 루틴 탭처럼 고정 프리셋) ── */
-.cat-btn.active.career{background:#e0f2fe;color:#0369a1;border-color:#0ea5e9;}
-.cat-btn.active.selfdev{background:#f3e8ff;color:#7e22ce;border-color:#a855f7;}
-.cat-btn.active.organize{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
-.cat-btn.active.record{background:#cffafe;color:#0e7490;border-color:#06b6d4;}
-.cat-btn.active.hobby{background:#dcfce7;color:#15803d;border-color:#22c55e;}
-.cat-btn.active.misc{background:#f1f5f9;color:#475569;border-color:#64748b;}
+/* ── 프로젝트 탭 (외주 탭 카드 패턴 재사용, 핑크 테마 / 카테고리는 루틴 탭 것을 그대로 재사용
+   하므로 .cat-btn.active.selfcare 등 색상 규칙은 이미 위쪽 루틴 섹션에 정의되어 있어 여기서
+   따로 정의하지 않음) ── */
 .pj-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
 .pj-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .pj-row-info{flex:1;min-width:0;cursor:pointer;}
