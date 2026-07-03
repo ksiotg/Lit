@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=52">
+<link rel="stylesheet" href="css/style.css?v=53">
 </head>
 <body>
 
@@ -182,9 +182,9 @@
     <div style="background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px;">
       <div class="add-routine-form-title">💾 데이터 백업</div>
       <div style="display:flex;gap:8px;">
-        <button class="add-btn" style="margin-top:0;background:#fff;color:var(--text);flex:1;box-shadow:var(--shadow);" onclick="exportData()">⬇️ 내보내기</button>
-        <label class="add-btn" style="margin-top:0;background:#fff;color:var(--text);flex:1;box-shadow:var(--shadow);text-align:center;cursor:pointer;">
-          ⬆️ 불러오기
+        <button class="add-btn" style="margin-top:0;background:var(--routine);color:#fff;flex:1;box-shadow:var(--shadow);" onclick="exportData()"><span class="ico" data-icon="download" data-size="14"></span> 내보내기</button>
+        <label class="add-btn" style="margin-top:0;background:var(--routine);color:#fff;flex:1;box-shadow:var(--shadow);text-align:center;cursor:pointer;">
+          <span class="ico" data-icon="upload" data-size="14"></span> 불러오기
           <input type="file" accept="application/json" style="display:none" onchange="importData(this)">
         </label>
       </div>
@@ -534,19 +534,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=52"></script>
-<script src="js/data-state.js?v=52"></script>
-<script src="js/storage.js?v=52"></script>
-<script src="js/utils.js?v=52"></script>
-<script src="js/backup.js?v=52"></script>
-<script src="js/auth.js?v=52"></script>
-<script src="js/page-switch.js?v=52"></script>
-<script src="js/budget.js?v=52"></script>
-<script src="js/routine.js?v=52"></script>
-<script src="js/routine-mgmt.js?v=52"></script>
-<script src="js/workout.js?v=52"></script>
-<script src="js/review.js?v=52"></script>
-<script src="js/freelance.js?v=52"></script>
-<script src="js/main.js?v=52"></script>
+<script src="js/supabase-client.js?v=53"></script>
+<script src="js/data-state.js?v=53"></script>
+<script src="js/storage.js?v=53"></script>
+<script src="js/utils.js?v=53"></script>
+<script src="js/backup.js?v=53"></script>
+<script src="js/auth.js?v=53"></script>
+<script src="js/page-switch.js?v=53"></script>
+<script src="js/budget.js?v=53"></script>
+<script src="js/routine.js?v=53"></script>
+<script src="js/routine-mgmt.js?v=53"></script>
+<script src="js/workout.js?v=53"></script>
+<script src="js/review.js?v=53"></script>
+<script src="js/freelance.js?v=53"></script>
+<script src="js/main.js?v=53"></script>
 </body>
 </html>
