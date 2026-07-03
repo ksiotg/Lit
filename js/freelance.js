@@ -312,7 +312,7 @@ function selFlColor(c){
 }
 function openFreelanceForm(){
   editingFlId=null;
-  document.getElementById('flFormTitle').innerHTML=`${icon('plus-circle',16)} 새 프로젝트`;
+  document.getElementById('flFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--freelance)')} 새 프로젝트`;
   document.getElementById('flSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   ['flClient','flProject','flAmount','flStartDate','flDueDate','flMemo','flEmoji'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('flTaxRate').value='3.3';
@@ -334,7 +334,7 @@ function editFreelanceProject(id){
   const p=FREELANCE_PROJECTS.find(x=>x.id===id);
   if(!p)return;
   editingFlId=id;
-  document.getElementById('flFormTitle').innerHTML=`${icon('edit',16)} 프로젝트 수정`;
+  document.getElementById('flFormTitle').innerHTML=`${icon('edit',16,'color:var(--freelance)')} 프로젝트 수정`;
   document.getElementById('flSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
   document.getElementById('flClient').value=p.client||'';
   document.getElementById('flProject').value=p.project||'';
