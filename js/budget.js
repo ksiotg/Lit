@@ -499,7 +499,7 @@ function openBudgetSettings(){
   editingExpenseCatName=null;
   document.getElementById('newExpCatName').value='';
   document.getElementById('newExpCatEmoji').value='';
-  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14)} 카테고리 추가`;
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--budget)')} 카테고리 추가`;
   document.getElementById('expCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderExpCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
   document.getElementById('budgetSettingsPopup').classList.add('open');
@@ -570,7 +570,7 @@ function editFixedItemStart(id){
   document.getElementById('newFItemCat').value=f.cat;
   document.getElementById('newFItemDay').value=f.day;
   document.getElementById('newFItemAmount').value=f.amount;
-  document.getElementById('fiItemFormTitle').innerHTML=`${icon('edit',14)} 고정지출 수정 (이번 달부터 적용)`;
+  document.getElementById('fiItemFormTitle').innerHTML=`${icon('edit',14,'color:var(--budget)')} 고정지출 수정 (이번 달부터 적용)`;
   document.getElementById('fiItemSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
 }
 
@@ -594,7 +594,7 @@ function saveFixedItemForm(){
   }
   saveFixedItems(FIXED_ITEMS);
   ['newFItemName','newFItemEmoji','newFItemCat','newFItemDay','newFItemAmount'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('fiItemFormTitle').innerHTML=`${icon('plus-circle',14)} 고정지출 추가`;
+  document.getElementById('fiItemFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--budget)')} 고정지출 추가`;
   document.getElementById('fiItemSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderFixedItemsList();
   renderBudget();
@@ -641,7 +641,7 @@ function editExpenseCatStart(name){
   document.getElementById('newExpCatName').value=c.n;
   document.getElementById('newExpCatEmoji').value=c.e;
   renderExpCatColorSwatches(c.color);
-  document.getElementById('expCatFormTitle').innerHTML=`${icon('edit',14)} 카테고리 수정`;
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('edit',14,'color:var(--budget)')} 카테고리 수정`;
   document.getElementById('expCatSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
 }
 
@@ -663,7 +663,7 @@ function saveExpenseCatForm(){
   saveExpenseCats(EXPENSE_CATS);
   document.getElementById('newExpCatName').value='';
   document.getElementById('newExpCatEmoji').value='';
-  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14)} 카테고리 추가`;
+  document.getElementById('expCatFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--budget)')} 카테고리 추가`;
   document.getElementById('expCatSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderExpCatColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
   renderExpenseCatsList();
