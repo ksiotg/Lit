@@ -229,6 +229,7 @@ flex-shrink:0;
 .workout-cal-cell.has-workout{background:#fff1f1;}
 .workout-icon{font-size:12px;margin-top:2px;}
 #page-workout .fixed-footer-val{color:var(--workout);}
+#page-budget .fixed-footer-val{color:var(--budget);}
 
 /* ── 팝업 ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
