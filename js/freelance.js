@@ -149,8 +149,8 @@ function buildFlRow(p,showClient){
 }
 
 function buildFlProjectList(){
-  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">프로젝트 목록</span></div>';
-  const wrap=document.createElement('div');wrap.style.cssText='padding:10px 16px 16px;display:flex;flex-direction:column;gap:8px;';
+  const card=mkDiv('card');
+  const wrap=document.createElement('div');wrap.style.cssText='padding:16px 16px 16px;display:flex;flex-direction:column;gap:8px;';
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
@@ -167,8 +167,8 @@ function buildFlProjectList(){
 }
 
 function buildFlClientList(){
-  const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">클라이언트별 보기</span></div>';
-  const wrap=document.createElement('div');wrap.style.cssText='padding:10px 16px 16px;display:flex;flex-direction:column;gap:12px;';
+  const card=mkDiv('card');
+  const wrap=document.createElement('div');wrap.style.cssText='padding:16px 16px 16px;display:flex;flex-direction:column;gap:12px;';
   if(!FREELANCE_PROJECTS.length){
     wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';
   }else{
