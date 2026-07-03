@@ -364,11 +364,11 @@ flex-shrink:0;
 .fl-row-name{font-size:13px;font-weight:700;}
 .fl-row-client{font-size:11px;color:var(--muted);margin-top:3px;}
 .fl-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
-.fl-badge.safe{background:#dcfce7;color:#15803d;}
+.fl-badge.safe{background:var(--freelance-tint);color:var(--freelance);}
 .fl-badge.soon{background:#ffedd5;color:#c2410c;}
 .fl-badge.over{background:#fee2e2;color:#b91c1c;}
 .fl-badge.settling{background:var(--freelance-tint);color:var(--freelance);}
-.fl-badge.done{background:#dcfce7;color:#15803d;}
+.fl-badge.done{background:var(--freelance-tint);color:var(--freelance);}
 .fl-row-bottom{display:flex;justify-content:space-between;align-items:center;}
 .fl-row-amt{font-size:13px;font-weight:800;color:var(--freelance);}
 .fl-row-actions{display:flex;align-items:center;gap:4px;}
