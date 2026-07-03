@@ -228,8 +228,10 @@ function buildFlCal(){
     const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
     return s<=monthEnd&&e>=monthStart;
   });
+  // 프로젝트에 사용자가 직접 지정한 색상(p.color)이 있으면 그걸 그대로 쓰고,
+  // 색상이 지정 안 된 옛날 프로젝트만 기본 팔레트를 순환 배정.
   const colorOf={};
-  activeProjects.forEach((p,i)=>{colorOf[p.id]=FL_CAL_PALETTE[i%FL_CAL_PALETTE.length];});
+  activeProjects.forEach((p,i)=>{colorOf[p.id]=p.color||FL_CAL_PALETTE[i%FL_CAL_PALETTE.length];});
   const settleEntries=S.getEntries(flY,flM).filter(e=>e.type==='income'&&e.cat==='외주');
   const settleByDay={};
   settleEntries.forEach(e=>{(settleByDay[e.day]=settleByDay[e.day]||[]).push(e);});
