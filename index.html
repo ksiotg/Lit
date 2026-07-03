@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=51">
+<link rel="stylesheet" href="css/style.css?v=52">
 </head>
 <body>
 
@@ -84,7 +84,7 @@
       <span class="page-title" id="routineMonthLabel"></span>
       <div style="display:flex;align-items:center;gap:4px;">
         <button class="nav-btn" onclick="goToTodayRoutine()" title="오늘로 이동"><span class="ico" data-icon="crosshair" data-size="15"></span></button>
-        <button class="nav-btn" onclick="openRoutineMgmt()" title="루틴 관리"><span class="ico" data-icon="settings" data-size="15"></span></button>
+        <button class="nav-btn" onclick="openRoutineMgmt()" title="루틴 설정"><span class="ico" data-icon="settings" data-size="15"></span></button>
         <button class="nav-btn" onclick="chRoutineMonth(1)">›</button>
       </div>
     </div>
@@ -173,7 +173,7 @@
   <div class="routine-mgmt-inner">
     <div class="popup-bar" style="margin:0 auto 16px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16"></span> 루틴 관리</div>
+      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16" data-color="var(--routine)"></span> 루틴 설정</div>
       <button onclick="document.getElementById('routineMgmtPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
     <div style="text-align:right;margin-bottom:12px;">
@@ -195,7 +195,7 @@
     </div>
     <div id="routineMgmtList"></div>
     <div class="add-routine-form" id="addRoutineForm">
-      <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14"></span> 루틴 추가</div>
+      <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--routine)"></span> 루틴 추가</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div class="fg"><label class="fl">이름</label><input class="fi" id="newRName" placeholder="루틴 이름"></div>
         <div class="fg"><label class="fl">이모지</label><input class="fi" id="newREmoji" placeholder="🌟" style="font-size:18px;text-align:center;"></div>
@@ -238,7 +238,7 @@
   <div class="routine-mgmt-inner">
     <div class="popup-bar" style="margin:0 auto 16px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="edit" data-size="16"></span> 루틴 수정</div>
+      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="edit" data-size="16" data-color="var(--routine)"></span> 루틴 수정</div>
       <button onclick="document.getElementById('routineEditPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
@@ -282,13 +282,13 @@
   <div class="routine-mgmt-inner">
     <div class="popup-bar" style="margin:0 auto 16px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16"></span> 가계부 설정</div>
+      <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16" data-color="var(--budget)"></span> 가계부 설정</div>
       <button onclick="document.getElementById('budgetSettingsPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
     <div class="add-routine-form-title" style="margin-bottom:8px;">💼 고정 수입</div>
     <div id="fixedIncomeList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
-      <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14"></span> 고정 수입 추가</div>
+      <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--budget)"></span> 고정 수입 추가</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div class="fg"><label class="fl">이름</label><input class="fi" id="newFiName" placeholder="월급"></div>
         <div class="fg"><label class="fl">이모지</label><input class="fi" id="newFiEmoji" placeholder="💼" style="font-size:18px;text-align:center;"></div>
@@ -302,7 +302,7 @@
     <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">📌 고정지출</div>
     <div id="fixedItemsList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
-      <div class="add-routine-form-title" id="fiItemFormTitle"><span class="ico" data-icon="plus-circle" data-size="14"></span> 고정지출 추가</div>
+      <div class="add-routine-form-title" id="fiItemFormTitle"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--budget)"></span> 고정지출 추가</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div class="fg"><label class="fl">이름</label><input class="fi" id="newFItemName" placeholder="월세"></div>
         <div class="fg"><label class="fl">이모지</label><input class="fi" id="newFItemEmoji" placeholder="🏠" style="font-size:18px;text-align:center;"></div>
@@ -317,7 +317,7 @@
     <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">🏷️ 변동지출 카테고리</div>
     <div id="expenseCatsList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
-      <div class="add-routine-form-title" id="expCatFormTitle"><span class="ico" data-icon="plus-circle" data-size="14"></span> 카테고리 추가</div>
+      <div class="add-routine-form-title" id="expCatFormTitle"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--budget)"></span> 카테고리 추가</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div class="fg"><label class="fl">이름</label><input class="fi" id="newExpCatName" placeholder="식사"></div>
         <div class="fg"><label class="fl">이모지</label><input class="fi" id="newExpCatEmoji" placeholder="🍽️" style="font-size:18px;text-align:center;"></div>
@@ -534,19 +534,19 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=51"></script>
-<script src="js/data-state.js?v=51"></script>
-<script src="js/storage.js?v=51"></script>
-<script src="js/utils.js?v=51"></script>
-<script src="js/backup.js?v=51"></script>
-<script src="js/auth.js?v=51"></script>
-<script src="js/page-switch.js?v=51"></script>
-<script src="js/budget.js?v=51"></script>
-<script src="js/routine.js?v=51"></script>
-<script src="js/routine-mgmt.js?v=51"></script>
-<script src="js/workout.js?v=51"></script>
-<script src="js/review.js?v=51"></script>
-<script src="js/freelance.js?v=51"></script>
-<script src="js/main.js?v=51"></script>
+<script src="js/supabase-client.js?v=52"></script>
+<script src="js/data-state.js?v=52"></script>
+<script src="js/storage.js?v=52"></script>
+<script src="js/utils.js?v=52"></script>
+<script src="js/backup.js?v=52"></script>
+<script src="js/auth.js?v=52"></script>
+<script src="js/page-switch.js?v=52"></script>
+<script src="js/budget.js?v=52"></script>
+<script src="js/routine.js?v=52"></script>
+<script src="js/routine-mgmt.js?v=52"></script>
+<script src="js/workout.js?v=52"></script>
+<script src="js/review.js?v=52"></script>
+<script src="js/freelance.js?v=52"></script>
+<script src="js/main.js?v=52"></script>
 </body>
 </html>
