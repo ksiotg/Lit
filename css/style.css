@@ -230,6 +230,8 @@ flex-shrink:0;
 .workout-icon{font-size:12px;margin-top:2px;}
 #page-workout .fixed-footer-val{color:var(--workout);}
 #page-budget .fixed-footer-val{color:var(--budget);}
+.fixed-footer-sep{color:var(--muted);font-weight:600;}
+.fixed-footer-total{color:var(--text);}
 
 /* ── 팝업 ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
