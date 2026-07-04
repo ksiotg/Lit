@@ -60,6 +60,7 @@ function renderRoutine(){
 
 // ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지 + 언제 했는지"만 체크) ─────
 let editingMrId=null;
+let editingMrDateId=null;
 
 // S.getMonthlyDone(y,m)는 [{id, day}] 형태로 저장됨(day=완료한 날짜의 일자).
 // 혹시 남아있을 수 있는 예전 형태(순수 id 문자열 배열) 데이터도 깨지지 않게 방어적으로 변환.
@@ -86,11 +87,13 @@ function buildMonthlyRoutineCard(){
     list.innerHTML='<div class="empty">등록된 월간 루틴이 없어요</div>';
   }else{
     MONTHLY_ROUTINES.forEach(r=>{
-      const isDone=done.some(x=>x.id===r.id);
+      const doneEntry=done.find(x=>x.id===r.id);
+      const isDone=!!doneEntry;
       const item=mkDiv('rmgmt-item');
       item.style.cursor='pointer';
       item.onclick=()=>toggleMonthlyRoutine(r.id);
-      item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
+      const dateBadge=isDone?`<button class="mr-date-badge" onclick="event.stopPropagation();openMonthlyRoutineDateEdit('${r.id}')" title="완료 날짜 수정">${rM+1}/${doneEntry.day} 완료 <span style="text-decoration:underline;">수정</span></button>`:'';
+      item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div>${dateBadge}</div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
       list.appendChild(item);
     });
   }
@@ -206,6 +209,31 @@ function deleteMonthlyRoutine(id){
   if(!confirm('이 월간 루틴을 삭제할까요?'))return;
   MONTHLY_ROUTINES=MONTHLY_ROUTINES.filter(r=>r.id!==id);
   saveMonthlyRoutines(MONTHLY_ROUTINES);
+  renderRoutine();
+}
+
+// 완료 처리된 월간 루틴의 달성일을 사용자가 직접 바꿀 수 있게 해주는 팝업
+function openMonthlyRoutineDateEdit(id){
+  const entry=mrDoneList(rY,rM).find(x=>x.id===id);
+  if(!entry)return;
+  editingMrDateId=id;
+  const dateStr=`${rY}-${String(rM+1).padStart(2,'0')}-${String(entry.day).padStart(2,'0')}`;
+  document.getElementById('mrDateInput').value=dateStr;
+  document.getElementById('mrDateFormPopup').classList.add('open');
+}
+function closeMonthlyRoutineDateForm(e){
+  if(!e||e.target===document.getElementById('mrDateFormPopup'))document.getElementById('mrDateFormPopup').classList.remove('open');
+}
+function saveMonthlyRoutineDate(){
+  const val=document.getElementById('mrDateInput').value;
+  if(!val||!editingMrDateId)return;
+  const [y,m,d]=val.split('-').map(Number);
+  // 다른 달로 날짜를 옮기는 경우까지는 지원하지 않고, 보고 있는 달(rY,rM) 안에서만 날짜를 조정함
+  const day=(y===rY&&m===rM+1)?d:new Date(rY,rM+1,0).getDate()<d?new Date(rY,rM+1,0).getDate():d;
+  const done=mrDoneList(rY,rM).map(x=>x.id===editingMrDateId?{...x,day}:x);
+  S.setMonthlyDone(rY,rM,done);
+  editingMrDateId=null;
+  document.getElementById('mrDateFormPopup').classList.remove('open');
   renderRoutine();
 }
 
