@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=66">
+<link rel="stylesheet" href="css/style.css?v=67">
 </head>
 <body>
 
@@ -60,8 +60,8 @@
       </div>
     </div>
     <div class="sum-grid">
-      <div class="sum-card"><div class="sum-icon">💵</div><div class="sum-label">수입</div><div class="sum-val income" id="sumIncome">+0</div></div>
-      <div class="sum-card"><div class="sum-icon">💸</div><div class="sum-label">지출</div><div class="sum-val expense" id="sumExpense">-0</div></div>
+      <div class="sum-card" onclick="openBudgetSumPopup('income')" style="cursor:pointer;"><div class="sum-icon">💵</div><div class="sum-label">수입</div><div class="sum-val income" id="sumIncome">+0</div></div>
+      <div class="sum-card" onclick="openBudgetSumPopup('expense')" style="cursor:pointer;"><div class="sum-icon">💸</div><div class="sum-label">지출</div><div class="sum-val expense" id="sumExpense">-0</div></div>
       <div class="sum-card"><div class="sum-icon">💚</div><div class="sum-label">잔여</div><div class="sum-val remain" id="sumRemain">₩0</div></div>
     </div>
   </div>
@@ -515,6 +515,19 @@
   </div>
 </div>
 
+<!-- 가계부 상단 요약카드(수입/지출) 클릭 시 상세 내역 팝업 -->
+<div class="routine-mgmt-popup" id="bgSumPopup" onclick="closeBudgetSumPopup(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:16px;font-weight:800;" id="bgSumPopupTitle">수입</div>
+      <button onclick="document.getElementById('bgSumPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="bgSumPopupSub"></div>
+    <div id="bgSumPopupList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  </div>
+</div>
+
 <!-- 고정지출 납부 완료 시 실제 출금액 입력 팝업 -->
 <div class="routine-mgmt-popup" id="fixedActualPopup" onclick="closeFixedActualPopup(event)">
   <div class="routine-mgmt-inner">
@@ -680,20 +693,20 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=66"></script>
-<script src="js/data-state.js?v=66"></script>
-<script src="js/storage.js?v=66"></script>
-<script src="js/utils.js?v=66"></script>
-<script src="js/backup.js?v=66"></script>
-<script src="js/auth.js?v=66"></script>
-<script src="js/page-switch.js?v=66"></script>
-<script src="js/budget.js?v=66"></script>
-<script src="js/routine.js?v=66"></script>
-<script src="js/routine-mgmt.js?v=66"></script>
-<script src="js/workout.js?v=66"></script>
-<script src="js/review.js?v=66"></script>
-<script src="js/freelance.js?v=66"></script>
-<script src="js/project.js?v=66"></script>
-<script src="js/main.js?v=66"></script>
+<script src="js/supabase-client.js?v=67"></script>
+<script src="js/data-state.js?v=67"></script>
+<script src="js/storage.js?v=67"></script>
+<script src="js/utils.js?v=67"></script>
+<script src="js/backup.js?v=67"></script>
+<script src="js/auth.js?v=67"></script>
+<script src="js/page-switch.js?v=67"></script>
+<script src="js/budget.js?v=67"></script>
+<script src="js/routine.js?v=67"></script>
+<script src="js/routine-mgmt.js?v=67"></script>
+<script src="js/workout.js?v=67"></script>
+<script src="js/review.js?v=67"></script>
+<script src="js/freelance.js?v=67"></script>
+<script src="js/project.js?v=67"></script>
+<script src="js/main.js?v=67"></script>
 </body>
 </html>
