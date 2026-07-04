@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=68">
+<link rel="stylesheet" href="css/style.css?v=69">
 </head>
 <body>
 
@@ -448,6 +448,45 @@
       <div class="fg"><label class="fl">이름</label><input class="fi" id="newMrName" placeholder="루틴 이름" style="height:38px;line-height:20px;"></div>
       <div class="fg"><label class="fl">이모지</label><input class="fi" id="newMrEmoji" placeholder="🌟" style="height:38px;line-height:20px;font-size:18px;text-align:center;"></div>
     </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text);">
+        <input type="checkbox" id="mrScheduleToggle" onchange="toggleMrScheduleFields()" style="width:16px;height:16px;flex-shrink:0;">
+        고정 스케줄로 등록 <span style="color:var(--muted);font-weight:400;">(반복 규칙에 따라 예정일 자동 표시)</span>
+      </label>
+    </div>
+    <div id="mrScheduleFields" style="display:none;">
+      <div class="view-toggle" style="width:100%;margin-bottom:10px;">
+        <button type="button" class="view-btn active" id="mrSchTypeBtn-day" onclick="setMrScheduleType('day')" style="flex:1;">매달 N일</button>
+        <button type="button" class="view-btn" id="mrSchTypeBtn-nth" onclick="setMrScheduleType('nth')" style="flex:1;">매달 N번째 요일</button>
+      </div>
+      <div id="mrSchDayWrap" class="fg" style="margin-bottom:14px;">
+        <label class="fl">일자</label>
+        <input class="fi" type="number" id="mrSchDay" min="1" max="31" placeholder="예: 25">
+      </div>
+      <div id="mrSchNthWrap" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div class="fg"><label class="fl">순서</label>
+          <select class="fi" id="mrSchNth">
+            <option value="1">첫째주</option>
+            <option value="2">둘째주</option>
+            <option value="3">셋째주</option>
+            <option value="4">넷째주</option>
+            <option value="5">다섯째주</option>
+            <option value="-1">마지막주</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">요일</label>
+          <select class="fi" id="mrSchDow">
+            <option value="0">일요일</option>
+            <option value="1">월요일</option>
+            <option value="2">화요일</option>
+            <option value="3">수요일</option>
+            <option value="4">목요일</option>
+            <option value="5">금요일</option>
+            <option value="6" selected>토요일</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <button class="add-btn" style="background:var(--routine);color:#fff;" id="mrSaveBtn" onclick="saveMonthlyRoutineForm()">추가하기</button>
   </div>
 </div>
@@ -562,7 +601,10 @@
 <div class="overlay" id="overlay" onclick="closePopup(event)">
   <div class="popup">
     <div class="popup-bar"></div>
-    <div class="popup-head"><div class="popup-date-label" id="popupDateLabel"></div></div>
+    <div class="popup-head" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="popup-date-label" id="popupDateLabel"></div>
+      <div id="popupDayNet" style="font-size:14px;font-weight:800;"></div>
+    </div>
     <div class="popup-entries" id="popupEntries"></div>
     <div class="popup-divider"></div>
     <div class="popup-form">
@@ -693,20 +735,20 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=68"></script>
-<script src="js/data-state.js?v=68"></script>
-<script src="js/storage.js?v=68"></script>
-<script src="js/utils.js?v=68"></script>
-<script src="js/backup.js?v=68"></script>
-<script src="js/auth.js?v=68"></script>
-<script src="js/page-switch.js?v=68"></script>
-<script src="js/budget.js?v=68"></script>
-<script src="js/routine.js?v=68"></script>
-<script src="js/routine-mgmt.js?v=68"></script>
-<script src="js/workout.js?v=68"></script>
-<script src="js/review.js?v=68"></script>
-<script src="js/freelance.js?v=68"></script>
-<script src="js/project.js?v=68"></script>
-<script src="js/main.js?v=68"></script>
+<script src="js/supabase-client.js?v=69"></script>
+<script src="js/data-state.js?v=69"></script>
+<script src="js/storage.js?v=69"></script>
+<script src="js/utils.js?v=69"></script>
+<script src="js/backup.js?v=69"></script>
+<script src="js/auth.js?v=69"></script>
+<script src="js/page-switch.js?v=69"></script>
+<script src="js/budget.js?v=69"></script>
+<script src="js/routine.js?v=69"></script>
+<script src="js/routine-mgmt.js?v=69"></script>
+<script src="js/workout.js?v=69"></script>
+<script src="js/review.js?v=69"></script>
+<script src="js/freelance.js?v=69"></script>
+<script src="js/project.js?v=69"></script>
+<script src="js/main.js?v=69"></script>
 </body>
 </html>
