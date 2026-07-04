@@ -28,18 +28,100 @@ function chRoutineWeek(d){
   renderRoutine();
 }
 
+function setRoutineView(v){
+  rView=v;
+  rSyncViewButtons();
+  renderRoutine();
+}
+function rSyncViewButtons(){
+  document.getElementById('rvbtn-week').classList.toggle('active',rView==='week');
+  document.getElementById('rvbtn-month').classList.toggle('active',rView==='month');
+}
+
 function renderRoutine(){
   document.getElementById('routineMonthLabel').textContent=`${rY}년 ${rM+1}월`;
+  const mc=document.getElementById('routineMain');mc.innerHTML='';
+  if(rView==='month'){
+    // 월간 루틴 탭: 요일별 그리드 없이, "이번 달에 했는지"만 체크하는 단순한 화면
+    const mrCard=buildMonthlyRoutineCard();mrCard.classList.add('card-wide');mc.appendChild(mrCard);
+    return;
+  }
   if(!curWeekStart){
     const refDate=new Date(rY,rM,(rY===TODAY.getFullYear()&&rM===TODAY.getMonth())?TODAY.getDate():1);
     curWeekStart=getWeekStart(rY,rM,refDate.getDate());
   }
-  const mc=document.getElementById('routineMain');mc.innerHTML='';
   // PC 대시보드에서는 전부 넓게 봐야 하는 위젯들이라 card-wide로 표시함
   // 달력을 맨 위로 올려서 한눈에 이번 달 상황부터 보이게 함
   const calCard=buildRoutineCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
   const tableCard=buildRoutineTable();tableCard.classList.add('card-wide');mc.appendChild(tableCard);
   const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
+}
+
+// ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지"만 체크) ───────────────────
+function buildMonthlyRoutineCard(){
+  const card=mkDiv('card');
+  const done=S.getMonthlyDone(rY,rM);
+  const total=MONTHLY_ROUTINES.length;
+  const doneCount=MONTHLY_ROUTINES.filter(r=>done.includes(r.id)).length;
+  const header=mkDiv('card-header');
+  header.innerHTML=`<span class="card-title">이번 달 루틴</span>`;
+  if(total>0){
+    const badge=mkDiv('streak-badge');badge.textContent=`${doneCount}/${total} 완료`;
+    header.appendChild(badge);
+  }
+  card.appendChild(header);
+
+  const list=document.createElement('div');
+  list.style.cssText='padding:12px 16px 4px;';
+  if(!total){
+    list.innerHTML='<div class="empty">등록된 월간 루틴이 없어요</div>';
+  }else{
+    MONTHLY_ROUTINES.forEach(r=>{
+      const isDone=done.includes(r.id);
+      const item=mkDiv('rmgmt-item');
+      item.style.cursor='pointer';
+      item.onclick=()=>toggleMonthlyRoutine(r.id);
+      item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div>`;
+      list.appendChild(item);
+    });
+  }
+  card.appendChild(list);
+
+  const addWrap=document.createElement('div');
+  addWrap.style.cssText='padding:4px 16px 16px;';
+  addWrap.innerHTML=`<button class="add-btn" style="background:var(--bg);color:var(--text);margin-top:0;" onclick="openMonthlyRoutineForm()"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--routine)"></span> 월간 루틴 추가</button>`;
+  card.appendChild(addWrap);
+  // addWrap 안의 아이콘은 정적 렌더링(renderStaticIcons) 시점 이후에 추가되므로 직접 채워야 함
+  addWrap.querySelectorAll('.ico[data-icon]').forEach(el=>{
+    const extra=el.dataset.color?`color:${el.dataset.color};`:'';
+    el.outerHTML=icon(el.dataset.icon,parseInt(el.dataset.size)||15,extra);
+  });
+  return card;
+}
+
+function toggleMonthlyRoutine(id){
+  let done=S.getMonthlyDone(rY,rM);
+  done=done.includes(id)?done.filter(x=>x!==id):[...done,id];
+  S.setMonthlyDone(rY,rM,done);
+  renderRoutine();
+}
+
+function openMonthlyRoutineForm(){
+  document.getElementById('newMrName').value='';
+  document.getElementById('newMrEmoji').value='';
+  document.getElementById('monthlyRoutineFormPopup').classList.add('open');
+}
+function closeMonthlyRoutineForm(e){
+  if(!e||e.target===document.getElementById('monthlyRoutineFormPopup'))document.getElementById('monthlyRoutineFormPopup').classList.remove('open');
+}
+function saveMonthlyRoutineForm(){
+  const name=document.getElementById('newMrName').value.trim();
+  const emoji=document.getElementById('newMrEmoji').value.trim()||'🌟';
+  if(!name)return;
+  MONTHLY_ROUTINES=[...MONTHLY_ROUTINES,{id:'mr'+Date.now(),name,emoji}];
+  saveMonthlyRoutines(MONTHLY_ROUTINES);
+  document.getElementById('monthlyRoutineFormPopup').classList.remove('open');
+  renderRoutine();
 }
 
 function buildRoutineTable(){

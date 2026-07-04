@@ -48,6 +48,18 @@ function expenseCatColor(cat,fallbackIdx){return EXPENSE_CAT_COLORS[cat]||PIE_CO
 const CAT_COLORS={selfcare:'#f59e0b',health:'#ef4444',growth:'#3b82f6',life:'#22c55e'};
 const CAT_LABELS={selfcare:'💛 케어',health:'❤️ 건강',growth:'💙 성장',life:'💚 생활'};
 
+// ─── 루틴 탭: 월간 루틴 ─────────────────────────────────────────────────────────
+// 요일별 체크가 필요 없이 "이번 달에 했는지"만 체크하는 단순한 반복 루틴.
+// 완료 여부는 storage.js의 S.getMonthlyDone(y,m)/setMonthlyDone(y,m,arr)에 'YYYY-MM' 단위로
+// 저장되기 때문에, 달이 바뀌면 자동으로 새 키를 참조하게 되어 별도 리셋 로직 없이 매달 리셋됨.
+const DEFAULT_MONTHLY_ROUTINES=[
+  {id:'mr01',name:'화장실 모래갈이',emoji:'🐱'},
+  {id:'mr02',name:'당근데이 (최소 물건 1개 처분)',emoji:'🥕'},
+  {id:'mr03',name:'한 달 회고',emoji:'📝'},
+  {id:'mr04',name:'앨범 정리 & 업로드',emoji:'📷'},
+];
+let MONTHLY_ROUTINES=DEFAULT_MONTHLY_ROUTINES;
+
 const DEFAULT_ROUTINES=[
   {id:'r01',name:'기상',emoji:'⏰',time:'AM 7:30',period:'morning',cat:'health',goal:7,freq:'daily'},
   {id:'r02',name:'유산균',emoji:'🥛',time:'AM 8:00',period:'morning',cat:'selfcare',goal:7,freq:'daily'},
@@ -107,3 +119,4 @@ let workoutCtx={y:null,m:null,d:null};
 let reviewCtx={y:null,m:null,d:null};
 let curWeekStart = null;
 let newRFreq='daily',newRPeriod='morning',newRCat='selfcare',newRWeekDays=[],newRWeeklyN=3,newRMonthlyN=2;
+let rView='week'; // 루틴 탭: 'week'(요일별 그리드, 기본값) / 'month'(월간 루틴 체크리스트)

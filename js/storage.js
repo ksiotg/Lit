@@ -45,6 +45,11 @@ function getRoutines(){
 }
 function saveRoutines(arr){Storage._set('custom_routines',arr);}
 
+function getMonthlyRoutines(){
+  return Storage._get('monthly_routines',null)||DEFAULT_MONTHLY_ROUTINES;
+}
+function saveMonthlyRoutines(arr){Storage._set('monthly_routines',arr);}
+
 function getFixedIncome(){
   return Storage._get('fixed_income',null)||DEFAULT_FIXED_INCOME;
 }
@@ -85,6 +90,9 @@ const S={
   setEntries(y,m,a){Storage._set('en_'+mk(y,m),a)},
   getRoutine(y,m,d){return Storage._get('rt_'+dk(y,m,d),[])},
   setRoutine(y,m,d,a){Storage._set('rt_'+dk(y,m,d),a)},
+  // 월간 루틴 완료 여부. 'YYYY-MM' 단위로 저장되므로 달이 바뀌면 자연스럽게 빈 배열부터 시작함(자동 리셋).
+  getMonthlyDone(y,m){return Storage._get('md_'+mk(y,m),[])},
+  setMonthlyDone(y,m,a){Storage._set('md_'+mk(y,m),a)},
   getWorkout(y,m,d){
     const v=Storage._get('wo_'+dk(y,m,d),null);
     if(!v)return [];
