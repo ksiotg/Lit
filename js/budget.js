@@ -158,6 +158,57 @@ function openCatDetail(cat){
 }
 function closeCatDetail(e){if(e.target===document.getElementById('catDetailPopup'))document.getElementById('catDetailPopup').classList.remove('open');}
 
+// 특정 연/월의 수입 또는 지출 내역을 한 배열로 모음 (상단 요약카드 팝업에서 사용).
+// 수입: 고정수입(자동) + 변동수입 / 지출: 체크(납부완료)된 고정지출 + 변동지출.
+function collectBudgetRows(y,m,type){
+  const entries=S.getEntries(y,m).filter(e=>e.type===type);
+  if(type==='income'){
+    const auto=activeFixedIncome(y,m).map(f=>({...f,type:'income',auto:true}));
+    return [...auto,...entries];
+  }
+  const checked=S.getChecked(y,m);
+  const paidDayMap=S.getFixedPaidDay(y,m);
+  const actualMap=S.getFixedActual(y,m);
+  const fixedExp=activeFixedItems(y,m).filter(f=>checked.includes(f.id)).map(f=>{
+    const pd=paidDayMap[f.id]!=null?paidDayMap[f.id]:f.day;
+    return {...f,type:'fixed',auto:true,day:pd,amount:actualMap[f.id]!=null?actualMap[f.id]:f.amount};
+  });
+  return [...fixedExp,...entries];
+}
+
+// 상단 요약카드(수입/지출) 클릭 시 상세 내역 팝업. 월간뷰면 이번 달, 연간뷰면 이번 해 전체를 모아서 보여줌.
+function openBudgetSumPopup(type){
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  let rows=[];
+  let periodLabel;
+  if(curView==='month'){
+    periodLabel=`${curY}년 ${curM+1}월`;
+    rows=collectBudgetRows(curY,curM,type).map(r=>({...r,_m:curM}));
+  }else{
+    periodLabel=`${curY}년`;
+    for(let m=0;m<12;m++){
+      rows=rows.concat(collectBudgetRows(curY,m,type).map(r=>({...r,_m:m})));
+    }
+  }
+  rows.sort((a,b)=>a._m!==b._m?a._m-b._m:a.day-b.day);
+  const total=rows.reduce((s,r)=>s+r.amount,0);
+  const titleMap={income:'💵 수입',expense:'💸 지출'};
+  document.getElementById('bgSumPopupTitle').textContent=titleMap[type]||type;
+  document.getElementById('bgSumPopupSub').textContent=`${periodLabel} · 총 ${fmt(total)} · ${rows.length}건`;
+  const wrap=document.getElementById('bgSumPopupList');
+  if(!rows.length){
+    wrap.innerHTML='<div class="empty">내역이 없어요</div>';
+  }else{
+    wrap.innerHTML=rows.map(r=>{
+      const dot=r.type==='fixed'?'fixed':type;
+      const dateLabel=curView==='year'?`${months[r._m]} ${r.day}일`:`${curM+1}월 ${r.day}일`;
+      return `<div class="pe"><div class="pe-dot ${dot}"></div><div class="pe-info"><div class="pe-name">${r.emoji||''} ${r.name||r.cat}</div><div class="pe-cat">${dateLabel}${r.auto?' · 자동':''}</div></div><div class="pe-amt ${dot}">${type==='income'?'+':'−'}${fmt(r.amount)}</div></div>`;
+    }).join('');
+  }
+  document.getElementById('bgSumPopup').classList.add('open');
+}
+function closeBudgetSumPopup(e){if(!e||e.target===document.getElementById('bgSumPopup'))document.getElementById('bgSumPopup').classList.remove('open');}
+
 function buildFixed(){
   const checked=S.getChecked(curY,curM);
   const actualMap=S.getFixedActual(curY,curM);
