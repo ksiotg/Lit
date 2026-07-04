@@ -90,7 +90,7 @@ function buildMonthlyRoutineCard(){
       const item=mkDiv('rmgmt-item');
       item.style.cursor='pointer';
       item.onclick=()=>toggleMonthlyRoutine(r.id);
-      item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button><div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div></div>`;
+      item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
       list.appendChild(item);
     });
   }
@@ -116,8 +116,8 @@ function buildMonthlyRoutineCal(){
   const dim=new Date(rY,rM+1,0).getDate();
   const done=mrDoneList(rY,rM);
   const card=mkDiv('card');
-  card.innerHTML='<div class="card-header"><span class="card-title">이번 달 완료 캘린더</span></div>';
   const dowRow=mkDiv('cal-dow-row');
+  dowRow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
   card.appendChild(dowRow);
   const grid=mkDiv('cal-grid');
