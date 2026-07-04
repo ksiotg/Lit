@@ -42,7 +42,8 @@ function renderRoutine(){
   document.getElementById('routineMonthLabel').textContent=`${rY}년 ${rM+1}월`;
   const mc=document.getElementById('routineMain');mc.innerHTML='';
   if(rView==='month'){
-    // 월간 루틴 탭: 요일별 그리드 없이, "이번 달에 했는지"만 체크하는 단순한 화면
+    // 월간 루틴 탭: 요일별 그리드 없이, "이번 달에 했는지 + 언제 했는지"만 보여주는 화면
+    const mrCalCard=buildMonthlyRoutineCal();mrCalCard.classList.add('card-wide');mc.appendChild(mrCalCard);
     const mrCard=buildMonthlyRoutineCard();mrCard.classList.add('card-wide');mc.appendChild(mrCard);
     return;
   }
@@ -57,12 +58,20 @@ function renderRoutine(){
   const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
 }
 
-// ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지"만 체크) ───────────────────
+// ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지 + 언제 했는지"만 체크) ─────
+let editingMrId=null;
+
+// S.getMonthlyDone(y,m)는 [{id, day}] 형태로 저장됨(day=완료한 날짜의 일자).
+// 혹시 남아있을 수 있는 예전 형태(순수 id 문자열 배열) 데이터도 깨지지 않게 방어적으로 변환.
+function mrDoneList(y,m){
+  return S.getMonthlyDone(y,m).map(x=>typeof x==='string'?{id:x,day:1}:x);
+}
+
 function buildMonthlyRoutineCard(){
   const card=mkDiv('card');
-  const done=S.getMonthlyDone(rY,rM);
+  const done=mrDoneList(rY,rM);
   const total=MONTHLY_ROUTINES.length;
-  const doneCount=MONTHLY_ROUTINES.filter(r=>done.includes(r.id)).length;
+  const doneCount=MONTHLY_ROUTINES.filter(r=>done.some(x=>x.id===r.id)).length;
   const header=mkDiv('card-header');
   header.innerHTML=`<span class="card-title">이번 달 루틴</span>`;
   if(total>0){
@@ -77,11 +86,11 @@ function buildMonthlyRoutineCard(){
     list.innerHTML='<div class="empty">등록된 월간 루틴이 없어요</div>';
   }else{
     MONTHLY_ROUTINES.forEach(r=>{
-      const isDone=done.includes(r.id);
+      const isDone=done.some(x=>x.id===r.id);
       const item=mkDiv('rmgmt-item');
       item.style.cursor='pointer';
       item.onclick=()=>toggleMonthlyRoutine(r.id);
-      item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div>`;
+      item.innerHTML=`<div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div></div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button><div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div></div>`;
       list.appendChild(item);
     });
   }
@@ -99,16 +108,82 @@ function buildMonthlyRoutineCard(){
   return card;
 }
 
+// 이번 달에 어느 날 어떤 월간 루틴을 완료했는지 보여주는 캘린더 (운동 탭 달력과 같은 패턴:
+// 그날 완료한 루틴들의 이모지를 나열해서 항목별로 구분되게 표시)
+function buildMonthlyRoutineCal(){
+  const fd=new Date(rY,rM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
+  const dim=new Date(rY,rM+1,0).getDate();
+  const done=mrDoneList(rY,rM);
+  const card=mkDiv('card');
+  card.innerHTML='<div class="card-header"><span class="card-title">이번 달 완료 캘린더</span></div>';
+  const dowRow=mkDiv('cal-dow-row');
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
+  card.appendChild(dowRow);
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fdMon+d-1)%7;
+    const isT=TODAY.getFullYear()===rY&&TODAY.getMonth()===rM&&TODAY.getDate()===d;
+    const doneToday=done.filter(x=>x.day===d).map(x=>MONTHLY_ROUTINES.find(r=>r.id===x.id)).filter(Boolean);
+    const hasMr=doneToday.length>0;
+    const cell=mkDiv(`cal-cell mr-cal-cell ${isT?'today':''} ${hasMr?'has-mr':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
+    cell.onclick=()=>openMonthlyRoutineDayDetail(rY,rM,d);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    if(hasMr){
+      const iconEl=mkDiv('mr-cal-icon');iconEl.textContent=doneToday.map(r=>r.emoji).join('');cell.appendChild(iconEl);
+    }
+    grid.appendChild(cell);
+  }
+  card.appendChild(grid);
+  return card;
+}
+
+function openMonthlyRoutineDayDetail(y,m,d){
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('mrDayTitle').textContent=`${y}년 ${months[m]} ${d}일`;
+  const done=mrDoneList(y,m).filter(x=>x.day===d).map(x=>MONTHLY_ROUTINES.find(r=>r.id===x.id)).filter(Boolean);
+  const content=document.getElementById('mrDayContent');
+  if(!done.length){
+    content.innerHTML='<div class="empty">이 날 완료한 월간 루틴이 없어요</div>';
+  }else{
+    content.innerHTML=done.map(r=>`<div class="rmgmt-item" style="margin-bottom:0;"><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${r.name}</div></div></div>`).join('');
+  }
+  document.getElementById('mrDayPopup').classList.add('open');
+}
+function closeMonthlyRoutineDayPopup(e){if(!e||e.target===document.getElementById('mrDayPopup'))document.getElementById('mrDayPopup').classList.remove('open');}
+
 function toggleMonthlyRoutine(id){
-  let done=S.getMonthlyDone(rY,rM);
-  done=done.includes(id)?done.filter(x=>x!==id):[...done,id];
+  let done=mrDoneList(rY,rM);
+  const exists=done.some(x=>x.id===id);
+  if(exists){
+    done=done.filter(x=>x.id!==id);
+  }else{
+    // 실제로 보고 있는 달이 "지금 진짜 이번 달"이면 오늘 날짜로, 지나간/미래 달을 보며 체크한
+    // 경우엔 정확한 날짜를 알 수 없으니 1일로 기본 저장(캘린더 표시용 최소한의 기본값).
+    const day=(rY===TODAY.getFullYear()&&rM===TODAY.getMonth())?TODAY.getDate():1;
+    done=[...done,{id,day}];
+  }
   S.setMonthlyDone(rY,rM,done);
   renderRoutine();
 }
 
 function openMonthlyRoutineForm(){
+  editingMrId=null;
+  document.getElementById('mrFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--routine)')} 월간 루틴 추가`;
+  document.getElementById('mrSaveBtn').textContent='추가하기';
   document.getElementById('newMrName').value='';
   document.getElementById('newMrEmoji').value='';
+  document.getElementById('monthlyRoutineFormPopup').classList.add('open');
+}
+function editMonthlyRoutineStart(id){
+  const r=MONTHLY_ROUTINES.find(x=>x.id===id);
+  if(!r)return;
+  editingMrId=id;
+  document.getElementById('mrFormTitle').innerHTML=`${icon('edit',16,'color:var(--routine)')} 월간 루틴 수정`;
+  document.getElementById('mrSaveBtn').textContent='수정 완료';
+  document.getElementById('newMrName').value=r.name;
+  document.getElementById('newMrEmoji').value=r.emoji;
   document.getElementById('monthlyRoutineFormPopup').classList.add('open');
 }
 function closeMonthlyRoutineForm(e){
@@ -118,9 +193,19 @@ function saveMonthlyRoutineForm(){
   const name=document.getElementById('newMrName').value.trim();
   const emoji=document.getElementById('newMrEmoji').value.trim()||'🌟';
   if(!name)return;
-  MONTHLY_ROUTINES=[...MONTHLY_ROUTINES,{id:'mr'+Date.now(),name,emoji}];
+  if(editingMrId){
+    MONTHLY_ROUTINES=MONTHLY_ROUTINES.map(r=>r.id===editingMrId?{...r,name,emoji}:r);
+  }else{
+    MONTHLY_ROUTINES=[...MONTHLY_ROUTINES,{id:'mr'+Date.now(),name,emoji}];
+  }
   saveMonthlyRoutines(MONTHLY_ROUTINES);
   document.getElementById('monthlyRoutineFormPopup').classList.remove('open');
+  renderRoutine();
+}
+function deleteMonthlyRoutine(id){
+  if(!confirm('이 월간 루틴을 삭제할까요?'))return;
+  MONTHLY_ROUTINES=MONTHLY_ROUTINES.filter(r=>r.id!==id);
+  saveMonthlyRoutines(MONTHLY_ROUTINES);
   renderRoutine();
 }
 
