@@ -401,6 +401,15 @@ function renderPopupEntries(){
   const incRows=[...autoInc.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries.filter(e=>e.type==='income')];
   const expRows=entries.filter(e=>e.type==='expense');
   const all=[...fixedRows,...incRows,...expRows];
+  // 날짜 라벨 옆에 그날의 수입-지출 순액 표시 (수입/지출 색상 규칙과 동일: 순수입=파랑, 순지출=빨강)
+  const incTotal=incRows.reduce((s,e)=>s+e.amount,0);
+  const expTotal=fixedRows.reduce((s,e)=>s+e.amount,0)+expRows.reduce((s,e)=>s+e.amount,0);
+  const net=incTotal-expTotal;
+  const netEl=document.getElementById('popupDayNet');
+  if(netEl){
+    netEl.textContent=signFmt(net);
+    netEl.style.color=net>=0?'var(--income)':'var(--expense)';
+  }
   const el=document.getElementById('popupEntries');
   if(!all.length){el.innerHTML='<div class="empty">내역이 없어요</div>';return;}
   el.innerHTML=all.map(e=>`<div class="pe ${e.type}"><div class="pe-dot ${e.type}"></div><div class="pe-info"><div class="pe-name">${e.emoji||''} ${e.name||e.cat}</div><div class="pe-cat">${e.cat}${e.auto?' · 자동':''}</div></div><div class="pe-amt ${e.type}">${e.type==='income'?'+':'−'}${fmt(e.amount)}</div>${e.auto?'':`<button class="pe-edit" onclick="editEntry('${e.id}')" title="수정">${icon('edit',14)}</button><button class="pe-del" onclick="delEntry('${e.id}')">${icon('x-circle',15)}</button>`}</div>`).join('');

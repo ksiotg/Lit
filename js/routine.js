@@ -61,6 +61,51 @@ function renderRoutine(){
 // ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지 + 언제 했는지"만 체크) ─────
 let editingMrId=null;
 let editingMrDateId=null;
+// 등록 폼에서 현재 선택된 고정 스케줄 규칙 타입 ('day'=매달 N일 / 'nth'=매달 N번째 요일)
+let mrScheduleType='day';
+
+// 월간 루틴 "고정 스케줄" — 가계부 고정지출과 같은 개념: 규칙으로 계획일(예정일)만 자동 계산해서
+// 보여주고, 실제 완료 처리는 기존 toggleMonthlyRoutine 흐름 그대로(체크한 날짜=완료일) 둠.
+// schedule 형태: {type:'day', day:N} 또는 {type:'nth', nth:1~5|-1(마지막), dow:0~6(일~토)}
+function computeScheduledDay(schedule,y,m){
+  if(!schedule)return null;
+  const dim=new Date(y,m+1,0).getDate();
+  if(schedule.type==='day'){
+    return Math.min(schedule.day,dim);
+  }
+  if(schedule.type==='nth'){
+    const matches=[];
+    for(let d=1;d<=dim;d++){
+      if(new Date(y,m,d).getDay()===schedule.dow)matches.push(d);
+    }
+    if(!matches.length)return null;
+    if(schedule.nth===-1)return matches[matches.length-1];
+    return matches[schedule.nth-1]||null;
+  }
+  return null;
+}
+// 규칙을 사람이 읽는 문구로 변환 (등록 폼/목록 표시용)
+function scheduleLabel(schedule){
+  if(!schedule)return '';
+  if(schedule.type==='day')return `매달 ${schedule.day}일`;
+  if(schedule.type==='nth'){
+    const nthLabel={1:'첫째주',2:'둘째주',3:'셋째주',4:'넷째주',5:'다섯째주','-1':'마지막주'}[schedule.nth]||'';
+    const dowLabel=['일','월','화','수','목','금','토'][schedule.dow];
+    return `매달 ${nthLabel} ${dowLabel}요일`;
+  }
+  return '';
+}
+function toggleMrScheduleFields(){
+  const on=document.getElementById('mrScheduleToggle').checked;
+  document.getElementById('mrScheduleFields').style.display=on?'block':'none';
+}
+function setMrScheduleType(type){
+  mrScheduleType=type;
+  document.getElementById('mrSchTypeBtn-day').classList.toggle('active',type==='day');
+  document.getElementById('mrSchTypeBtn-nth').classList.toggle('active',type==='nth');
+  document.getElementById('mrSchDayWrap').style.display=type==='day'?'block':'none';
+  document.getElementById('mrSchNthWrap').style.display=type==='nth'?'grid':'none';
+}
 
 // S.getMonthlyDone(y,m)는 [{id, day}] 형태로 저장됨(day=완료한 날짜의 일자).
 // 혹시 남아있을 수 있는 예전 형태(순수 id 문자열 배열) 데이터도 깨지지 않게 방어적으로 변환.
@@ -93,7 +138,12 @@ function buildMonthlyRoutineCard(){
       item.style.cursor='pointer';
       item.onclick=()=>toggleMonthlyRoutine(r.id);
       const dateBadge=isDone?`<button class="mr-date-badge" onclick="event.stopPropagation();openMonthlyRoutineDateEdit('${r.id}')" title="완료 날짜 수정">${rM+1}/${doneEntry.day} 완료 <span style="text-decoration:underline;">수정</span></button>`:'';
-      item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div>${dateBadge}</div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
+      let scheduleHint='';
+      if(!isDone&&r.schedule){
+        const sd=computeScheduledDay(r.schedule,rY,rM);
+        scheduleHint=`<div class="mr-schedule-hint">${icon('calendar',11)} ${scheduleLabel(r.schedule)}${sd?` · 이번달 ${rM+1}/${sd} 예정`:' · 이번 달엔 해당 없음'}</div>`;
+      }
+      item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div>${dateBadge}${scheduleHint}</div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
       list.appendChild(item);
     });
   }
@@ -177,6 +227,12 @@ function openMonthlyRoutineForm(){
   document.getElementById('mrSaveBtn').textContent='추가하기';
   document.getElementById('newMrName').value='';
   document.getElementById('newMrEmoji').value='';
+  document.getElementById('mrScheduleToggle').checked=false;
+  document.getElementById('mrScheduleFields').style.display='none';
+  document.getElementById('mrSchDay').value='';
+  document.getElementById('mrSchNth').value='1';
+  document.getElementById('mrSchDow').value='6';
+  setMrScheduleType('day');
   document.getElementById('monthlyRoutineFormPopup').classList.add('open');
 }
 function editMonthlyRoutineStart(id){
@@ -187,6 +243,20 @@ function editMonthlyRoutineStart(id){
   document.getElementById('mrSaveBtn').textContent='수정 완료';
   document.getElementById('newMrName').value=r.name;
   document.getElementById('newMrEmoji').value=r.emoji;
+  const sch=r.schedule;
+  document.getElementById('mrScheduleToggle').checked=!!sch;
+  document.getElementById('mrScheduleFields').style.display=sch?'block':'none';
+  if(sch&&sch.type==='nth'){
+    document.getElementById('mrSchNth').value=String(sch.nth);
+    document.getElementById('mrSchDow').value=String(sch.dow);
+    document.getElementById('mrSchDay').value='';
+    setMrScheduleType('nth');
+  }else{
+    document.getElementById('mrSchDay').value=sch?sch.day:'';
+    document.getElementById('mrSchNth').value='1';
+    document.getElementById('mrSchDow').value='6';
+    setMrScheduleType('day');
+  }
   document.getElementById('monthlyRoutineFormPopup').classList.add('open');
 }
 function closeMonthlyRoutineForm(e){
@@ -196,10 +266,21 @@ function saveMonthlyRoutineForm(){
   const name=document.getElementById('newMrName').value.trim();
   const emoji=document.getElementById('newMrEmoji').value.trim()||'🌟';
   if(!name)return;
+  let schedule=null;
+  if(document.getElementById('mrScheduleToggle').checked){
+    if(mrScheduleType==='day'){
+      const day=parseInt(document.getElementById('mrSchDay').value);
+      if(day>=1&&day<=31)schedule={type:'day',day};
+    }else{
+      const nth=parseInt(document.getElementById('mrSchNth').value);
+      const dow=parseInt(document.getElementById('mrSchDow').value);
+      schedule={type:'nth',nth,dow};
+    }
+  }
   if(editingMrId){
-    MONTHLY_ROUTINES=MONTHLY_ROUTINES.map(r=>r.id===editingMrId?{...r,name,emoji}:r);
+    MONTHLY_ROUTINES=MONTHLY_ROUTINES.map(r=>r.id===editingMrId?{...r,name,emoji,schedule}:r);
   }else{
-    MONTHLY_ROUTINES=[...MONTHLY_ROUTINES,{id:'mr'+Date.now(),name,emoji}];
+    MONTHLY_ROUTINES=[...MONTHLY_ROUTINES,{id:'mr'+Date.now(),name,emoji,schedule}];
   }
   saveMonthlyRoutines(MONTHLY_ROUTINES);
   document.getElementById('monthlyRoutineFormPopup').classList.remove('open');
