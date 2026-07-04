@@ -32,7 +32,7 @@ function renderBudget(){
   const rem=fi-fe;
   document.getElementById('sumIncome').textContent='+'+fi.toLocaleString('ko-KR');
   document.getElementById('sumExpense').textContent='-'+fe.toLocaleString('ko-KR');
-  const re=document.getElementById('sumRemain');re.textContent=fmt(rem);re.style.color='var(--budget)';
+  const re=document.getElementById('sumRemain');re.textContent=signFmt(rem);re.style.color='var(--budget)';
   const mc=document.getElementById('budgetMain');mc.innerHTML='';
   // "이달의 외주수입" 위젯은 제거함 — 외주 탭이 따로 생겨서 거기서 확인하면 되고,
   // 가계부에 중복으로 보여줄 필요가 없어짐.
@@ -305,11 +305,11 @@ function buildYear(){
     const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer';
     row.onclick=()=>{curM=m;setView('month');};
     const remain=fi-fe;
-    row.innerHTML=`<span style="font-size:12px;font-weight:700;color:${m===curM?'var(--income)':'var(--muted)'};width:28px;flex-shrink:0;">${m+1}월</span><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;margin-bottom:3px;"><span style="color:var(--income);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">+${fi.toLocaleString('ko-KR')}</span><span style="color:var(--expense);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">-${fe.toLocaleString('ko-KR')}</span></div><div style="height:4px;background:#f0f0f5;border-radius:99px;overflow:hidden"><div style="height:100%;width:${fi?Math.min(100,Math.round(fe/fi*100)):0}%;background:var(--expense);border-radius:99px"></div></div></div><div class="year-remain-pill"><span style="color:${remain>=0?'var(--budget)':'var(--expense)'}">${fmt(remain)}</span></div>`;
+    row.innerHTML=`<span style="font-size:12px;font-weight:700;color:${m===curM?'var(--income)':'var(--muted)'};width:28px;flex-shrink:0;">${m+1}월</span><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;margin-bottom:3px;"><span style="color:var(--income);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">+${fi.toLocaleString('ko-KR')}</span><span style="color:var(--expense);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">-${fe.toLocaleString('ko-KR')}</span></div><div style="height:4px;background:#f0f0f5;border-radius:99px;overflow:hidden"><div style="height:100%;width:${fi?Math.min(100,Math.round(fe/fi*100)):0}%;background:var(--expense);border-radius:99px"></div></div></div><div class="year-remain-pill"><span style="color:${remain>=0?'var(--budget)':'var(--expense)'}">${signFmt(remain)}</span></div>`;
     inner.appendChild(row);
   }
   const tot=document.createElement('div');tot.style.cssText='border-top:2px solid var(--border);padding-top:10px;display:flex;justify-content:space-between';
-  tot.innerHTML=`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 수입</div><div style="font-size:14px;font-weight:800;color:var(--income)">+${yi.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 지출</div><div style="font-size:14px;font-weight:800;color:var(--expense)">-${ye.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 잔여</div><div style="font-size:14px;font-weight:800;color:var(--budget)">${fmt(yi-ye)}</div></div>`;
+  tot.innerHTML=`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 수입</div><div style="font-size:14px;font-weight:800;color:var(--income)">+${yi.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 지출</div><div style="font-size:14px;font-weight:800;color:var(--expense)">-${ye.toLocaleString('ko-KR')}</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">연간 잔여</div><div style="font-size:14px;font-weight:800;color:var(--budget)">${signFmt(yi-ye)}</div></div>`;
   inner.appendChild(tot);card.appendChild(inner);return card;
 }
 

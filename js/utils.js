@@ -28,6 +28,8 @@ function icon(name,size=15,extraStyle=''){
 }
 const fmt=n=>'₩'+Math.abs(n).toLocaleString('ko-KR');
 const shortFmt=n=>(Math.abs(n)/10000).toLocaleString('ko-KR',{maximumFractionDigits:1});
+// 가계부 "잔여" 표기용: 수입(+)/지출(-)과 같은 톤으로, ₩ 기호 대신 +/- 접두사만 붙임
+const signFmt=n=>(n>=0?'+':'-')+Math.abs(n).toLocaleString('ko-KR');
 const mkDiv=(cls,html='')=>{const d=document.createElement('div');d.className=cls;if(html)d.innerHTML=html;return d;};
 function getWeekStart(y,m,d){
   // Monday-based week
