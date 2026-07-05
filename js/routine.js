@@ -141,7 +141,7 @@ function buildMonthlyRoutineCard(){
       let scheduleHint='';
       if(!isDone&&r.schedule){
         const sd=computeScheduledDay(r.schedule,rY,rM);
-        scheduleHint=`<div class="mr-schedule-hint">${icon('calendar',11)} ${scheduleLabel(r.schedule)}${sd?` · 이번달 ${rM+1}/${sd} 예정`:' · 이번 달엔 해당 없음'}</div>`;
+        scheduleHint=`<div class="mr-schedule-hint">${icon('calendar',11)} ${scheduleLabel(r.schedule)}${sd?` · ${rM+1}/${sd} 예정`:' · 이번 달엔 해당 없음'}</div>`;
       }
       item.innerHTML=`<div class="mr-check ${isDone?'done':''}">${isDone?'✓':''}</div><div class="rmgmt-icon">${r.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name mr-item-name ${isDone?'done':''}">${r.name}</div>${dateBadge}${scheduleHint}</div><div style="display:flex;align-items:center;gap:2px;"><button class="mr-icon" onclick="event.stopPropagation();editMonthlyRoutineStart('${r.id}')" title="수정">${icon('edit',14)}</button><button class="mr-icon del" onclick="event.stopPropagation();deleteMonthlyRoutine('${r.id}')" title="삭제">${icon('x-circle',15)}</button></div>`;
       list.appendChild(item);
