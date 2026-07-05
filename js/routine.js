@@ -87,11 +87,11 @@ function computeScheduledDay(schedule,y,m){
 // 규칙을 사람이 읽는 문구로 변환 (등록 폼/목록 표시용)
 function scheduleLabel(schedule){
   if(!schedule)return '';
-  if(schedule.type==='day')return `매달 ${schedule.day}일`;
+  if(schedule.type==='day')return `${schedule.day}일`;
   if(schedule.type==='nth'){
     const nthLabel={1:'첫째주',2:'둘째주',3:'셋째주',4:'넷째주',5:'다섯째주','-1':'마지막주'}[schedule.nth]||'';
     const dowLabel=['일','월','화','수','목','금','토'][schedule.dow];
-    return `매달 ${nthLabel} ${dowLabel}요일`;
+    return `${nthLabel} ${dowLabel}요일`;
   }
   return '';
 }
