@@ -9,6 +9,7 @@
   --budget:#22c55e;--budget-tint:#dcfce7;
   --workout:#ef4444;--workout-tint:#fee2e2;
   --project:#ec4899;--project-tint:#fce7f3;
+  --friend:#ff6f61;--friend-tint:#ffe8e4;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -31,6 +32,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.freelance-tl{background:#8b5cf6;box-shadow:0 0 0 1px #ede9fe,0 0 6px 1px #8b5cf6;}
 .tl-btn.project-tl{background:#9d174d;}
 .tl-btn.on.project-tl{background:var(--project);box-shadow:0 0 0 1px var(--project-tint),0 0 6px 1px #ec4899;}
+.tl-btn.friend-tl{background:#9a3d33;}
+.tl-btn.on.friend-tl{background:var(--friend);box-shadow:0 0 0 1px var(--friend-tint),0 0 6px 1px #ff6f61;}
 
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
@@ -44,6 +47,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-review .page-title{color:var(--review);font-weight:800;}
 #page-freelance .page-title{color:var(--freelance);font-weight:800;}
 #page-project .page-title{color:var(--project);font-weight:800;}
+#page-friend .page-title{color:var(--friend);font-weight:800;}
 .view-toggle{display:flex;gap:3px;}
 .view-btn{background:var(--bg);border:none;height:32px;padding:0 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;}
 .view-btn.active{background:var(--text);color:#fff;}
@@ -60,6 +64,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-freelance .view-btn.active{background:var(--freelance);color:#fff;}
 #page-project .nav-btn,#page-project .view-btn{background:var(--project-tint);color:var(--project);}
 #page-project .view-btn.active{background:var(--project);color:#fff;}
+#page-friend .nav-btn,#page-friend .view-btn{background:var(--friend-tint);color:var(--friend);}
+#page-friend .view-btn.active{background:var(--friend);color:#fff;}
 
 /* ── 가계부 summary ── */
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 21px;}
@@ -489,6 +495,35 @@ flex-shrink:0;
 #projectFormPopup .fi:focus{border-color:var(--project);}
 #projectDetailPopup .add-btn{background:var(--project);}
 #projectDetailPopup .cb.on{background:var(--project);border-color:var(--project);}
+
+/* ── 친구 탭 ── */
+.fr-chip{padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.fr-chip.active{background:var(--friend);color:#fff;border-color:var(--friend);}
+.fr-sort-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.fr-sort-btn.active{background:var(--friend);color:#fff;border-color:var(--friend);}
+.fr-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.fr-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.fr-row-info{flex:1;min-width:0;}
+.fr-row-name-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.fr-row-name{font-size:13px;font-weight:700;}
+.fr-group-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--friend-tint);color:var(--friend);white-space:nowrap;}
+.fr-row-bday{font-size:11px;color:var(--muted);margin-top:3px;}
+.fr-row-bday.set{color:var(--friend);font-weight:600;}
+.fr-row-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.fr-icon{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 4px;}
+.fr-icon:hover{color:var(--friend);}
+.fr-icon.del{font-size:17px;}
+.fr-icon.del:hover{color:var(--expense);}
+.fr-stars{display:flex;gap:1px;}
+.fr-nobday-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.fr-nobday-info{flex:1;min-width:0;}
+.fr-nobday-name{font-size:13px;font-weight:700;}
+.fr-nobday-group{font-size:11px;color:var(--muted);margin-top:2px;}
+.fr-bday-input-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.fr-bday-input-wrap input{width:44px;text-align:center;padding:6px 4px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;font-family:inherit;}
+.fr-bday-save-btn{background:var(--friend);color:#fff;border:none;border-radius:6px;width:28px;height:28px;font-size:13px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
+#friendFormPopup .add-btn{background:var(--friend);}
+#friendFormPopup .fi:focus{border-color:var(--friend);}
 
 /* ── 웹(데스크톱) 대응: 넓은 화면에서는 카드가 그리드 대시보드로 나란히 배치됨 ──
    (반드시 이 파일의 다른 main/.card 등 기본 규칙들보다 뒤에 와야 우선순위가 밀리지 않음) */
