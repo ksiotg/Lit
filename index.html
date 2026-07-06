@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=72">
+<link rel="stylesheet" href="css/style.css?v=73">
 </head>
 <body>
 
@@ -45,6 +45,7 @@
         <button class="tl-btn budget-tl on" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -79,6 +80,7 @@
         <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -109,6 +111,7 @@
         <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -131,6 +134,7 @@
         <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -153,6 +157,7 @@
         <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl on" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -188,6 +193,7 @@
         <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
         <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
         <button class="tl-btn project-tl on" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl" onclick="switchPage('friend')" title="친구"></button>
       </div>
     </div>
     <div class="nav-row">
@@ -202,6 +208,34 @@
     </div>
   </div>
   <main id="projectMain"></main>
+</div>
+
+<!-- 친구 페이지 -->
+<div id="page-friend" style="display:none">
+  <div class="page-header">
+    <div class="traffic-light">
+      <div class="tl-dots">
+        <button class="tl-btn routine-tl" onclick="switchPage('routine')" title="루틴"></button>
+        <button class="tl-btn workout-tl" onclick="switchPage('workout')" title="운동"></button>
+        <button class="tl-btn review-tl" onclick="switchPage('review')" title="회고"></button>
+        <button class="tl-btn budget-tl" onclick="switchPage('budget')" title="가계부"></button>
+        <button class="tl-btn freelance-tl" onclick="switchPage('freelance')" title="외주"></button>
+        <button class="tl-btn project-tl" onclick="switchPage('project')" title="프로젝트"></button>
+        <button class="tl-btn friend-tl on" onclick="switchPage('friend')" title="친구"></button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <span class="page-title">🧑‍🤝‍🧑 친구</span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="view-toggle">
+          <button class="view-btn active" id="frvbtn-list" onclick="setFriendView('list')" title="목록"><span class="ico" data-icon="list" data-size="14"></span></button>
+          <button class="view-btn" id="frvbtn-nobday" onclick="setFriendView('nobday')" title="생일 없음"><span class="ico" data-icon="calendar" data-size="14"></span></button>
+        </div>
+        <button class="nav-btn" onclick="openFriendForm()" title="새 친구"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
+      </div>
+    </div>
+  </div>
+  <main id="friendMain"></main>
 </div>
 
 <!-- 루틴 관리 팝업 -->
@@ -734,21 +768,53 @@
   </div>
 </div>
 
+<!-- 친구 추가/수정 팝업 -->
+<div class="routine-mgmt-popup" id="friendFormPopup" onclick="closeFriendForm(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;" id="frFormTitle"><span class="ico" data-icon="plus-circle" data-size="16"></span> 새 친구</div>
+      <button onclick="document.getElementById('friendFormPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div class="fg"><label class="fl">이름</label><input class="fi" id="frName" placeholder="이름"></div>
+      <div class="fg">
+        <label class="fl">그룹</label>
+        <input class="fi" id="frGroup" placeholder="그룹명" list="frGroupOptions">
+        <datalist id="frGroupOptions"></datalist>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label class="fl">친밀도 (0~10)</label>
+      <input class="fi" id="frIntimacy" type="number" min="0" max="10" placeholder="5">
+    </div>
+    <div class="fg" style="margin-bottom:14px;">
+      <label class="fl">생일 (선택)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+        <input class="fi" id="frBdayMonth" type="number" min="1" max="12" placeholder="월">
+        <input class="fi" id="frBdayDay" type="number" min="1" max="31" placeholder="일">
+      </div>
+    </div>
+    <button class="add-btn" id="frSaveBtn" onclick="saveFriendForm()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
+  </div>
+</div>
+
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=72"></script>
-<script src="js/data-state.js?v=72"></script>
-<script src="js/storage.js?v=72"></script>
-<script src="js/utils.js?v=72"></script>
-<script src="js/backup.js?v=72"></script>
-<script src="js/auth.js?v=72"></script>
-<script src="js/page-switch.js?v=72"></script>
-<script src="js/budget.js?v=72"></script>
-<script src="js/routine.js?v=72"></script>
-<script src="js/routine-mgmt.js?v=72"></script>
-<script src="js/workout.js?v=72"></script>
-<script src="js/review.js?v=72"></script>
-<script src="js/freelance.js?v=72"></script>
-<script src="js/project.js?v=72"></script>
-<script src="js/main.js?v=72"></script>
+<script src="js/supabase-client.js?v=73"></script>
+<script src="js/data-state.js?v=73"></script>
+<script src="js/storage.js?v=73"></script>
+<script src="js/utils.js?v=73"></script>
+<script src="js/backup.js?v=73"></script>
+<script src="js/auth.js?v=73"></script>
+<script src="js/page-switch.js?v=73"></script>
+<script src="js/budget.js?v=73"></script>
+<script src="js/routine.js?v=73"></script>
+<script src="js/routine-mgmt.js?v=73"></script>
+<script src="js/workout.js?v=73"></script>
+<script src="js/review.js?v=73"></script>
+<script src="js/freelance.js?v=73"></script>
+<script src="js/project.js?v=73"></script>
+<script src="js/friend.js?v=73"></script>
+<script src="js/main.js?v=73"></script>
 </body>
 </html>
