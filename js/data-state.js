@@ -106,6 +106,72 @@ const PERIOD_LABEL={morning:'아침',day:'일중',evening:'저녁'};
 const DOW=['월','화','수','목','금','토','일'];
 const WORKOUT_EMOJIS={'러닝':'🏃','홈트':'🏋️','걷기':'🚶','자전거':'🚲','등산':'⛰️','클라이밍':'🧗','요가':'🧘','수영':'🏊','기타':'🤸'};
 
+// ─── 친구 탭 ───────────────────────────────────────────────────────────────────
+// 생일/친밀도 관리. 시간(월) 개념 없이 필터/정렬 위주의 플랫 리스트.
+// 친밀도는 0~10 숫자로 저장하고, 화면에는 별 5개(1개=2점)로 환산해 보여줌.
+// 생일은 연도 없이 'MM-DD' 문자열로 저장(매년 반복되는 정보라 연도가 필요 없음).
+const DEFAULT_FRIENDS=[
+  {id:'fr01',name:'현송희',group:'득락녀',intimacy:10,birthday:null},
+  {id:'fr02',name:'윤지영',group:'득락녀',intimacy:9,birthday:null},
+  {id:'fr03',name:'한다솜',group:'득락녀',intimacy:9,birthday:null},
+  {id:'fr04',name:'이규리',group:'득락녀',intimacy:4,birthday:null},
+  {id:'fr05',name:'오빛나리',group:'득락녀',intimacy:5,birthday:null},
+  {id:'fr06',name:'이지원',group:'득락녀',intimacy:5,birthday:null},
+  {id:'fr07',name:'이재연',group:'득락녀',intimacy:7,birthday:null},
+  {id:'fr08',name:'김보겸',group:'득락녀',intimacy:5,birthday:null},
+  {id:'fr09',name:'김성은',group:'득락녀',intimacy:4,birthday:null},
+  {id:'fr10',name:'이도희',group:'득락녀',intimacy:3,birthday:null},
+  {id:'fr11',name:'금수민',group:'득락녀',intimacy:2,birthday:null},
+  {id:'fr12',name:'이다현',group:'고향',intimacy:10,birthday:null},
+  {id:'fr13',name:'강윤서',group:'고향',intimacy:9,birthday:null},
+  {id:'fr14',name:'강지희',group:'고향',intimacy:5,birthday:null},
+  {id:'fr15',name:'장주옥',group:'고향',intimacy:7,birthday:null},
+  {id:'fr16',name:'김진우',group:'고향',intimacy:4,birthday:null},
+  {id:'fr17',name:'최윤지',group:'성당',intimacy:9,birthday:null},
+  {id:'fr18',name:'김현우',group:'성당',intimacy:8,birthday:null},
+  {id:'fr19',name:'김범진',group:'성당',intimacy:7,birthday:null},
+  {id:'fr20',name:'배준기',group:'성당',intimacy:6,birthday:null},
+  {id:'fr21',name:'이재환',group:'성당',intimacy:5,birthday:null},
+  {id:'fr22',name:'김주신',group:'성당',intimacy:5,birthday:null},
+  {id:'fr23',name:'성혜원',group:'성당',intimacy:4,birthday:null},
+  {id:'fr24',name:'정원',group:'전직장',intimacy:7,birthday:null},
+  {id:'fr25',name:'원미향',group:'전직장',intimacy:7,birthday:null},
+  {id:'fr26',name:'심민화',group:'전직장',intimacy:6,birthday:null},
+  {id:'fr27',name:'이예림',group:'전직장',intimacy:6,birthday:null},
+  {id:'fr28',name:'고명준',group:'전직장',intimacy:6,birthday:null},
+  {id:'fr29',name:'신선영',group:'전직장',intimacy:3,birthday:null},
+  {id:'fr30',name:'지성경',group:'전직장',intimacy:2,birthday:null},
+  {id:'fr31',name:'스티페',group:'HBC',intimacy:8,birthday:null},
+  {id:'fr32',name:'리차드',group:'HBC',intimacy:7,birthday:null},
+  {id:'fr33',name:'조와드',group:'HBC',intimacy:7,birthday:null},
+  {id:'fr34',name:'제니',group:'HBC',intimacy:7,birthday:null},
+  {id:'fr35',name:'아이리',group:'HBC',intimacy:5,birthday:null},
+  {id:'fr36',name:'그랜트',group:'HBC',intimacy:8,birthday:null},
+  {id:'fr37',name:'켈리',group:'HBC',intimacy:4,birthday:null},
+  {id:'fr38',name:'브래드',group:'HBC',intimacy:3,birthday:null},
+  {id:'fr39',name:'시브',group:'HBC',intimacy:4,birthday:null},
+  {id:'fr40',name:'정민재',group:'HBC',intimacy:4,birthday:null},
+  {id:'fr41',name:'예지',group:'홍대',intimacy:3,birthday:null},
+  {id:'fr42',name:'주이',group:'홍대',intimacy:2,birthday:null},
+  {id:'fr43',name:'지호',group:'홍대',intimacy:3,birthday:null},
+  {id:'fr44',name:'은비',group:'홍대',intimacy:3,birthday:null},
+  {id:'fr45',name:'하루노',group:'홍대',intimacy:1,birthday:null},
+  {id:'fr46',name:'김영석',group:'음악',intimacy:8,birthday:null},
+  {id:'fr47',name:'김지은',group:'음악',intimacy:5,birthday:null},
+  {id:'fr48',name:'강영글',group:'음악',intimacy:5,birthday:null},
+  {id:'fr49',name:'윤현지',group:'음악',intimacy:6,birthday:null},
+  {id:'fr50',name:'윤미리',group:'음악',intimacy:4,birthday:null},
+  {id:'fr51',name:'김도헌',group:'음악',intimacy:3,birthday:null},
+  {id:'fr52',name:'신현태',group:'음악',intimacy:2,birthday:null},
+  {id:'fr53',name:'권민지',group:'음악',intimacy:3,birthday:null},
+  {id:'fr54',name:'임소연',group:'음악',intimacy:3,birthday:null},
+  {id:'fr55',name:'지선',group:'음악',intimacy:2,birthday:null},
+  {id:'fr56',name:'채혜진',group:'인연',intimacy:4,birthday:null},
+  {id:'fr57',name:'지애',group:'인연',intimacy:3,birthday:null},
+  {id:'fr58',name:'수라',group:'인연',intimacy:1,birthday:null},
+];
+let FRIENDS=DEFAULT_FRIENDS;
+
 // ─── STATE ─────────────────────────────────────────────────────────────────────
 const TODAY=new Date();
 let curY=TODAY.getFullYear(),curM=TODAY.getMonth();
