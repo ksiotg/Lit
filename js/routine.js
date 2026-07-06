@@ -179,12 +179,17 @@ function buildMonthlyRoutineCal(){
     const dow2=(fdMon+d-1)%7;
     const isT=TODAY.getFullYear()===rY&&TODAY.getMonth()===rM&&TODAY.getDate()===d;
     const doneToday=done.filter(x=>x.day===d).map(x=>MONTHLY_ROUTINES.find(r=>r.id===x.id)).filter(Boolean);
-    const hasMr=doneToday.length>0;
+    // 고정 스케줄이 걸려있고 이번 달에 아직 체크 안 된 루틴 중, 오늘이 계획일(예정일)인 것들 —
+    // 달성 전이라 옅게(50% 투명도) 미리보기로 표시해두고, 체크하면 doneToday 쪽으로 넘어가 진하게 바뀜.
+    const scheduledToday=MONTHLY_ROUTINES.filter(r=>r.schedule&&!done.some(x=>x.id===r.id)&&computeScheduledDay(r.schedule,rY,rM)===d);
+    const hasMr=doneToday.length>0||scheduledToday.length>0;
     const cell=mkDiv(`cal-cell mr-cal-cell ${isT?'today':''} ${hasMr?'has-mr':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
     cell.onclick=()=>openMonthlyRoutineDayDetail(rY,rM,d);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     if(hasMr){
-      const iconEl=mkDiv('mr-cal-icon');iconEl.textContent=doneToday.map(r=>r.emoji).join('');cell.appendChild(iconEl);
+      const iconEl=mkDiv('mr-cal-icon');
+      iconEl.innerHTML=doneToday.map(r=>`<span style="opacity:1">${r.emoji}</span>`).join('')+scheduledToday.map(r=>`<span style="opacity:.5">${r.emoji}</span>`).join('');
+      cell.appendChild(iconEl);
     }
     grid.appendChild(cell);
   }
