@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=74">
+<link rel="stylesheet" href="css/style.css?v=75">
 </head>
 <body>
 
@@ -197,11 +197,12 @@
       </div>
     </div>
     <div class="nav-row">
-      <span class="page-title">🎯 프로젝트</span>
+      <span class="page-title"></span>
       <div style="display:flex;align-items:center;gap:4px">
         <div class="view-toggle">
           <button class="view-btn active" id="pvbtn-status" onclick="setProjectView('status')" title="상태별"><span class="ico" data-icon="list" data-size="14"></span></button>
           <button class="view-btn" id="pvbtn-category" onclick="setProjectView('category')" title="카테고리별"><span class="ico" data-icon="tag" data-size="14"></span></button>
+          <button class="view-btn" id="pvbtn-cal" onclick="setProjectView('cal')" title="캘린더"><span class="ico" data-icon="calendar" data-size="14"></span></button>
         </div>
         <button class="nav-btn" onclick="openProjectForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
@@ -225,11 +226,12 @@
       </div>
     </div>
     <div class="nav-row">
-      <span class="page-title">🧑‍🤝‍🧑 친구</span>
+      <span class="page-title"></span>
       <div style="display:flex;align-items:center;gap:4px">
         <div class="view-toggle">
           <button class="view-btn active" id="frvbtn-list" onclick="setFriendView('list')" title="목록"><span class="ico" data-icon="list" data-size="14"></span></button>
-          <button class="view-btn" id="frvbtn-nobday" onclick="setFriendView('nobday')" title="생일 없음"><span class="ico" data-icon="calendar" data-size="14"></span></button>
+          <button class="view-btn" id="frvbtn-nobday" onclick="setFriendView('nobday')" title="생일 없음"><span class="ico" data-icon="gift" data-size="14"></span></button>
+          <button class="view-btn" id="frvbtn-cal" onclick="setFriendView('cal')" title="캘린더"><span class="ico" data-icon="calendar" data-size="14"></span></button>
         </div>
         <button class="nav-btn" onclick="openFriendForm()" title="새 친구"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
@@ -294,7 +296,6 @@
           <button class="freq-btn active" data-freq="daily" onclick="selNewFreq(this)">매일</button>
           <button class="freq-btn" data-freq="weekly" onclick="selNewFreq(this)">주N회</button>
           <button class="freq-btn" data-freq="days" onclick="selNewFreq(this)">요일고정</button>
-          <button class="freq-btn" data-freq="monthly" onclick="selNewFreq(this)">월N회</button>
         </div>
       </div>
       <div id="freqDetailWrap" style="margin-bottom:10px;display:none;"></div>
@@ -339,7 +340,6 @@
         <button class="freq-btn" data-freq="daily" onclick="selEditFreq(this)">매일</button>
         <button class="freq-btn" data-freq="weekly" onclick="selEditFreq(this)">주N회</button>
         <button class="freq-btn" data-freq="days" onclick="selEditFreq(this)">요일고정</button>
-        <button class="freq-btn" data-freq="monthly" onclick="selEditFreq(this)">월N회</button>
       </div>
     </div>
     <div id="editFreqDetailWrap" style="margin-bottom:14px;display:none;"></div>
@@ -355,21 +355,7 @@
       <div style="font-size:16px;font-weight:800;"><span class="ico" data-icon="settings" data-size="16" data-color="var(--budget)"></span> 가계부 설정</div>
       <button onclick="document.getElementById('budgetSettingsPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
-    <div class="add-routine-form-title" style="margin-bottom:8px;">💼 고정 수입</div>
-    <div id="fixedIncomeList" style="margin-bottom:14px;"></div>
-    <div class="add-routine-form">
-      <div class="add-routine-form-title"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--budget)"></span> 고정 수입 추가</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <div class="fg"><label class="fl">이름</label><input class="fi" id="newFiName" placeholder="월급"></div>
-        <div class="fg"><label class="fl">이모지</label><input class="fi" id="newFiEmoji" placeholder="💼" style="font-size:18px;text-align:center;"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <div class="fg"><label class="fl">받는 날 (일)</label><input class="fi" id="newFiDay" type="number" min="1" max="31" placeholder="10"></div>
-        <div class="fg"><label class="fl">금액</label><input class="fi" id="newFiAmount" type="number" placeholder="0"></div>
-      </div>
-      <button class="add-btn" onclick="saveNewFixedIncome()"><span class="ico" data-icon="plus-circle" data-size="14"></span> 추가하기</button>
-    </div>
-    <div class="add-routine-form-title" style="margin:18px 0 8px;border-top:1px solid var(--border);padding-top:16px;">📌 고정지출</div>
+    <div class="add-routine-form-title" style="margin-bottom:8px;">📌 고정지출</div>
     <div id="fixedItemsList" style="margin-bottom:14px;"></div>
     <div class="add-routine-form">
       <div class="add-routine-form-title" id="fiItemFormTitle"><span class="ico" data-icon="plus-circle" data-size="14" data-color="var(--budget)"></span> 고정지출 추가</div>
@@ -562,6 +548,18 @@
   </div>
 </div>
 
+<!-- 프로젝트 캘린더 날짜 상세 팝업 -->
+<div class="routine-mgmt-popup" id="pjDayPopup" onclick="closePjDayPopup(event)">
+  <div class="routine-mgmt-inner">
+    <div class="popup-bar" style="margin:0 auto 16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;" id="pjDayTitle">날짜</div>
+      <button onclick="document.getElementById('pjDayPopup').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    </div>
+    <div id="pjDayContent" style="display:flex;flex-direction:column;gap:14px;"></div>
+  </div>
+</div>
+
 <!-- 변동지출 전체 카테고리 더보기 팝업 -->
 <div class="routine-mgmt-popup" id="catAllPopup" onclick="closeCatAllPopup(event)">
   <div class="routine-mgmt-inner">
@@ -628,6 +626,22 @@
       <textarea class="review-memo-input" id="reviewMemoInput" placeholder="오늘 떠오르는 것들을 자유롭게 써요..."></textarea>
     </div>
     <button class="review-save-btn" onclick="saveReview()">저장하기</button>
+  </div>
+</div>
+
+<!-- 월간 회고 작성 팝업 -->
+<div class="overlay" id="monthlyReviewOverlay" onclick="closeMonthlyReviewPopup(event)">
+  <div class="popup">
+    <div class="popup-bar"></div>
+    <div class="popup-head">
+      <div class="popup-date-label" id="monthlyReviewPopupDate"></div>
+    </div>
+    <div id="monthlyReviewQuestions"></div>
+    <div style="padding:0 16px 8px;">
+      <div class="review-q-label">📝 자유 메모</div>
+      <textarea class="review-memo-input" id="monthlyReviewMemoInput" placeholder="이번 달을 자유롭게 돌아봐요..."></textarea>
+    </div>
+    <button class="review-save-btn" onclick="saveMonthlyReview()">저장하기</button>
   </div>
 </div>
 
@@ -800,21 +814,21 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=74"></script>
-<script src="js/data-state.js?v=74"></script>
-<script src="js/storage.js?v=74"></script>
-<script src="js/utils.js?v=74"></script>
-<script src="js/backup.js?v=74"></script>
-<script src="js/auth.js?v=74"></script>
-<script src="js/page-switch.js?v=74"></script>
-<script src="js/budget.js?v=74"></script>
-<script src="js/routine.js?v=74"></script>
-<script src="js/routine-mgmt.js?v=74"></script>
-<script src="js/workout.js?v=74"></script>
-<script src="js/review.js?v=74"></script>
-<script src="js/freelance.js?v=74"></script>
-<script src="js/project.js?v=74"></script>
-<script src="js/friend.js?v=74"></script>
-<script src="js/main.js?v=74"></script>
+<script src="js/supabase-client.js?v=75"></script>
+<script src="js/data-state.js?v=75"></script>
+<script src="js/storage.js?v=75"></script>
+<script src="js/utils.js?v=75"></script>
+<script src="js/backup.js?v=75"></script>
+<script src="js/auth.js?v=75"></script>
+<script src="js/page-switch.js?v=75"></script>
+<script src="js/budget.js?v=75"></script>
+<script src="js/routine.js?v=75"></script>
+<script src="js/routine-mgmt.js?v=75"></script>
+<script src="js/workout.js?v=75"></script>
+<script src="js/review.js?v=75"></script>
+<script src="js/freelance.js?v=75"></script>
+<script src="js/project.js?v=75"></script>
+<script src="js/friend.js?v=75"></script>
+<script src="js/main.js?v=75"></script>
 </body>
 </html>
