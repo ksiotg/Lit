@@ -87,7 +87,7 @@ function computeScheduledDay(schedule,y,m){
 // 규칙을 사람이 읽는 문구로 변환 (등록 폼/목록 표시용)
 function scheduleLabel(schedule){
   if(!schedule)return '';
-  if(schedule.type==='day')return `${schedule.day}일`;
+  if(schedule.type==='day')return schedule.day>=31?'마지막날':`${schedule.day}일`;
   if(schedule.type==='nth'){
     const nthLabel={1:'첫째주',2:'둘째주',3:'셋째주',4:'넷째주',5:'다섯째주','-1':'마지막주'}[schedule.nth]||'';
     const dowLabel=['일','월','화','수','목','금','토'][schedule.dow];
@@ -438,11 +438,39 @@ function toggleRoutineCb(r,y,m,d){
   renderRoutine();
 }
 
+// 루틴 달력에서 특정 루틴 하나만 골라 보기 (null이면 전체 보기, 기존 로직 그대로)
+let rCalFilterId=null;
+function setRCalFilter(id){
+  rCalFilterId=id||null;
+  renderRoutine();
+}
+
 function buildRoutineCal(){
   const fd=new Date(rY,rM,1).getDay();// 0=Sun
   const fdMon=fd===0?6:fd-1;// Mon-based offset
   const dim=new Date(rY,rM+1,0).getDate();
   const card=mkDiv('card');
+
+  // 루틴 필터 셀렉터 + (필터 중이면) 이번 달 완료 횟수
+  const filterRoutine=rCalFilterId?ROUTINES.find(r=>r.id===rCalFilterId):null;
+  const filterWrap=document.createElement('div');
+  filterWrap.style.cssText='padding:14px 16px 0;display:flex;align-items:center;gap:8px;';
+  let countLabel='';
+  if(filterRoutine){
+    let cnt=0;
+    for(let d=1;d<=dim;d++){
+      const date=new Date(rY,rM,d);
+      if(date>TODAY)continue;
+      if(getRoutineChecked(filterRoutine,rY,rM,d))cnt++;
+    }
+    countLabel=`<span style="font-size:11px;font-weight:800;color:var(--routine);white-space:nowrap;">이번 달 ${cnt}회 완료</span>`;
+  }
+  filterWrap.innerHTML=`<select class="fi" style="flex:1;height:32px;padding:6px 10px;font-size:12px;background:#fff;" onchange="setRCalFilter(this.value)">
+    <option value="">전체 루틴</option>
+    ${ROUTINES.map(r=>`<option value="${r.id}" ${rCalFilterId===r.id?'selected':''}>${r.emoji} ${r.name}</option>`).join('')}
+  </select>${countLabel}`;
+  card.appendChild(filterWrap);
+
   const dowRow=mkDiv('cal-dow-row');
   dowRow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dowRow.appendChild(e);});
@@ -485,14 +513,25 @@ function buildRoutineCal(){
     const isFuture=date>TODAY;
 
     let bgColor='';
-    if(!isFuture&&wi.success)bgColor='#f0fdf4';
-    else if(!isFuture&&wi.fail)bgColor='#fefce8';
+    if(filterRoutine){
+      // 특정 루틴만 볼 때: 완료=연초록, 미완료(지난 날짜만)=연빨강으로 한눈에 보이게 함
+      if(!isFuture)bgColor=getRoutineChecked(filterRoutine,rY,rM,d)?'#f0fdf4':'#fef2f2';
+    }else{
+      if(!isFuture&&wi.success)bgColor='#f0fdf4';
+      else if(!isFuture&&wi.fail)bgColor='#fefce8';
+    }
 
     const cell=mkDiv(`rcal-cell ${isT?'today':''} ${dow===5?'sat':''} ${dow===6?'sun':''}`);
     if(bgColor)cell.style.background=bgColor;
     cell.onclick=()=>openRoutineDayDetail(rY,rM,d);
     const dayEl=mkDiv('rcal-day');dayEl.textContent=d;cell.appendChild(dayEl);
-    if(!isFuture){
+    if(filterRoutine){
+      if(!isFuture){
+        const mark=mkDiv('');mark.style.cssText='font-size:12px;margin-top:2px;line-height:1;';
+        mark.textContent=getRoutineChecked(filterRoutine,rY,rM,d)?'✅':'❌';
+        cell.appendChild(mark);
+      }
+    }else if(!isFuture){
       const dots=mkDiv('rcal-dots');
       ['selfcare','health','growth','life'].forEach(cat=>{
         if(ROUTINES.filter(r=>r.cat===cat).some(r=>getRoutineChecked(r,rY,rM,d))){

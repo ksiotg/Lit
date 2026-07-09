@@ -45,7 +45,6 @@ async function onAuthReady(user){
   await Storage.loadAll(user.id);
   ROUTINES=getRoutines();
   MONTHLY_ROUTINES=getMonthlyRoutines();
-  FIXED_INCOME=getFixedIncome();
   FIXED_ITEMS=getFixedItems();
   FREELANCE_PROJECTS=getFreelanceProjects();
   EXPENSE_CATS=getExpenseCats();

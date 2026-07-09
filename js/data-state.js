@@ -20,7 +20,6 @@ const DEFAULT_FIXED_ITEMS=[
   {id:'f18',day:28,name:'애플',cat:'구독',emoji:'📅',amount:1100},
   {id:'f19',day:30,name:'카카오',cat:'구독',emoji:'📅',amount:1000},
 ];
-const DEFAULT_FIXED_INCOME=[{id:'fi01',day:10,name:'월급',cat:'급여',emoji:'💼',amount:1920000}];
 const CATS={
   income:[{n:'급여',e:'💼'},{n:'외주',e:'💻'},{n:'용돈',e:'👛'},{n:'기타',e:'💰'}],
   expense:[{n:'식사',e:'🍽️'},{n:'간식',e:'☕️'},{n:'유흥',e:'🍺'},{n:'의료',e:'🏥'},{n:'생활',e:'🧺'},{n:'교통',e:'🚕'},{n:'뷰티',e:'🪞'},{n:'여행',e:'✈️'},{n:'여가',e:'🎬'},{n:'둥',e:'🐾'},{n:'교육',e:'🎓'},{n:'경조사',e:'🕊️'},{n:'기타',e:'📦'},{n:'세금',e:'🪙'}],
@@ -85,10 +84,17 @@ const REVIEW_QUESTIONS=[
   {id:'q5',text:'오늘 "아, 이게 나답다" 싶었던 순간이 있었나요?',emoji:'✨'},
 ];
 
-// getRoutines/saveRoutines, getFixedIncome/saveFixedIncome은 storage.js(Supabase 연동)에서 정의됨.
+// 월간 회고(한 달에 한 번, 주간 회고와 별개). 자율성/자기주도성 회복에 초점을 맞춘 질문들.
+const MONTHLY_REVIEW_QUESTIONS=[
+  {id:'mq1',text:'이번 달, 내가 스스로 결정하고 실행한 일은 무엇인가요?',emoji:'🧭'},
+  {id:'mq2',text:'이번 달 목표 중 내 의지로 끝까지 해낸 것이 있다면?',emoji:'✅'},
+  {id:'mq3',text:'남의 기대가 아니라 온전히 나를 위해 선택한 순간이 있었나요?',emoji:'💛'},
+  {id:'mq4',text:'다음 달엔 무엇을 내 의지로 더 해보고 싶나요?',emoji:'🌱'},
+];
+
+// getRoutines/saveRoutines은 storage.js(Supabase 연동)에서 정의됨.
 // 로그인 후 데이터를 불러오기 전까지는 기본값으로 시작.
 let ROUTINES=DEFAULT_ROUTINES;
-let FIXED_INCOME=DEFAULT_FIXED_INCOME;
 let FIXED_ITEMS=DEFAULT_FIXED_ITEMS;
 let FREELANCE_PROJECTS=[];
 // 변동지출 카테고리(이름/이모지/색상). 사용자가 직접 추가/수정 가능 — 기본값은 CATS.expense +

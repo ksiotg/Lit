@@ -3,11 +3,13 @@
 // 친밀도는 0~10 숫자로 저장하고, 화면에는 별 5개(별 1개=2점, 남는 점수는 빈별)로 환산해서 보여줌.
 // 생일은 연도 없이 'MM-DD' 문자열로 저장(매년 반복되는 정보라 연도가 필요 없음. 다가오는 생일
 // 정렬/알림 같은 기능은 이번 1순위 범위 밖이라 아직 안 씀).
-let frView='list'; // 'list'(전체 목록) | 'nobday'(생일 미등록만 모아보기)
+let frView='list'; // 'list'(전체 목록) | 'nobday'(생일 미등록만 모아보기) | 'cal'(생일 달력)
 let frGroupFilter='전체';
 let frSort='intimacy_desc'; // 'intimacy_desc' | 'intimacy_asc' | 'name'
 let editingFrId=null;
 let frBdaySearch='';
+let frCalY=TODAY.getFullYear();
+let frCalM=TODAY.getMonth(); // 0-based
 
 function frEsc(s){return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
@@ -19,6 +21,13 @@ function setFriendView(v){
 function frSyncViewButtons(){
   document.getElementById('frvbtn-list').classList.toggle('active',frView==='list');
   document.getElementById('frvbtn-nobday').classList.toggle('active',frView==='nobday');
+  document.getElementById('frvbtn-cal').classList.toggle('active',frView==='cal');
+}
+function chFrCalMonth(d){
+  frCalM+=d;
+  if(frCalM>11){frCalM=0;frCalY++;}
+  if(frCalM<0){frCalM=11;frCalY--;}
+  renderFriend();
 }
 
 // 현재 등록된 친구들의 그룹명을 훑어서 필터 칩 목록을 만듦. 그룹은 고정된 enum이 아니라
@@ -53,10 +62,69 @@ function renderFriend(){
   const main=document.getElementById('friendMain');main.innerHTML='';
   if(frView==='nobday'){
     main.appendChild(buildFrNoBdayCard());
+  }else if(frView==='cal'){
+    const calCard=buildFrCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   }else{
     main.appendChild(buildFrFilterCard());
     main.appendChild(buildFrListCard());
   }
+}
+
+// ─── 생일 달력 뷰: 해당 월의 각 날짜 칸에 그 날 생일인 친구 이름을 표시 ──────────────
+function buildFrCalCard(){
+  const dim=new Date(frCalY,frCalM+1,0).getDate();
+  const fd=new Date(frCalY,frCalM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
+  const pad=n=>String(n).padStart(2,'0');
+  // 생일(MM-DD)이 이 달인 친구들을 일자별로 묶음 (연도 없이 매년 반복이라 월/일만 비교)
+  const byDay={};
+  FRIENDS.forEach(f=>{
+    if(!f.birthday)return;
+    const [mm,dd]=f.birthday.split('-').map(Number);
+    if(mm===frCalM+1){(byDay[dd]=byDay[dd]||[]).push(f);}
+  });
+
+  const card=mkDiv('card');
+  const head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
+  head.innerHTML=`
+    <button class="nav-btn" onclick="chFrCalMonth(-1)">‹</button>
+    <span class="page-title" style="font-size:14px;">${frCalY}년 ${frCalM+1}월</span>
+    <button class="nav-btn" onclick="chFrCalMonth(1)">›</button>`;
+  card.appendChild(head);
+  const dow=mkDiv('cal-dow-row');
+  dow.style.paddingTop='14px';
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fdMon+d-1)%7;
+    const isT=TODAY.getFullYear()===frCalY&&TODAY.getMonth()===frCalM&&TODAY.getDate()===d;
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    const names=byDay[d];
+    if(names&&names.length){
+      cell.style.background='var(--friend-tint)';
+      const namesWrap=mkDiv('');namesWrap.style.cssText='display:flex;flex-direction:column;gap:1px;margin-top:2px;';
+      names.slice(0,3).forEach(f=>{
+        const nEl=mkDiv('fr-cal-name');nEl.textContent=f.name;
+        namesWrap.appendChild(nEl);
+      });
+      if(names.length>3){
+        const more=mkDiv('fr-cal-name');more.textContent=`+${names.length-3}`;
+        namesWrap.appendChild(more);
+      }
+      cell.appendChild(namesWrap);
+    }
+    grid.appendChild(cell);
+  }
+  card.appendChild(dow);card.appendChild(grid);
+  const totalCount=Object.values(byDay).reduce((s,arr)=>s+arr.length,0);
+  const foot=document.createElement('div');
+  foot.style.cssText='padding:10px 16px 14px;font-size:11px;color:var(--muted);font-weight:700;';
+  foot.textContent=`이번 달 생일 ${totalCount}명`;
+  card.appendChild(foot);
+  return card;
 }
 
 // ─── 목록 뷰: 그룹 필터 + 정렬 ──────────────────────────────────────────────────

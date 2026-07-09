@@ -8,7 +8,9 @@
 // 자동으로 완료 처리되고(수동 완료 불가), 프로젝트 진행률(%)은 "완료된 큰 항목 수 / 전체
 // 큰 항목 수" 기준으로 계산함. 상태(대기/진행중/완료/보류)는 여전히 사용자가 직접 지정.
 let editingPjId=null;
-let pjView='status';      // 'status' | 'category' — 목록을 상태별/카테고리별로 보는 토글
+let pjView='status';      // 'status' | 'category' | 'cal' — 목록을 상태별/카테고리별/캘린더로 보는 토글
+let pjCalY=TODAY.getFullYear();
+let pjCalM=TODAY.getMonth(); // 0-based
 let pjDoneExpanded=false; // "완료" 아코디언 펼침 여부
 let pjHoldExpanded=false; // "보류" 아코디언 펼침 여부
 let pjDetailId=null;      // 상세 팝업에서 체크리스트/일지 추가·삭제할 때 대상 프로젝트
@@ -64,19 +66,107 @@ function pjDdayBadge(p){
 
 function setProjectView(v){pjView=v;renderProjects();}
 function pjSyncViewButtons(){
-  const a=document.getElementById('pvbtn-status'),b=document.getElementById('pvbtn-category');
+  const a=document.getElementById('pvbtn-status'),b=document.getElementById('pvbtn-category'),c=document.getElementById('pvbtn-cal');
   if(a)a.classList.toggle('active',pjView==='status');
   if(b)b.classList.toggle('active',pjView==='category');
+  if(c)c.classList.toggle('active',pjView==='cal');
+}
+function chPjCalMonth(d){
+  pjCalM+=d;
+  if(pjCalM>11){pjCalM=0;pjCalY++;}
+  if(pjCalM<0){pjCalM=11;pjCalY--;}
+  renderProjects();
 }
 
 function renderProjects(){
   PROJECTS=getProjects();
   pjSyncViewButtons();
   const main=document.getElementById('projectMain');main.innerHTML='';
-  const card=pjView==='category'?buildProjectCategoryList():buildProjectList();
+  const card=pjView==='category'?buildProjectCategoryList():pjView==='cal'?buildProjectCalCard():buildProjectList();
   card.classList.add('card-wide');
   main.appendChild(card);
 }
+
+// ─── 캘린더 뷰: 착수~마감 기간이 이 달과 겹치는 프로젝트를 카테고리색 점으로 표시 ──────
+function buildProjectCalCard(){
+  const dim=new Date(pjCalY,pjCalM+1,0).getDate();
+  const fd=new Date(pjCalY,pjCalM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
+  const pad=n=>String(n).padStart(2,'0');
+  const monthStart=`${pjCalY}-${pad(pjCalM+1)}-01`,monthEnd=`${pjCalY}-${pad(pjCalM+1)}-${pad(dim)}`;
+  const activeProjects=PROJECTS.filter(p=>{
+    if(!p.startDate&&!p.dueDate)return false;
+    const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
+    return s<=monthEnd&&e>=monthStart;
+  });
+
+  const card=mkDiv('card');
+  const head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
+  head.innerHTML=`
+    <button class="nav-btn" onclick="chPjCalMonth(-1)">‹</button>
+    <span class="page-title" style="font-size:14px;">${pjCalY}년 ${pjCalM+1}월</span>
+    <button class="nav-btn" onclick="chPjCalMonth(1)">›</button>`;
+  card.appendChild(head);
+  const dow=mkDiv('cal-dow-row');
+  dow.style.paddingTop='14px';
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fdMon+d-1)%7;
+    const isT=TODAY.getFullYear()===pjCalY&&TODAY.getMonth()===pjCalM&&TODAY.getDate()===d;
+    const dateStr=`${pjCalY}-${pad(pjCalM+1)}-${pad(d)}`;
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    const dayProjects=activeProjects.filter(p=>{
+      const s=p.startDate||p.dueDate,e=p.dueDate||p.startDate;
+      return dateStr>=s&&dateStr<=e;
+    });
+    // 마감일(D-day)인 날은 배경을 살짝 강조
+    const isDueDay=activeProjects.some(p=>p.dueDate===dateStr);
+    if(isDueDay)cell.style.background='var(--project-tint)';
+    if(dayProjects.length){
+      const dotsWrap=mkDiv('');dotsWrap.style.cssText='display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;';
+      dayProjects.slice(0,4).forEach(p=>{
+        const cat=pjCatInfo(p.cat);
+        const dot=mkDiv('');dot.style.cssText=`width:5px;height:5px;border-radius:50%;background:${cat.color};`;
+        dot.title=`${p.emoji||'🎯'} ${p.title||'(제목없음)'}${p.dueDate===dateStr?' (마감)':''}`;
+        dotsWrap.appendChild(dot);
+      });
+      cell.appendChild(dotsWrap);
+      cell.onclick=()=>openPjDayDetail(dateStr,dayProjects);
+    }
+    grid.appendChild(cell);
+  }
+  card.appendChild(dow);card.appendChild(grid);
+  if(activeProjects.length){
+    const legend=document.createElement('div');
+    legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
+    legend.innerHTML=PJ_CAT_LIST.filter(k=>activeProjects.some(p=>(p.cat||PJ_CAT_LIST[0])===k)).map(k=>{
+      const info=pjCatInfo(k);
+      return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${info.color};display:inline-block;"></span>${info.label}</span>`;
+    }).join('');
+    card.appendChild(legend);
+  }
+  return card;
+}
+
+function openPjDayDetail(dateStr,dayProjects){
+  const [y,m,d]=dateStr.split('-');
+  document.getElementById('pjDayTitle').textContent=`${y}.${m}.${d}`;
+  document.getElementById('pjDayContent').innerHTML=dayProjects.length?`<div style="display:flex;flex-direction:column;gap:6px;">${dayProjects.map(p=>{
+    const cat=pjCatInfo(p.cat);
+    const ddayBadge=pjDdayBadge(p);
+    return `<div class="fl-payment-row" style="cursor:pointer;" onclick="closePjDayPopupAndOpen('${p.id}')">
+      <span style="font-size:12px;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cat.color};margin-right:5px;"></span>${p.emoji||'🎯'} ${p.title||'(제목없음)'}</span>
+      ${ddayBadge||`<span style="font-size:11px;color:var(--muted);">${p.dueDate===dateStr?'마감일':'진행중'}</span>`}
+    </div>`;
+  }).join('')}</div>`:'<div class="empty">내역이 없어요</div>';
+  document.getElementById('pjDayPopup').classList.add('open');
+}
+function closePjDayPopup(e){if(e.target===document.getElementById('pjDayPopup'))document.getElementById('pjDayPopup').classList.remove('open');}
+function closePjDayPopupAndOpen(id){document.getElementById('pjDayPopup').classList.remove('open');openProjectDetail(id);}
 
 function buildPjRow(p){
   const row=mkDiv('pj-row');

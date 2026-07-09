@@ -115,9 +115,6 @@ function renderFreqDetail(){
   } else if(newRFreq==='days'){
     wrap.style.display='block';
     wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">요일 선택</label><div style="display:flex;gap:4px;">${['월','화','수','목','금','토','일'].map((d,i)=>`<button class="dow-btn ${newRWeekDays.includes(i)?'active':''}" onclick="toggleDow(${i},this)">${d}</button>`).join('')}</div>`;
-  } else if(newRFreq==='monthly'){
-    wrap.style.display='block';
-    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">월 몇 회?</label><div style="display:flex;gap:6px;flex-wrap:wrap;">${[1,2,3,4,5,6,7,8].map(n=>`<button style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:${newRMonthlyN===n?'var(--text)':'#fff'};color:${newRMonthlyN===n?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;" onclick="setMonthlyN(${n},this)">${n}</button>`).join('')}</div>`;
   }
 }
 
@@ -226,9 +223,6 @@ function renderEditFreqDetail(){
   } else if(editRFreq==='days'){
     wrap.style.display='block';
     wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">요일 선택</label><div style="display:flex;gap:4px;">${['월','화','수','목','금','토','일'].map((d,i)=>`<button class="dow-btn ${editRWeekDays.includes(i)?'active':''}" onclick="toggleEditDow(${i},this)">${d}</button>`).join('')}</div>`;
-  } else if(editRFreq==='monthly'){
-    wrap.style.display='block';
-    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">월 몇 회?</label><div style="display:flex;gap:6px;flex-wrap:wrap;">${[1,2,3,4,5,6,7,8].map(n=>`<button style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:${editRMonthlyN===n?'var(--text)':'#fff'};color:${editRMonthlyN===n?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;" onclick="setEditMonthlyN(${n},this)">${n}</button>`).join('')}</div>`;
   }
 }
 

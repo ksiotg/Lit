@@ -7,7 +7,82 @@ function renderReview(){
   const mc=document.getElementById('reviewMain');mc.innerHTML='';
   const calCard=buildReviewCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
   mc.appendChild(buildReviewToday());
+  mc.appendChild(buildMonthlyReviewCard());
   mc.appendChild(buildWeeklySummary());
+}
+
+// ─── 월간 회고 (주간 회고와 별개, 한 달에 한 번 작성) ────────────────────────────
+function buildMonthlyReviewCard(){
+  const card=mkDiv('card');
+  const mrv=S.getMonthlyReview(rvY,rvM);
+  const header=mkDiv('card-header');header.innerHTML=`<span class="card-title">이번 달 회고</span>`;
+  card.appendChild(header);
+  if(mrv){
+    const done=mkDiv('');done.style.cssText='padding:14px 16px;';
+    done.innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--review);margin-bottom:8px;">✅ ${rvM+1}월 회고 완료!</div>`;
+    MONTHLY_REVIEW_QUESTIONS.forEach(q=>{
+      const answer=mrv.answers?.[q.id]||'';
+      const row=mkDiv('');row.style.cssText='margin-bottom:10px;';
+      const label=mkDiv('');label.style.cssText='font-size:12px;color:var(--muted);margin-bottom:4px;';label.textContent=`${q.emoji} ${q.text}`;
+      const ans=mkDiv('review-q-answer-done');
+      if(answer){ans.textContent=answer;}else{ans.style.color='var(--muted)';ans.textContent='(답변 없음)';}
+      row.appendChild(label);row.appendChild(ans);
+      done.appendChild(row);
+    });
+    if(mrv.memo){
+      const memo=mkDiv('');memo.style.cssText='background:var(--bg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);margin-top:8px;';
+      memo.textContent=mrv.memo;done.appendChild(memo);
+    }
+    const editBtn=document.createElement('button');editBtn.className='add-btn';editBtn.style.cssText='margin-top:12px;';editBtn.innerHTML=`${icon('edit',14)} 수정하기`;
+    editBtn.onclick=()=>openMonthlyReviewPopup();
+    done.appendChild(editBtn);card.appendChild(done);
+  }else{
+    const empty=mkDiv('');empty.style.cssText='padding:14px 16px;';
+    const btn=document.createElement('button');btn.className='add-btn';btn.textContent='월간 회고 작성하기';
+    btn.onclick=()=>openMonthlyReviewPopup();
+    empty.appendChild(btn);card.appendChild(empty);
+  }
+  return card;
+}
+
+function openMonthlyReviewPopup(){
+  const existing=S.getMonthlyReview(rvY,rvM)||{answers:{},memo:''};
+  document.getElementById('monthlyReviewPopupDate').textContent=`${rvY}년 ${rvM+1}월 회고`;
+  const qWrap=document.getElementById('monthlyReviewQuestions');qWrap.innerHTML='';
+  MONTHLY_REVIEW_QUESTIONS.forEach(q=>{
+    const div=mkDiv('review-q');
+    const answer=existing.answers?.[q.id]||'';
+    div.innerHTML=`<div class="review-q-label">${q.emoji}</div><div class="review-q-text">${q.text}</div><textarea class="review-q-answer" id="mans_${q.id}" placeholder="답변을 적어보세요..."></textarea>`;
+    qWrap.appendChild(div);
+    div.querySelector(`#mans_${q.id}`).value=answer;
+  });
+  document.getElementById('monthlyReviewMemoInput').value=existing.memo||'';
+  document.getElementById('monthlyReviewOverlay').classList.add('open');
+}
+function closeMonthlyReviewPopup(e){if(e.target===document.getElementById('monthlyReviewOverlay'))document.getElementById('monthlyReviewOverlay').classList.remove('open');}
+
+function saveMonthlyReview(){
+  const answers={};
+  MONTHLY_REVIEW_QUESTIONS.forEach(q=>{answers[q.id]=document.getElementById(`mans_${q.id}`).value.trim();});
+  const memo=document.getElementById('monthlyReviewMemoInput').value.trim();
+  S.setMonthlyReview(rvY,rvM,{answers,memo,ts:Date.now()});
+  markMonthlyReviewRoutineDone(rvY,rvM);
+  document.getElementById('monthlyReviewOverlay').classList.remove('open');
+  renderReview();
+  if(rY===rvY&&rM===rvM)renderRoutine();
+}
+
+// 월간 루틴 목록에서 "한 달 회고" 항목을 찾아 이번 달 완료 처리함(이미 완료면 중복 처리 안 함).
+// 완료일 계산은 routine.js의 toggleMonthlyRoutine과 동일한 규칙: 실제 이번 달을 보고 있으면
+// 오늘 날짜, 아니면 1일로 기본 저장.
+function markMonthlyReviewRoutineDone(y,m){
+  const target=MONTHLY_ROUTINES.find(r=>r.name==='한 달 회고');
+  if(!target)return;
+  let done=mrDoneList(y,m);
+  if(done.some(x=>x.id===target.id))return;
+  const day=(y===TODAY.getFullYear()&&m===TODAY.getMonth())?TODAY.getDate():1;
+  done=[...done,{id:target.id,day}];
+  S.setMonthlyDone(y,m,done);
 }
 
 function buildReviewToday(){

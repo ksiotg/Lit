@@ -2,17 +2,6 @@
 function chMonth(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderBudget();}
 function setView(v){curView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));document.getElementById('vbtn-'+v).classList.add('active');renderBudget();}
 
-// 특정 연/월에 "적용 중"인 고정 수입만 골라냄 (startYm~endYm 기준).
-// 예전 고정수입을 종료해도 그게 적용되던 과거 달의 기록은 그대로 유지됨.
-function activeFixedIncome(y,m){
-  const ym=mk(y,m);
-  return FIXED_INCOME.filter(fi=>{
-    if(fi.startYm&&ym<fi.startYm)return false;
-    if(fi.endYm&&ym>fi.endYm)return false;
-    return true;
-  });
-}
-
 // 특정 연/월에 "적용 중"인 고정지출만 골라냄 (startYm~endYm 기준).
 // 고정지출을 수정/종료해도 그게 적용되던 과거 달의 기록은 그대로 유지됨.
 function activeFixedItems(y,m){
@@ -27,7 +16,7 @@ function activeFixedItems(y,m){
 function renderBudget(){
   document.getElementById('monthLabel').textContent=`${curY}년 ${curM+1}월`;
   const entries=S.getEntries(curY,curM),checked=S.getChecked(curY,curM);
-  const fi=activeFixedIncome(curY,curM).reduce((s,i)=>s+i.amount,0)+entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const fi=entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
   const fe=activeFixedItems(curY,curM).filter(f=>checked.includes(f.id)).reduce((s,f)=>s+f.amount,0)+entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
   const rem=fi-fe;
   document.getElementById('sumIncome').textContent='+'+fi.toLocaleString('ko-KR');
@@ -163,8 +152,7 @@ function closeCatDetail(e){if(e.target===document.getElementById('catDetailPopup
 function collectBudgetRows(y,m,type){
   const entries=S.getEntries(y,m).filter(e=>e.type===type);
   if(type==='income'){
-    const auto=activeFixedIncome(y,m).map(f=>({...f,type:'income',auto:true}));
-    return [...auto,...entries];
+    return entries;
   }
   const checked=S.getChecked(y,m);
   const paidDayMap=S.getFixedPaidDay(y,m);
@@ -282,7 +270,6 @@ function buildBudgetCal(){
   const byDay={};
   const todayZero = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
   entries.forEach(e=>{if(!byDay[e.day])byDay[e.day]=[];byDay[e.day].push(e);});
-  activeFixedIncome(curY,curM).forEach(fi=>{if(!byDay[fi.day])byDay[fi.day]=[];byDay[fi.day].push({...fi,type:'income',auto:true});});
   const card=mkDiv('card');
   let noSpendCount=0;
   const dow=mkDiv('cal-dow-row');
@@ -350,7 +337,7 @@ function buildYear(){
   let yi=0,ye=0;
   for(let m=0;m<12;m++){
     const e=S.getEntries(curY,m),c=S.getChecked(curY,m);
-    const fi=activeFixedIncome(curY,m).reduce((s,i)=>s+i.amount,0)+e.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);
+    const fi=e.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);
     const fe=activeFixedItems(curY,m).filter(f=>c.includes(f.id)).reduce((s,f)=>s+f.amount,0)+e.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);
     yi+=fi;ye+=fe;
     const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer';
@@ -383,7 +370,6 @@ function closePopup(e){if(e.target===document.getElementById('overlay'))document
 function renderPopupEntries(){
   if(popupDay===null)return;
   const entries=S.getEntries(curY,curM).filter(e=>e.day===popupDay);
-  const autoInc=activeFixedIncome(curY,curM).filter(f=>f.day===popupDay);
   // 고정지출은 예정일이 와도 자동으로 나타나지 않고, 체크(납부 완료 처리)해서 실제 출금액을
   // 입력한 시점에만 "그 체크한 날짜" 기준으로 여기 나타남 (예정일은 그냥 기준일일 뿐).
   const checked=S.getChecked(curY,curM);
@@ -398,7 +384,7 @@ function renderPopupEntries(){
   });
   // 정렬 순서: 고정지출 → 수입 → 지출
   const fixedRows=fixedExp.map(f=>({...f,type:'fixed',auto:true,id:'x_'+f.id,amount:actualMap[f.id]!=null?actualMap[f.id]:f.amount}));
-  const incRows=[...autoInc.map(f=>({...f,type:'income',auto:true,id:'a_'+f.id})),...entries.filter(e=>e.type==='income')];
+  const incRows=entries.filter(e=>e.type==='income');
   const expRows=entries.filter(e=>e.type==='expense');
   const all=[...fixedRows,...incRows,...expRows];
   // 날짜 라벨 옆에 그날의 수입-지출 순액 표시 (수입/지출 색상 규칙과 동일: 순수입=파랑, 순지출=빨강)
@@ -560,7 +546,6 @@ function delEntry(id){
 
 // ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
 function openBudgetSettings(){
-  renderFixedIncomeList();
   renderFixedItemsList();
   renderExpenseCatsList();
   editingExpenseCatName=null;
@@ -572,45 +557,6 @@ function openBudgetSettings(){
   document.getElementById('budgetSettingsPopup').classList.add('open');
 }
 function closeBudgetSettings(e){if(e.target===document.getElementById('budgetSettingsPopup'))document.getElementById('budgetSettingsPopup').classList.remove('open');}
-
-function renderFixedIncomeList(){
-  const wrap=document.getElementById('fixedIncomeList');wrap.innerHTML='';
-  if(!FIXED_INCOME.length){wrap.innerHTML='<div class="empty">등록된 고정 수입이 없어요</div>';return;}
-  FIXED_INCOME.forEach(fi=>{
-    const item=mkDiv('rmgmt-item');
-    const period=fi.endYm?`${fi.startYm||'처음'}~${fi.endYm} · 종료됨`:`${fi.startYm?fi.startYm+'~':''}매월 자동 반영중`;
-    const rightBtn=fi.endYm?'':`<button class="rmgmt-del" onclick="endFixedIncome('${fi.id}')" title="이번 달까지만 반영하고 종료">${icon('x',14)}</button>`;
-    item.innerHTML=`<div class="rmgmt-icon">${fi.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${fi.name}</div><div class="rmgmt-sub">매월 ${fi.day}일 · ${fmt(fi.amount)} · ${period}</div></div>${rightBtn}`;
-    if(fi.endYm)item.style.opacity='0.55';
-    wrap.appendChild(item);
-  });
-}
-
-function saveNewFixedIncome(){
-  const name=document.getElementById('newFiName').value.trim();
-  const emoji=document.getElementById('newFiEmoji').value.trim()||'💼';
-  const day=Math.min(31,Math.max(1,parseInt(document.getElementById('newFiDay').value)||1));
-  const amount=parseInt(document.getElementById('newFiAmount').value)||0;
-  if(!name||!amount){alert('이름과 금액을 입력해줘');return;}
-  FIXED_INCOME=[...FIXED_INCOME,{id:'fi'+Date.now(),name,emoji,day,cat:'급여',amount,startYm:mk(TODAY.getFullYear(),TODAY.getMonth())}];
-  saveFixedIncome(FIXED_INCOME);
-  document.getElementById('newFiName').value='';
-  document.getElementById('newFiEmoji').value='';
-  document.getElementById('newFiDay').value='';
-  document.getElementById('newFiAmount').value='';
-  renderFixedIncomeList();
-  renderBudget();
-}
-
-// 고정 수입을 "삭제"하는 대신 이번 달까지만 반영하고 이번 달 기준으로 종료함.
-// 이렇게 해야 지난 달까지의 가계부 기록이 뒤늦게 바뀌지 않음.
-function endFixedIncome(id){
-  if(!confirm('이번 달까지만 반영하고 종료할까요? 지난 기록은 그대로 남아요.'))return;
-  FIXED_INCOME=FIXED_INCOME.map(f=>f.id===id?{...f,endYm:mk(TODAY.getFullYear(),TODAY.getMonth())}:f);
-  saveFixedIncome(FIXED_INCOME);
-  renderFixedIncomeList();
-  renderBudget();
-}
 
 // ─── 가계부 설정 (고정지출 관리) ────────────────────────────────────────────
 let editingFixedItemId=null;

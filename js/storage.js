@@ -50,11 +50,6 @@ function getMonthlyRoutines(){
 }
 function saveMonthlyRoutines(arr){Storage._set('monthly_routines',arr);}
 
-function getFixedIncome(){
-  return Storage._get('fixed_income',null)||DEFAULT_FIXED_INCOME;
-}
-function saveFixedIncome(arr){Storage._set('fixed_income',arr);}
-
 function getFixedItems(){
   return Storage._get('fixed_items',null)||DEFAULT_FIXED_ITEMS;
 }
@@ -115,4 +110,7 @@ const S={
   // 달력 일별 목록에는 예정일이 아니라 이 날짜 기준으로 표시됨. {fixedItemId: day} 형태.
   getFixedPaidDay(y,m){return Storage._get('pd_'+mk(y,m),{})},
   setFixedPaidDay(y,m,v){Storage._set('pd_'+mk(y,m),v)},
+  // 월간 회고 (한 달에 한 번 작성). 'YYYY-MM' 단위로 저장.
+  getMonthlyReview(y,m){return Storage._get('mrv_'+mk(y,m),null)},
+  setMonthlyReview(y,m,v){Storage._set('mrv_'+mk(y,m),v)},
 };

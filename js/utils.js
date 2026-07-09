@@ -20,7 +20,8 @@ const FEATHER_ICONS={
   list:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
   tag:'<path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2.59 12.58a2 2 0 0 1 0-2.83L9.76 2.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.59 1.41z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
   grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
-  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  gift:'<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>'
 };
 function icon(name,size=15,extraStyle=''){
   const d=FEATHER_ICONS[name];
@@ -41,8 +42,13 @@ function getWeekStart(y,m,d){
   return mon;
 }
 function getWeekOfMonth(y,m,d){
-  // 1-7일은 1주차, 8-14일은 2주차... 로 계산하는 간단한 방식
-  return Math.ceil(d / 7);
+  // 달력 그리드의 몇 번째 "행"에 해당하는 날짜인지로 계산 (월요일 시작 기준).
+  // 예전엔 단순히 Math.ceil(d/7)만 써서, 그 달 1일이 월요일이 아닐 때
+  // (예: 7월 1일이 수요일이면 7/6~7/7이 이미 2주차 행인데도 1주차로 잘못 표시되던 버그가 있었음.
+  // 1일의 요일 오프셋(월=0)을 더해서 계산하면 실제 달력에 보이는 주차와 항상 일치함.
+  const firstDow=new Date(y,m,1).getDay();
+  const firstDowMon=firstDow===0?6:firstDow-1;
+  return Math.ceil((d+firstDowMon)/7);
 }
 function isNoDeal(y,m,d){
   const entries=S.getEntries(y,m);
