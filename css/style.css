@@ -522,6 +522,7 @@ flex-shrink:0;
 .fr-bday-input-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0;}
 .fr-bday-input-wrap input{width:44px;text-align:center;padding:6px 4px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;font-family:inherit;}
 .fr-bday-save-btn{background:var(--friend);color:#fff;border:none;border-radius:6px;width:28px;height:28px;font-size:13px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
+.fr-cal-name{font-size:9px;font-weight:700;color:var(--friend);line-height:1.2;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #friendFormPopup .add-btn{background:var(--friend);}
 #friendFormPopup .fi:focus{border-color:var(--friend);}
 
