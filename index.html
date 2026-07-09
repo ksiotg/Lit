@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=75">
+<link rel="stylesheet" href="css/style.css?v=76">
 </head>
 <body>
 
@@ -202,7 +202,6 @@
         <div class="view-toggle">
           <button class="view-btn active" id="pvbtn-status" onclick="setProjectView('status')" title="상태별"><span class="ico" data-icon="list" data-size="14"></span></button>
           <button class="view-btn" id="pvbtn-category" onclick="setProjectView('category')" title="카테고리별"><span class="ico" data-icon="tag" data-size="14"></span></button>
-          <button class="view-btn" id="pvbtn-cal" onclick="setProjectView('cal')" title="캘린더"><span class="ico" data-icon="calendar" data-size="14"></span></button>
         </div>
         <button class="nav-btn" onclick="openProjectForm()" title="새 프로젝트"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
@@ -228,11 +227,6 @@
     <div class="nav-row">
       <span class="page-title"></span>
       <div style="display:flex;align-items:center;gap:4px">
-        <div class="view-toggle">
-          <button class="view-btn active" id="frvbtn-list" onclick="setFriendView('list')" title="목록"><span class="ico" data-icon="list" data-size="14"></span></button>
-          <button class="view-btn" id="frvbtn-nobday" onclick="setFriendView('nobday')" title="생일 없음"><span class="ico" data-icon="gift" data-size="14"></span></button>
-          <button class="view-btn" id="frvbtn-cal" onclick="setFriendView('cal')" title="캘린더"><span class="ico" data-icon="calendar" data-size="14"></span></button>
-        </div>
         <button class="nav-btn" onclick="openFriendForm()" title="새 친구"><span class="ico" data-icon="plus-circle" data-size="15"></span></button>
       </div>
     </div>
@@ -814,21 +808,21 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=75"></script>
-<script src="js/data-state.js?v=75"></script>
-<script src="js/storage.js?v=75"></script>
-<script src="js/utils.js?v=75"></script>
-<script src="js/backup.js?v=75"></script>
-<script src="js/auth.js?v=75"></script>
-<script src="js/page-switch.js?v=75"></script>
-<script src="js/budget.js?v=75"></script>
-<script src="js/routine.js?v=75"></script>
-<script src="js/routine-mgmt.js?v=75"></script>
-<script src="js/workout.js?v=75"></script>
-<script src="js/review.js?v=75"></script>
-<script src="js/freelance.js?v=75"></script>
-<script src="js/project.js?v=75"></script>
-<script src="js/friend.js?v=75"></script>
-<script src="js/main.js?v=75"></script>
+<script src="js/supabase-client.js?v=76"></script>
+<script src="js/data-state.js?v=76"></script>
+<script src="js/storage.js?v=76"></script>
+<script src="js/utils.js?v=76"></script>
+<script src="js/backup.js?v=76"></script>
+<script src="js/auth.js?v=76"></script>
+<script src="js/page-switch.js?v=76"></script>
+<script src="js/budget.js?v=76"></script>
+<script src="js/routine.js?v=76"></script>
+<script src="js/routine-mgmt.js?v=76"></script>
+<script src="js/workout.js?v=76"></script>
+<script src="js/review.js?v=76"></script>
+<script src="js/freelance.js?v=76"></script>
+<script src="js/project.js?v=76"></script>
+<script src="js/friend.js?v=76"></script>
+<script src="js/main.js?v=76"></script>
 </body>
 </html>
