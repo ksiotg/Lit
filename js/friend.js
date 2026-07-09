@@ -3,26 +3,14 @@
 // 친밀도는 0~10 숫자로 저장하고, 화면에는 별 5개(별 1개=2점, 남는 점수는 빈별)로 환산해서 보여줌.
 // 생일은 연도 없이 'MM-DD' 문자열로 저장(매년 반복되는 정보라 연도가 필요 없음. 다가오는 생일
 // 정렬/알림 같은 기능은 이번 1순위 범위 밖이라 아직 안 씀).
-let frView='list'; // 'list'(전체 목록) | 'nobday'(생일 미등록만 모아보기) | 'cal'(생일 달력)
 let frGroupFilter='전체';
-let frSort='intimacy_desc'; // 'intimacy_desc' | 'intimacy_asc' | 'name'
+let frSort='intimacy_desc'; // 'intimacy_desc' | 'intimacy_asc' — 토글 버튼 하나로 전환(이름순은 제거)
 let editingFrId=null;
-let frBdaySearch='';
 let frCalY=TODAY.getFullYear();
 let frCalM=TODAY.getMonth(); // 0-based
 
 function frEsc(s){return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
-function setFriendView(v){
-  frView=v;
-  if(v==='nobday')frBdaySearch=''; // 생일없음 뷰 들어올 때마다 검색어 리셋
-  renderFriend();
-}
-function frSyncViewButtons(){
-  document.getElementById('frvbtn-list').classList.toggle('active',frView==='list');
-  document.getElementById('frvbtn-nobday').classList.toggle('active',frView==='nobday');
-  document.getElementById('frvbtn-cal').classList.toggle('active',frView==='cal');
-}
 function chFrCalMonth(d){
   frCalM+=d;
   if(frCalM>11){frCalM=0;frCalY++;}
@@ -56,18 +44,14 @@ function frBdayLabel(bday){
   return `${mm}월 ${dd}일`;
 }
 
+// 다른 탭들처럼 진입시 첫 화면이 캘린더 → 그 아래 필터/정렬 → 목록 순으로 항상 함께 보여줌
+// (별도 뷰 토글 없음).
 function renderFriend(){
   FRIENDS=getFriends();
-  frSyncViewButtons();
   const main=document.getElementById('friendMain');main.innerHTML='';
-  if(frView==='nobday'){
-    main.appendChild(buildFrNoBdayCard());
-  }else if(frView==='cal'){
-    const calCard=buildFrCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
-  }else{
-    main.appendChild(buildFrFilterCard());
-    main.appendChild(buildFrListCard());
-  }
+  const calCard=buildFrCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
+  main.appendChild(buildFrFilterSortCard());
+  main.appendChild(buildFrListCard());
 }
 
 // ─── 생일 달력 뷰: 해당 월의 각 날짜 칸에 그 날 생일인 친구 이름을 표시 ──────────────
@@ -127,23 +111,22 @@ function buildFrCalCard(){
   return card;
 }
 
-// ─── 목록 뷰: 그룹 필터 + 정렬 ──────────────────────────────────────────────────
-function buildFrFilterCard(){
+// ─── 그룹 필터(드롭다운 1개) + 정렬 토글(버튼 1개) ──────────────────────────────
+function buildFrFilterSortCard(){
   const card=mkDiv('card');
-  const wrap=document.createElement('div');wrap.style.cssText='padding:14px 16px;display:flex;flex-direction:column;gap:10px;';
+  const wrap=document.createElement('div');wrap.style.cssText='padding:14px 16px;display:flex;align-items:center;gap:8px;';
   const groups=frGroups();
-  const chipsWrap=document.createElement('div');chipsWrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;';
-  chipsWrap.innerHTML=['전체',...groups].map(g=>`<button class="fr-chip ${frGroupFilter===g?'active':''}" onclick="setFrGroupFilter('${frEsc(g)}')">${g}</button>`).join('');
-  const sortWrap=document.createElement('div');sortWrap.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
-  sortWrap.innerHTML=`
-    <button class="fr-sort-btn ${frSort==='intimacy_desc'?'active':''}" onclick="setFrSort('intimacy_desc')">친밀도 높은순</button>
-    <button class="fr-sort-btn ${frSort==='intimacy_asc'?'active':''}" onclick="setFrSort('intimacy_asc')">친밀도 낮은순</button>
-    <button class="fr-sort-btn ${frSort==='name'?'active':''}" onclick="setFrSort('name')">이름순</button>`;
-  wrap.appendChild(chipsWrap);wrap.appendChild(sortWrap);
+  const selectHtml=`<select class="fi" style="flex:1;height:32px;padding:6px 10px;font-size:12px;background:#fff;" onchange="setFrGroupFilter(this.value)">
+    <option value="전체" ${frGroupFilter==='전체'?'selected':''}>전체</option>
+    ${groups.map(g=>`<option value="${frEsc(g)}" ${frGroupFilter===g?'selected':''}>${g}</option>`).join('')}
+  </select>`;
+  const sortLabel=frSort==='intimacy_desc'?'친밀도 ↓':'친밀도 ↑';
+  const sortBtnHtml=`<button class="fr-sort-btn active" style="flex-shrink:0;white-space:nowrap;" onclick="toggleFrSort()">${sortLabel}</button>`;
+  wrap.innerHTML=selectHtml+sortBtnHtml;
   card.appendChild(wrap);return card;
 }
 function setFrGroupFilter(g){frGroupFilter=g;renderFriend();}
-function setFrSort(s){frSort=s;renderFriend();}
+function toggleFrSort(){frSort=frSort==='intimacy_desc'?'intimacy_asc':'intimacy_desc';renderFriend();}
 
 function buildFrListCard(){
   const card=mkDiv('card');
@@ -151,8 +134,7 @@ function buildFrListCard(){
   let list=[...FRIENDS];
   if(frGroupFilter!=='전체')list=list.filter(f=>(f.group||'미분류')===frGroupFilter);
   if(frSort==='intimacy_desc')list.sort((a,b)=>(b.intimacy||0)-(a.intimacy||0)||a.name.localeCompare(b.name,'ko'));
-  else if(frSort==='intimacy_asc')list.sort((a,b)=>(a.intimacy||0)-(b.intimacy||0)||a.name.localeCompare(b.name,'ko'));
-  else list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  else list.sort((a,b)=>(a.intimacy||0)-(b.intimacy||0)||a.name.localeCompare(b.name,'ko'));
   const head=document.createElement('div');
   head.style.cssText='font-size:11px;color:var(--muted);font-weight:700;padding:8px 0 2px;';
   head.textContent=`총 ${list.length}명`;
@@ -185,67 +167,6 @@ function buildFrRow(f){
     </div>
     ${frStarsHtml(f.intimacy)}`;
   return row;
-}
-
-// ─── 생일 없음 뷰: 이름 검색 + 원탭 입력 ────────────────────────────────────────
-function buildFrNoBdayCard(){
-  const card=mkDiv('card');
-  const wrap=document.createElement('div');wrap.style.cssText='padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;';
-  wrap.innerHTML=`
-    <div class="fg"><input class="fi" id="frBdaySearchInput" placeholder="이름 검색" oninput="onFrBdaySearch(this.value)"></div>
-    <div id="frNoBdayCount" style="font-size:11px;color:var(--muted);font-weight:700;"></div>
-    <div id="frNoBdayList" style="display:flex;flex-direction:column;gap:8px;"></div>`;
-  card.appendChild(wrap);
-  const input=wrap.querySelector('#frBdaySearchInput');
-  if(input)input.value=frBdaySearch;
-  renderFrNoBdayList();
-  return card;
-}
-
-function renderFrNoBdayList(){
-  const list=FRIENDS.filter(f=>!f.birthday).filter(f=>!frBdaySearch||f.name.includes(frBdaySearch));
-  const countEl=document.getElementById('frNoBdayCount');
-  if(countEl)countEl.textContent=`생일 미등록 ${list.length}명`;
-  const listWrap=document.getElementById('frNoBdayList');
-  if(!listWrap)return;
-  if(!list.length){
-    listWrap.innerHTML='<div class="empty">해당하는 친구가 없어요</div>';
-  }else{
-    listWrap.innerHTML='';
-    list.forEach(f=>listWrap.appendChild(buildFrNoBdayRow(f)));
-  }
-}
-
-// 검색어가 바뀔 때마다 검색창 자체는 다시 그리지 않고 목록만 갱신 → 타이핑 중 포커스/커서 유지됨.
-function onFrBdaySearch(v){
-  frBdaySearch=v;
-  renderFrNoBdayList();
-}
-
-function buildFrNoBdayRow(f){
-  const row=mkDiv('fr-nobday-row');
-  row.innerHTML=`
-    <div class="fr-nobday-info">
-      <div class="fr-nobday-name">${f.name}</div>
-      <div class="fr-nobday-group">${f.group||'미분류'}</div>
-    </div>
-    <div class="fr-bday-input-wrap">
-      <input type="number" min="1" max="12" placeholder="월" id="frBdayM-${f.id}">
-      <input type="number" min="1" max="31" placeholder="일" id="frBdayD-${f.id}">
-      <button class="fr-bday-save-btn" onclick="quickSaveFrBday('${f.id}')" title="저장">${icon('plus-circle',15)}</button>
-    </div>`;
-  return row;
-}
-
-// 카톡 생일 알림 뜰 때 바로 찾아서 월/일만 입력하고 저장하는 용도. 저장 후에는 목록에서
-// 바로 사라져야 하니 생일없음 목록만 다시 그림(검색창은 안 건드림 → 이어서 다음 사람 검색 가능).
-function quickSaveFrBday(id){
-  const mEl=document.getElementById('frBdayM-'+id),dEl=document.getElementById('frBdayD-'+id);
-  const m=parseInt(mEl.value),d=parseInt(dEl.value);
-  if(!m||!d||m<1||m>12||d<1||d>31){alert('월/일을 올바르게 입력해줘');return;}
-  FRIENDS=FRIENDS.map(f=>f.id===id?{...f,birthday:`${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}:f);
-  saveFriends(FRIENDS);
-  renderFrNoBdayList();
 }
 
 // ─── 추가/수정 폼 ──────────────────────────────────────────────────────────────

@@ -444,6 +444,13 @@ function setRCalFilter(id){
   rCalFilterId=id||null;
   renderRoutine();
 }
+// 특정 루틴이 해당 요일(월=0~일=6)에 애초에 스케줄되어 있는지 여부.
+// freq:'days'인 루틴만 요일이 고정되어 있고(예: 평일 5일), 나머지(daily/weekly/monthly)는
+// 요일 제약이 없어 항상 "해당함"으로 봄.
+function isRoutineScheduledOnDow(r,dowMon){
+  if(r.freq==='days'&&Array.isArray(r.days))return r.days.includes(dowMon);
+  return true;
+}
 
 function buildRoutineCal(){
   const fd=new Date(rY,rM,1).getDay();// 0=Sun
@@ -513,10 +520,7 @@ function buildRoutineCal(){
     const isFuture=date>TODAY;
 
     let bgColor='';
-    if(filterRoutine){
-      // 특정 루틴만 볼 때: 완료=연초록, 미완료(지난 날짜만)=연빨강으로 한눈에 보이게 함
-      if(!isFuture)bgColor=getRoutineChecked(filterRoutine,rY,rM,d)?'#f0fdf4':'#fef2f2';
-    }else{
+    if(!filterRoutine){
       if(!isFuture&&wi.success)bgColor='#f0fdf4';
       else if(!isFuture&&wi.fail)bgColor='#fefce8';
     }
@@ -526,10 +530,11 @@ function buildRoutineCal(){
     cell.onclick=()=>openRoutineDayDetail(rY,rM,d);
     const dayEl=mkDiv('rcal-day');dayEl.textContent=d;cell.appendChild(dayEl);
     if(filterRoutine){
-      if(!isFuture){
-        const mark=mkDiv('');mark.style.cssText='font-size:12px;margin-top:2px;line-height:1;';
-        mark.textContent=getRoutineChecked(filterRoutine,rY,rM,d)?'✅':'❌';
-        cell.appendChild(mark);
+      // 이 루틴이 애초에 스케줄되지 않은 요일(예: 평일 전용 루틴의 주말)은 완전히 빈 칸으로 둠
+      if(!isFuture&&isRoutineScheduledOnDow(filterRoutine,dow)){
+        const dot=mkDiv('');
+        dot.style.cssText=`width:6px;height:6px;border-radius:50%;margin:3px auto 0;background:${getRoutineChecked(filterRoutine,rY,rM,d)?'var(--income)':'var(--expense)'};`;
+        cell.appendChild(dot);
       }
     }else if(!isFuture){
       const dots=mkDiv('rcal-dots');

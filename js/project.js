@@ -8,7 +8,7 @@
 // 자동으로 완료 처리되고(수동 완료 불가), 프로젝트 진행률(%)은 "완료된 큰 항목 수 / 전체
 // 큰 항목 수" 기준으로 계산함. 상태(대기/진행중/완료/보류)는 여전히 사용자가 직접 지정.
 let editingPjId=null;
-let pjView='status';      // 'status' | 'category' | 'cal' — 목록을 상태별/카테고리별/캘린더로 보는 토글
+let pjView='status';      // 'status' | 'category' — 목록을 상태별/카테고리별로 보는 토글(캘린더는 항상 위에 함께 표시)
 let pjCalY=TODAY.getFullYear();
 let pjCalM=TODAY.getMonth(); // 0-based
 let pjDoneExpanded=false; // "완료" 아코디언 펼침 여부
@@ -20,10 +20,11 @@ let pjImportanceSel='mid';// 추가/수정 폼에서 현재 선택된 중요도
 
 const PJ_STATUS_LIST=['대기','진행중','완료','보류'];
 const PJ_STATUS_BADGE={'대기':'wait','진행중':'progress','완료':'done','보류':'hold'};
-const PJ_STATUS_EMOJI={'대기':'⏳','진행중':'🔥','완료':'✅','보류':'⏸️'};
+// 이모지는 카테고리/항목을 대표하는 용도로만 쓰고, 상태처럼 UI 요소는 Feather 아이콘으로 통일.
+const PJ_STATUS_ICON={'대기':'circle','진행중':'play','완료':'check-circle','보류':'pause'};
 const PJ_IMPORTANCE_LIST=['low','mid','high'];
 const PJ_IMPORTANCE_LABEL={low:'낮음',mid:'보통',high:'높음'};
-const PJ_IMPORTANCE_STARS={low:'⭐',mid:'⭐⭐',high:'⭐⭐⭐'};
+const PJ_IMPORTANCE_N={low:1,mid:2,high:3}; // 중요도별 채울 별 개수(총 3개)
 
 // 체크리스트 큰 항목 배열을 반환. 예전 버전(플랫 체크리스트, p.checklist)으로 저장된
 // 데이터가 있으면 "체크리스트"라는 이름의 큰 항목 1개로 감싸서 보여줌(하위호환).
@@ -47,8 +48,18 @@ function pjCatInfo(catKey){
 }
 function pjBadge(status){
   const cls=PJ_STATUS_BADGE[status]||'wait';
-  const emoji=PJ_STATUS_EMOJI[status]||'⏳';
-  return `<span class="pj-badge ${cls}">${emoji} ${status}</span>`;
+  const iconName=PJ_STATUS_ICON[status]||'circle';
+  return `<span class="pj-badge ${cls}" title="${status}">${icon(iconName,14)}</span>`;
+}
+// 중요도(low/mid/high) → 별 3개 중 몇 개를 채울지, Feather star 아이콘으로 렌더링(테마 핑크색).
+function pjImportanceStarsHtml(importance){
+  const filled=PJ_IMPORTANCE_N[importance]||PJ_IMPORTANCE_N.mid;
+  let html='';
+  for(let i=0;i<3;i++){
+    const on=i<filled;
+    html+=`<svg viewBox="0 0 24 24" width="13" height="13" fill="${on?'var(--project)':'none'}" stroke="${on?'var(--project)':'#d8dbe8'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  }
+  return `<span style="display:inline-flex;align-items:center;gap:1px;">${html}</span>`;
 }
 // 착수일/마감일을 "시작~마감" 형태로 합쳐서 보여줌 (외주 탭의 flPeriodLabel과 같은 패턴).
 function pjPeriodLabel(p){
@@ -66,10 +77,9 @@ function pjDdayBadge(p){
 
 function setProjectView(v){pjView=v;renderProjects();}
 function pjSyncViewButtons(){
-  const a=document.getElementById('pvbtn-status'),b=document.getElementById('pvbtn-category'),c=document.getElementById('pvbtn-cal');
+  const a=document.getElementById('pvbtn-status'),b=document.getElementById('pvbtn-category');
   if(a)a.classList.toggle('active',pjView==='status');
   if(b)b.classList.toggle('active',pjView==='category');
-  if(c)c.classList.toggle('active',pjView==='cal');
 }
 function chPjCalMonth(d){
   pjCalM+=d;
@@ -78,13 +88,16 @@ function chPjCalMonth(d){
   renderProjects();
 }
 
+// 다른 탭들처럼 진입시 첫 화면 = 캘린더. 별도 토글 없이 항상 위쪽에 표시하고,
+// 그 아래에 기존 상태별/카테고리별 토글 + 목록을 그대로 보여줌.
 function renderProjects(){
   PROJECTS=getProjects();
   pjSyncViewButtons();
   const main=document.getElementById('projectMain');main.innerHTML='';
-  const card=pjView==='category'?buildProjectCategoryList():pjView==='cal'?buildProjectCalCard():buildProjectList();
-  card.classList.add('card-wide');
-  main.appendChild(card);
+  const calCard=buildProjectCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
+  const listCard=pjView==='category'?buildProjectCategoryList():buildProjectList();
+  listCard.classList.add('card-wide');
+  main.appendChild(listCard);
 }
 
 // ─── 캘린더 뷰: 착수~마감 기간이 이 달과 겹치는 프로젝트를 카테고리색 점으로 표시 ──────
@@ -169,17 +182,16 @@ function closePjDayPopup(e){if(e.target===document.getElementById('pjDayPopup'))
 function closePjDayPopupAndOpen(id){document.getElementById('pjDayPopup').classList.remove('open');openProjectDetail(id);}
 
 function buildPjRow(p){
-  const row=mkDiv('pj-row');
+  const row=mkDiv(`pj-row ${p.pinned?'pinned-bg':''}`);
   const cat=pjCatInfo(p.cat);
   const progress=pjProgress(p);
   const badge=pjBadge(p.status);
   const period=pjPeriodLabel(p);
-  const ddayBadge=pjDdayBadge(p);
-  const stars=PJ_IMPORTANCE_STARS[p.importance]||PJ_IMPORTANCE_STARS.mid;
+  const stars=pjImportanceStarsHtml(p.importance);
+  // D-day는 캘린더에서 이미 보여주므로 카드 목록에서는 기간 텍스트만 남기고 뺌.
   const subParts=[`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.label}</span>`];
-  if(ddayBadge)subParts.push(ddayBadge);
-  else if(period)subParts.push(`<span>${period}</span>`);
-  subParts.push(`<span style="color:#f59e0b;letter-spacing:-1px;">${stars}</span>`);
+  if(period)subParts.push(`<span>${period}</span>`);
+  subParts.push(stars);
   let progressHtml='';
   if(progress!==null){
     progressHtml=`<div style="display:flex;align-items:center;gap:8px;"><div class="pj-progress-track"><div class="pj-progress-fill" style="width:${progress}%;"></div></div><span class="pj-progress-pct">${progress}%</span></div>`;
@@ -197,24 +209,11 @@ function buildPjRow(p){
     </div>
     ${progressHtml}
     <div style="display:flex;justify-content:flex-end;gap:4px;">
-      <button class="pj-icon ${p.pinned?'pinned':''}" onclick="togglePjPin('${p.id}')" title="${p.pinned?'이번 주 집중 해제':'이번 주 집중으로 고정'}">📌</button>
+      <button class="pj-icon ${p.pinned?'pinned':''}" onclick="togglePjPin('${p.id}')" title="${p.pinned?'이번 주 집중 해제':'이번 주 집중으로 고정'}">${icon('bookmark',15)}</button>
       <button class="pj-icon" onclick="editProjectStart('${p.id}')" title="수정">${icon('edit',14)}</button>
       <button class="pj-icon del" onclick="deleteProject('${p.id}')" title="삭제">${icon('x-circle',15)}</button>
     </div>`;
   return row;
-}
-
-// "이번 주 집중" 고정 프로젝트를 상단에 별도 라벨로 보여주고, 아래 목록에는 중복 노출하지 않음.
-function appendPjPinnedSection(wrap,pinned){
-  if(!pinned.length)return;
-  const label=document.createElement('div');
-  label.style.cssText='font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;';
-  label.textContent='📌 이번 주 집중';
-  wrap.appendChild(label);
-  pinned.forEach(p=>wrap.appendChild(buildPjRow(p)));
-  const divider=document.createElement('div');
-  divider.style.cssText='height:1px;background:var(--border);margin:2px 0 0;';
-  wrap.appendChild(divider);
 }
 
 function buildProjectList(){
@@ -224,15 +223,15 @@ function buildProjectList(){
     wrap.appendChild(mkDiv('empty','등록된 프로젝트가 없어요'));
     card.appendChild(wrap);return card;
   }
-  const pinned=PROJECTS.filter(p=>p.pinned);
-  const rest=PROJECTS.filter(p=>!p.pinned);
-  appendPjPinnedSection(wrap,pinned);
-  // 대기/진행중은 항상 위에, 완료/보류는 각각 별도의 아코디언으로 접어둠.
-  const active=rest.filter(p=>p.status==='대기'||p.status==='진행중');
-  const done=rest.filter(p=>p.status==='완료');
-  const hold=rest.filter(p=>p.status==='보류');
+  // 고정(핀)한 프로젝트는 별도 텍스트 배지/섹션 없이, 카드 배경 틴트(pj-row.pinned-bg)로만 표시하고
+  // 대기/진행중 목록 안에서 맨 위로 정렬함.
+  const active=PROJECTS.filter(p=>p.status==='대기'||p.status==='진행중');
+  const done=PROJECTS.filter(p=>p.status==='완료');
+  const hold=PROJECTS.filter(p=>p.status==='보류');
   const rank={'진행중':0,'대기':1};
   active.sort((a,b)=>{
+    const pinDiff=(b.pinned?1:0)-(a.pinned?1:0);
+    if(pinDiff)return pinDiff;
     const r=(rank[a.status]??2)-(rank[b.status]??2);
     if(r)return r;
     return (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99');
@@ -271,19 +270,10 @@ function buildProjectCategoryList(){
     wrap.appendChild(mkDiv('empty','등록된 프로젝트가 없어요'));
     card.appendChild(wrap);return card;
   }
-  const pinned=PROJECTS.filter(p=>p.pinned);
-  const rest=PROJECTS.filter(p=>!p.pinned);
-  if(pinned.length){
-    const label=document.createElement('div');
-    label.style.cssText='font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;';
-    label.textContent='📌 이번 주 집중';
-    const pinWrap=document.createElement('div');pinWrap.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:8px;';
-    pinned.forEach(p=>pinWrap.appendChild(buildPjRow(p)));
-    wrap.appendChild(label);wrap.appendChild(pinWrap);
-  }
+  // 고정(핀) 프로젝트는 별도 섹션 없이 카드 배경 틴트로만 표시, 각 카테고리 그룹 안에서 맨 위로 정렬.
   const rank={'진행중':0,'대기':1,'보류':2,'완료':3};
   const byCat={};
-  rest.forEach(p=>{const key=p.cat||PJ_CAT_LIST[0];(byCat[key]=byCat[key]||[]).push(p);});
+  PROJECTS.forEach(p=>{const key=p.cat||PJ_CAT_LIST[0];(byCat[key]=byCat[key]||[]).push(p);});
   let any=false;
   PJ_CAT_LIST.forEach(catKey=>{
     const projects=byCat[catKey];
@@ -295,6 +285,8 @@ function buildProjectCategoryList(){
     head.innerHTML=`<span class="pj-cat-group-name">${info.label}</span><span class="pj-cat-group-total">${projects.length}건</span>`;
     const list=document.createElement('div');list.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:10px;';
     [...projects].sort((a,b)=>{
+      const pinDiff=(b.pinned?1:0)-(a.pinned?1:0);
+      if(pinDiff)return pinDiff;
       const r=(rank[a.status]??9)-(rank[b.status]??9);
       if(r)return r;
       return (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99');
@@ -302,7 +294,7 @@ function buildProjectCategoryList(){
     group.appendChild(head);group.appendChild(list);
     wrap.appendChild(group);
   });
-  if(!any&&!pinned.length)wrap.appendChild(mkDiv('empty','등록된 프로젝트가 없어요'));
+  if(!any)wrap.appendChild(mkDiv('empty','등록된 프로젝트가 없어요'));
   card.appendChild(wrap);return card;
 }
 
@@ -318,7 +310,7 @@ function togglePjPin(id){
 function populatePjStatusButtons(){
   const wrap=document.getElementById('pjStatusBtnWrap');
   if(!wrap)return;
-  wrap.innerHTML=PJ_STATUS_LIST.map(s=>`<button type="button" class="pj-status-btn ${PJ_STATUS_BADGE[s]} ${pjStatusSel===s?'active':''}" data-status="${s}" onclick="selPjStatus(this)">${PJ_STATUS_EMOJI[s]} ${s}</button>`).join('');
+  wrap.innerHTML=PJ_STATUS_LIST.map(s=>`<button type="button" class="pj-status-btn ${PJ_STATUS_BADGE[s]} ${pjStatusSel===s?'active':''}" data-status="${s}" onclick="selPjStatus(this)">${icon(PJ_STATUS_ICON[s],13)} ${s}</button>`).join('');
   syncPjCompletionNoteVisibility();
 }
 function selPjStatus(btn){pjStatusSel=btn.dataset.status;populatePjStatusButtons();}
@@ -341,7 +333,7 @@ function syncPjCatButtons(){
 function populatePjImportanceButtons(){
   const wrap=document.getElementById('pjImportanceBtnWrap');
   if(!wrap)return;
-  wrap.innerHTML=PJ_IMPORTANCE_LIST.map(k=>`<button type="button" class="pj-imp-btn ${pjImportanceSel===k?'active':''}" data-imp="${k}" onclick="selPjImportance(this)">${PJ_IMPORTANCE_STARS[k]} ${PJ_IMPORTANCE_LABEL[k]}</button>`).join('');
+  wrap.innerHTML=PJ_IMPORTANCE_LIST.map(k=>`<button type="button" class="pj-imp-btn ${pjImportanceSel===k?'active':''}" data-imp="${k}" onclick="selPjImportance(this)">${pjImportanceStarsHtml(k)} ${PJ_IMPORTANCE_LABEL[k]}</button>`).join('');
 }
 function selPjImportance(btn){pjImportanceSel=btn.dataset.imp;populatePjImportanceButtons();}
 
@@ -427,15 +419,12 @@ function renderProjectDetail(){
   const p=PROJECTS.find(x=>x.id===pjDetailId);
   if(!p)return;
   const cat=pjCatInfo(p.cat);
-  document.getElementById('pjDetailTitle').textContent=`${p.pinned?'📌 ':''}${p.emoji||'🎯'} ${p.title||'(제목없음)'}`;
+  document.getElementById('pjDetailTitle').textContent=`${p.emoji||'🎯'} ${p.title||'(제목없음)'}`;
   const period=pjPeriodLabel(p);
-  const ddayBadge=pjDdayBadge(p);
-  const stars=PJ_IMPORTANCE_STARS[p.importance]||PJ_IMPORTANCE_STARS.mid;
   const subParts=[`<span class="pj-cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.label}</span>`];
-  if(ddayBadge)subParts.push(ddayBadge);
-  else subParts.push(`<span>${period||'기간 없음'}</span>`);
+  subParts.push(`<span>${period||'기간 없음'}</span>`);
   subParts.push(pjBadge(p.status));
-  subParts.push(`<span style="color:#f59e0b;letter-spacing:-1px;">${stars}</span>`);
+  subParts.push(pjImportanceStarsHtml(p.importance));
   document.getElementById('pjDetailSub').innerHTML=subParts.join('');
   const memoEl=document.getElementById('pjDetailMemo');
   if(p.memo){memoEl.textContent=p.memo;memoEl.style.display='';}
