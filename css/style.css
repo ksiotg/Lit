@@ -439,11 +439,14 @@ flex-shrink:0;
 .pj-row-emoji{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
 .pj-row-name{font-size:13px;font-weight:700;}
 .pj-row-sub{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.pj-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+/* 상태 배지: 이모지+텍스트 대신 Feather 아이콘 1개만 테마색으로 표시 */
+.pj-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;flex-shrink:0;}
 .pj-badge.wait{background:#f1f5f9;color:#64748b;}
 .pj-badge.progress{background:var(--project-tint);color:var(--project);}
 .pj-badge.done{background:#ede9fe;color:#7c3aed;}
 .pj-badge.hold{background:#fef3c7;color:#b45309;}
+/* 고정(핀)한 프로젝트: 텍스트 배지 대신 카드 배경 전체를 연분홍 톤으로 옅게 */
+.pj-row.pinned-bg{background:var(--project-tint);}
 .pj-cat-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;}
 .pj-row-actions{display:flex;align-items:center;gap:4px;}
 .pj-icon{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 4px;}
@@ -455,7 +458,7 @@ flex-shrink:0;
 .pj-progress-pct{font-size:10px;font-weight:800;color:var(--project);flex-shrink:0;}
 .pj-more-btn{display:block;width:100%;margin-top:4px;padding:10px;background:var(--project-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--project);cursor:pointer;}
 .pj-more-btn:hover{opacity:0.8;}
-.pj-status-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.pj-status-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
 .pj-status-btn.active.wait{background:#f1f5f9;color:#64748b;border-color:#cbd5e1;}
 .pj-status-btn.active.progress{background:var(--project-tint);color:var(--project);border-color:var(--project);}
 .pj-status-btn.active.done{background:#ede9fe;color:#7c3aed;border-color:#7c3aed;}
@@ -471,8 +474,8 @@ flex-shrink:0;
 .pj-dday.soon{background:#ffedd5;color:#c2410c;}
 .pj-dday.over{background:#fee2e2;color:#b91c1c;}
 /* 중요도 버튼 */
-.pj-imp-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
-.pj-imp-btn.active{background:#fef3c7;color:#b45309;border-color:#f59e0b;}
+.pj-imp-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.pj-imp-btn.active{background:var(--project-tint);color:var(--project);border-color:var(--project);}
 /* 카테고리별 보기 그룹 (외주 탭 .fl-client-group과 같은 패턴) */
 .pj-cat-group{background:#fff!important;border-radius:var(--radius);border:1px solid var(--border);box-shadow:none;padding:14px 16px;}
 .pj-cat-group-head{display:flex;justify-content:space-between;align-items:center;}
