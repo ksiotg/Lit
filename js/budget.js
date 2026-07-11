@@ -4,11 +4,12 @@ function setView(v){curView=v;document.querySelectorAll('.view-btn').forEach(b=>
 
 // 특정 연/월에 "적용 중"인 고정지출만 골라냄 (startYm~endYm 기준).
 // 고정지출을 수정/종료해도 그게 적용되던 과거 달의 기록은 그대로 유지됨.
+// 종료월(endYm)은 "이번 달부터 안 보이게" 기준이라 종료월 당월도 제외함(ym>=endYm).
 function activeFixedItems(y,m){
   const ym=mk(y,m);
   return FIXED_ITEMS.filter(fi=>{
     if(fi.startYm&&ym<fi.startYm)return false;
-    if(fi.endYm&&ym>fi.endYm)return false;
+    if(fi.endYm&&ym>=fi.endYm)return false;
     return true;
   });
 }
@@ -546,6 +547,14 @@ function delEntry(id){
 
 // ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
 function openBudgetSettings(){
+  editingFixedItemId=null;
+  document.getElementById('newFItemName').value='';
+  document.getElementById('newFItemDay').value='';
+  document.getElementById('newFItemAmount').value='';
+  populateFItemCatSelect();
+  populateFItemEmojiSelect();
+  document.getElementById('fiItemFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--budget)')} 고정지출 추가`;
+  document.getElementById('fiItemSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderFixedItemsList();
   renderExpenseCatsList();
   editingExpenseCatName=null;
@@ -567,11 +576,43 @@ function renderFixedItemsList(){
   FIXED_ITEMS.forEach(f=>{
     const item=mkDiv('rmgmt-item');
     const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
-    const rightBtns=f.endYm?'':`<button class="rmgmt-del" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달까지만 반영하고 종료">${icon('x',14)}</button>`;
+    const rightBtns=f.endYm?'':`<button class="rmgmt-del" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달부터 반영 안 되게 종료">${icon('x',14)}</button>`;
     item.innerHTML=`<div class="rmgmt-icon">${f.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">매월 ${f.day}일 · ${fmt(f.amount)} · ${period}</div></div><div style="display:flex;gap:2px;">${rightBtns}</div>`;
     if(f.endYm)item.style.opacity='0.55';
     wrap.appendChild(item);
   });
+}
+
+// 고정지출 "분류" 드롭다운을 변동지출 카테고리(EXPENSE_CATS) 목록으로 채움.
+// 옛날에 등록된 고정지출 중엔 변동지출 카테고리 목록에 없는 분류(예: 주거/통신/보험 등
+// 고정지출 전용으로 쓰던 이름)를 가진 게 있어서, 그 항목을 수정할 때는 목록에 없어도
+// 현재 값을 맨 위에 임시로 추가해서 데이터가 조용히 다른 값으로 바뀌지 않게 함.
+function populateFItemCatSelect(currentCat){
+  const sel=document.getElementById('newFItemCat');
+  if(!sel)return;
+  const opts=EXPENSE_CATS.map(c=>({v:c.n,label:`${c.e} ${c.n}`}));
+  if(currentCat&&!EXPENSE_CATS.some(c=>c.n===currentCat))opts.unshift({v:currentCat,label:`${currentCat} (기존값)`});
+  sel.innerHTML=opts.map(o=>`<option value="${o.v}">${o.label}</option>`).join('');
+  if(currentCat)sel.value=currentCat;
+}
+// 고정지출 이모지도 자유 입력 대신, 변동지출 카테고리들이 쓰는 이모지 중에서 골라 고정할 수 있게 드롭다운으로 제공.
+function fItemEmojiOptions(){
+  const seen=new Set();const list=[];
+  EXPENSE_CATS.forEach(c=>{if(!seen.has(c.e)){seen.add(c.e);list.push(c.e);}});
+  return list;
+}
+function populateFItemEmojiSelect(currentEmoji){
+  const sel=document.getElementById('newFItemEmoji');
+  if(!sel)return;
+  const list=fItemEmojiOptions();
+  if(currentEmoji&&!list.includes(currentEmoji))list.unshift(currentEmoji);
+  sel.innerHTML=list.map(e=>`<option value="${e}">${e}</option>`).join('');
+  if(currentEmoji)sel.value=currentEmoji;
+}
+// 분류를 바꾸면 그 카테고리가 쓰는 이모지로 자동 맞춰줌 (고른 뒤 이모지만 따로 다시 바꿔도 됨).
+function syncFItemEmojiFromCat(){
+  const c=EXPENSE_CATS.find(x=>x.n===document.getElementById('newFItemCat').value);
+  if(c)document.getElementById('newFItemEmoji').value=c.e;
 }
 
 function editFixedItemStart(id){
@@ -579,8 +620,8 @@ function editFixedItemStart(id){
   if(!f)return;
   editingFixedItemId=id;
   document.getElementById('newFItemName').value=f.name;
-  document.getElementById('newFItemEmoji').value=f.emoji;
-  document.getElementById('newFItemCat').value=f.cat;
+  populateFItemCatSelect(f.cat);
+  populateFItemEmojiSelect(f.emoji);
   document.getElementById('newFItemDay').value=f.day;
   document.getElementById('newFItemAmount').value=f.amount;
   document.getElementById('fiItemFormTitle').innerHTML=`${icon('edit',14,'color:var(--budget)')} 고정지출 수정 (이번 달부터 적용)`;
@@ -588,7 +629,7 @@ function editFixedItemStart(id){
 }
 
 // 새 고정지출 추가 / 기존 항목 수정 저장.
-// 수정은 기존 항목을 이번 달까지만 반영하고 종료 + 이번 달부터 새 값으로 새 항목을 시작하는 방식.
+// 수정은 기존 항목을 이번 달부터 종료(더 이상 표시 안 됨) + 이번 달부터 새 값으로 새 항목을 시작하는 방식.
 // (가계부 고정 수입과 동일한 원리 — 지난 달 기록은 예전 값 그대로 유지됨)
 function saveFixedItemForm(){
   const name=document.getElementById('newFItemName').value.trim();
@@ -606,16 +647,20 @@ function saveFixedItemForm(){
     FIXED_ITEMS=[...FIXED_ITEMS,{id:'f'+Date.now(),name,emoji,cat,day,amount,startYm:curYm}];
   }
   saveFixedItems(FIXED_ITEMS);
-  ['newFItemName','newFItemEmoji','newFItemCat','newFItemDay','newFItemAmount'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('newFItemName').value='';
+  document.getElementById('newFItemDay').value='';
+  document.getElementById('newFItemAmount').value='';
+  populateFItemCatSelect();
+  populateFItemEmojiSelect();
   document.getElementById('fiItemFormTitle').innerHTML=`${icon('plus-circle',14,'color:var(--budget)')} 고정지출 추가`;
   document.getElementById('fiItemSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
   renderFixedItemsList();
   renderBudget();
 }
 
-// 고정지출을 "삭제"하는 대신 이번 달까지만 반영하고 이번 달 기준으로 종료함.
+// 고정지출을 "삭제"하는 대신 이번 달부터 반영되지 않도록 종료함(지난 기록은 그대로 남음).
 function endFixedItem(id){
-  if(!confirm('이번 달까지만 반영하고 종료할까요? 지난 기록은 그대로 남아요.'))return;
+  if(!confirm('이번 달부터 반영하지 않도록 종료할까요? 지난 기록은 그대로 남아요.'))return;
   FIXED_ITEMS=FIXED_ITEMS.map(f=>f.id===id?{...f,endYm:mk(TODAY.getFullYear(),TODAY.getMonth())}:f);
   saveFixedItems(FIXED_ITEMS);
   renderFixedItemsList();
