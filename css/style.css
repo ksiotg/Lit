@@ -460,6 +460,8 @@ flex-shrink:0;
 .pj-more-btn:hover{opacity:0.8;}
 .fi-more-btn{display:block;width:100%;margin:4px 0 10px;padding:10px;background:var(--budget-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--budget);cursor:pointer;}
 .fi-more-btn:hover{opacity:0.8;}
+.fi-sort-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.fi-sort-btn.active{background:var(--budget);color:#fff;border-color:var(--budget);}
 .pj-status-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
 .pj-status-btn.active.wait{background:#f1f5f9;color:#64748b;border-color:#cbd5e1;}
 .pj-status-btn.active.progress{background:var(--project-tint);color:var(--project);border-color:var(--project);}
