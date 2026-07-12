@@ -549,6 +549,7 @@ function delEntry(id){
 // ─── 가계부 설정 (고정 수입 관리) ────────────────────────────────────────────
 function openBudgetSettings(){
   editingFixedItemId=null;
+  fixedEndedExpanded=false;
   document.getElementById('newFItemName').value='';
   document.getElementById('newFItemDay').value='';
   document.getElementById('newFItemAmount').value='';
@@ -570,20 +571,37 @@ function closeBudgetSettings(e){if(e.target===document.getElementById('budgetSet
 
 // ─── 가계부 설정 (고정지출 관리) ────────────────────────────────────────────
 let editingFixedItemId=null;
+// 고정지출을 수정할 때마다 옛 항목은 endYm이 찍혀서 "종료됨" 상태로 남기 때문에
+// (과거 기록 보존용) 계속 쌓이면 목록이 지저분해짐. 기본은 활성 항목만 보여주고,
+// 종료된 항목은 프로젝트/외주 탭의 "완료 (N건)" 아코디언과 같은 패턴으로 접어둠.
+let fixedEndedExpanded=false;
 
 function renderFixedItemsList(){
   const wrap=document.getElementById('fixedItemsList');wrap.innerHTML='';
   if(!FIXED_ITEMS.length){wrap.innerHTML='<div class="empty">등록된 고정지출이 없어요</div>';return;}
-  // 등록 순서가 아니라 납부일(day) 오름차순으로 보여줌.
-  [...FIXED_ITEMS].sort((a,b)=>a.day-b.day).forEach(f=>{
+  const buildItem=(f)=>{
     const item=mkDiv('rmgmt-item');
     const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
     const rightBtns=f.endYm?'':`<button class="rmgmt-del" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달부터 반영 안 되게 종료">${icon('x',14)}</button>`;
     item.innerHTML=`<div class="rmgmt-icon">${f.emoji}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">매월 ${f.day}일 · ${fmt(f.amount)} · ${period}</div></div><div style="display:flex;gap:2px;">${rightBtns}</div>`;
     if(f.endYm)item.style.opacity='0.55';
-    wrap.appendChild(item);
-  });
+    return item;
+  };
+  const sorted=[...FIXED_ITEMS].sort((a,b)=>a.day-b.day);
+  const active=sorted.filter(f=>!f.endYm);
+  const ended=sorted.filter(f=>f.endYm);
+  if(active.length)active.forEach(f=>wrap.appendChild(buildItem(f)));
+  else wrap.appendChild(mkDiv('empty','등록된 고정지출이 없어요'));
+  if(ended.length){
+    const btn=document.createElement('button');
+    btn.className='fi-more-btn';
+    btn.textContent=fixedEndedExpanded?'접기':`종료된 항목 (${ended.length}건)`;
+    btn.onclick=toggleFixedEndedList;
+    wrap.appendChild(btn);
+    if(fixedEndedExpanded)ended.forEach(f=>wrap.appendChild(buildItem(f)));
+  }
 }
+function toggleFixedEndedList(){fixedEndedExpanded=!fixedEndedExpanded;renderFixedItemsList();}
 
 // 고정지출 "분류" 드롭다운을 변동지출 카테고리(EXPENSE_CATS) 목록으로 채움.
 // 옛날에 등록된 고정지출 중엔 변동지출 카테고리 목록에 없는 분류(예: 주거/통신/보험 등
