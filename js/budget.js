@@ -625,22 +625,27 @@ function renderFixedItemsList(){
 }
 function toggleFixedEndedList(){fixedEndedExpanded=!fixedEndedExpanded;renderFixedItemsList();}
 
-// 고정지출 "분류" 드롭다운을 변동지출 카테고리(EXPENSE_CATS) 목록으로 채움.
-// 옛날에 등록된 고정지출 중엔 변동지출 카테고리 목록에 없는 분류(예: 주거/통신/보험 등
-// 고정지출 전용으로 쓰던 이름)를 가진 게 있어서, 그 항목을 수정할 때는 목록에 없어도
-// 현재 값을 맨 위에 임시로 추가해서 데이터가 조용히 다른 값으로 바뀌지 않게 함.
+// 고정지출은 변동지출과 별개의 분류 체계(주거/구독/기부/통신 등)를 써왔기 때문에,
+// 변동지출 카테고리(EXPENSE_CATS)가 아니라 기존 고정지출 항목들에 이미 저장된 분류값을
+// 모아서 드롭다운을 만듦. 분류별 대표 이모지는 그 분류를 쓰는 항목들 중 처음 발견되는 이모지로 정함.
+function fiExistingCats(){
+  const seen=new Map();
+  FIXED_ITEMS.forEach(f=>{if(f.cat&&!seen.has(f.cat))seen.set(f.cat,f.emoji||'📌');});
+  return [...seen.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ko')).map(([cat,emoji])=>({cat,emoji}));
+}
 function populateFItemCatSelect(currentCat){
   const sel=document.getElementById('newFItemCat');
   if(!sel)return;
-  const opts=EXPENSE_CATS.map(c=>({v:c.n,label:`${c.e} ${c.n}`}));
-  if(currentCat&&!EXPENSE_CATS.some(c=>c.n===currentCat))opts.unshift({v:currentCat,label:`${currentCat} (기존값)`});
+  const cats=fiExistingCats();
+  const opts=cats.map(c=>({v:c.cat,label:`${c.emoji} ${c.cat}`}));
+  if(currentCat&&!cats.some(c=>c.cat===currentCat))opts.unshift({v:currentCat,label:`${currentCat} (기존값)`});
   sel.innerHTML=opts.map(o=>`<option value="${o.v}">${o.label}</option>`).join('');
   if(currentCat)sel.value=currentCat;
 }
-// 고정지출 이모지도 자유 입력 대신, 변동지출 카테고리들이 쓰는 이모지 중에서 골라 고정할 수 있게 드롭다운으로 제공.
+// 고정지출 이모지도 자유 입력 대신, 기존 고정지출 분류들이 쓰는 이모지 중에서 골라 고정할 수 있게 드롭다운으로 제공.
 function fItemEmojiOptions(){
   const seen=new Set();const list=[];
-  EXPENSE_CATS.forEach(c=>{if(!seen.has(c.e)){seen.add(c.e);list.push(c.e);}});
+  fiExistingCats().forEach(c=>{if(!seen.has(c.emoji)){seen.add(c.emoji);list.push(c.emoji);}});
   return list;
 }
 function populateFItemEmojiSelect(currentEmoji){
@@ -651,10 +656,10 @@ function populateFItemEmojiSelect(currentEmoji){
   sel.innerHTML=list.map(e=>`<option value="${e}">${e}</option>`).join('');
   if(currentEmoji)sel.value=currentEmoji;
 }
-// 분류를 바꾸면 그 카테고리가 쓰는 이모지로 자동 맞춰줌 (고른 뒤 이모지만 따로 다시 바꿔도 됨).
+// 분류를 바꾸면 그 분류가 쓰는 이모지로 자동 맞춰줌 (고른 뒤 이모지만 따로 다시 바꿔도 됨).
 function syncFItemEmojiFromCat(){
-  const c=EXPENSE_CATS.find(x=>x.n===document.getElementById('newFItemCat').value);
-  if(c)document.getElementById('newFItemEmoji').value=c.e;
+  const c=fiExistingCats().find(x=>x.cat===document.getElementById('newFItemCat').value);
+  if(c)document.getElementById('newFItemEmoji').value=c.emoji;
 }
 
 function editFixedItemStart(id){
