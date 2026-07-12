@@ -5,13 +5,14 @@ function setView(v){curView=v;document.querySelectorAll('.view-btn').forEach(b=>
 // 특정 연/월에 "적용 중"인 고정지출만 골라냄 (startYm~endYm 기준).
 // 고정지출을 수정/종료해도 그게 적용되던 과거 달의 기록은 그대로 유지됨.
 // 종료월(endYm)은 "이번 달부터 안 보이게" 기준이라 종료월 당월도 제외함(ym>=endYm).
+// 등록 순서가 아니라 납부일(day) 오름차순으로 정렬해서 반환함.
 function activeFixedItems(y,m){
   const ym=mk(y,m);
   return FIXED_ITEMS.filter(fi=>{
     if(fi.startYm&&ym<fi.startYm)return false;
     if(fi.endYm&&ym>=fi.endYm)return false;
     return true;
-  });
+  }).sort((a,b)=>a.day-b.day);
 }
 
 function renderBudget(){
@@ -573,7 +574,8 @@ let editingFixedItemId=null;
 function renderFixedItemsList(){
   const wrap=document.getElementById('fixedItemsList');wrap.innerHTML='';
   if(!FIXED_ITEMS.length){wrap.innerHTML='<div class="empty">등록된 고정지출이 없어요</div>';return;}
-  FIXED_ITEMS.forEach(f=>{
+  // 등록 순서가 아니라 납부일(day) 오름차순으로 보여줌.
+  [...FIXED_ITEMS].sort((a,b)=>a.day-b.day).forEach(f=>{
     const item=mkDiv('rmgmt-item');
     const period=f.endYm?`${f.startYm||'처음'}~${f.endYm} · 종료됨`:`${f.startYm?f.startYm+'~':''}매월 자동 반영중`;
     const rightBtns=f.endYm?'':`<button class="rmgmt-del" onclick="editFixedItemStart('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="endFixedItem('${f.id}')" title="이번 달부터 반영 안 되게 종료">${icon('x',14)}</button>`;
