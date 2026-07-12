@@ -550,6 +550,8 @@ function delEntry(id){
 function openBudgetSettings(){
   editingFixedItemId=null;
   fixedEndedExpanded=false;
+  fiSortBy='day';
+  fiSortDir='desc';
   document.getElementById('newFItemName').value='';
   document.getElementById('newFItemDay').value='';
   document.getElementById('newFItemAmount').value='';
@@ -575,8 +577,28 @@ let editingFixedItemId=null;
 // (과거 기록 보존용) 계속 쌓이면 목록이 지저분해짐. 기본은 활성 항목만 보여주고,
 // 종료된 항목은 프로젝트/외주 탭의 "완료 (N건)" 아코디언과 같은 패턴으로 접어둠.
 let fixedEndedExpanded=false;
+// 정렬 기준(일자/분류/금액) + 방향(오름차/내림차). 기본은 일자순 내림차.
+let fiSortBy='day'; // 'day'|'cat'|'amount'
+let fiSortDir='desc'; // 'asc'|'desc'
+const FI_SORT_LABELS={day:'일자순',cat:'분류순',amount:'금액순'};
+function fiComparator(a,b){
+  let cmp=0;
+  if(fiSortBy==='day')cmp=a.day-b.day;
+  else if(fiSortBy==='cat')cmp=(a.cat||'').localeCompare(b.cat||'','ko');
+  else if(fiSortBy==='amount')cmp=a.amount-b.amount;
+  return fiSortDir==='desc'?-cmp:cmp;
+}
+function renderFixedSortBar(){
+  const bar=document.getElementById('fixedItemsSortBar');
+  if(!bar)return;
+  const dirLabel=fiSortDir==='desc'?`${icon('chevron-down',13)} 내림차`:`${icon('chevron-down',13,'transform:rotate(180deg);')} 오름차`;
+  bar.innerHTML=`<select class="fi" style="flex:1;" onchange="setFixedSortBy(this.value)">${Object.keys(FI_SORT_LABELS).map(k=>`<option value="${k}" ${fiSortBy===k?'selected':''}>${FI_SORT_LABELS[k]}</option>`).join('')}</select><button class="fi-sort-btn active" onclick="toggleFixedSortDir()">${dirLabel}</button>`;
+}
+function setFixedSortBy(v){fiSortBy=v;renderFixedItemsList();}
+function toggleFixedSortDir(){fiSortDir=fiSortDir==='desc'?'asc':'desc';renderFixedItemsList();}
 
 function renderFixedItemsList(){
+  renderFixedSortBar();
   const wrap=document.getElementById('fixedItemsList');wrap.innerHTML='';
   if(!FIXED_ITEMS.length){wrap.innerHTML='<div class="empty">등록된 고정지출이 없어요</div>';return;}
   const buildItem=(f)=>{
@@ -587,7 +609,7 @@ function renderFixedItemsList(){
     if(f.endYm)item.style.opacity='0.55';
     return item;
   };
-  const sorted=[...FIXED_ITEMS].sort((a,b)=>a.day-b.day);
+  const sorted=[...FIXED_ITEMS].sort(fiComparator);
   const active=sorted.filter(f=>!f.endYm);
   const ended=sorted.filter(f=>f.endYm);
   if(active.length)active.forEach(f=>wrap.appendChild(buildItem(f)));
