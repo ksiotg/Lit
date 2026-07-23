@@ -202,6 +202,7 @@ function closeBudgetSumPopup(e){if(!e||e.target===document.getElementById('bgSum
 function buildFixed(){
   const checked=S.getChecked(curY,curM);
   const actualMap=S.getFixedActual(curY,curM);
+  const paidDayMap=S.getFixedPaidDay(curY,curM);
   const items=activeFixedItems(curY,curM);
   const card=mkDiv('card');card.innerHTML='<div class="card-header"><span class="card-title">고정지출</span></div>';
   const table=document.createElement('table');table.className='fixed-table';
@@ -210,8 +211,9 @@ function buildFixed(){
   items.forEach(f=>{
     const done=checked.includes(f.id);
     const amt=done&&actualMap[f.id]!=null?actualMap[f.id]:f.amount;
+    const dayShown=done&&paidDayMap[f.id]!=null?paidDayMap[f.id]:f.day;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><span class="fixed-day">${f.day}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(amt)}</span></td>`;
+    tr.innerHTML=`<td><span class="fixed-day">${dayShown}</span></td><td><div class="cb-wrap"><div class="cb ${done?'on':''}" onclick="toggleFixed('${f.id}')" title="${done?'탭해서 날짜/금액 수정':'탭해서 납부 완료 체크'}"></div></div></td><td><span class="fixed-cat-badge" title="${f.cat}">${f.emoji}</span></td><td><span class="fixed-name-text ${done?'done':''}">${f.name}</span></td><td><span class="fixed-amt-text ${done?'done':''}">${fmt(amt)}</span></td>`;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);card.appendChild(table);
@@ -220,27 +222,28 @@ function buildFixed(){
   const footer=mkDiv('fixed-footer');footer.innerHTML=`<span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val"><span class="fixed-footer-paid">${fmt(da)}</span><span class="fixed-footer-sep"> / </span><span class="fixed-footer-total">${fmt(ta)}</span></span>`;
   card.appendChild(footer);return card;
 }
-// 고정지출 체크(납부 완료 처리) 시 예정 금액과 실제 출금액이 다를 수 있어서
-// 곧바로 체크하지 않고 "실제 출금액" 팝업을 띄워서 확인/수정 후 저장함.
-// 체크 해제는 되돌리는 동작이라 바로 처리.
+// 고정지출 체크(납부 완료 처리) 시 예정 금액과 실제 출금액/날짜가 다를 수 있어서
+// 곧바로 체크하지 않고 "실제 출금액/납부일" 팝업을 띄워서 확인/수정 후 저장함.
+// 이미 체크된 항목을 다시 탭해도 같은 팝업이 뜨는데, 이땐 저장된 금액/날짜를 불러와서
+// 나중에라도 수정할 수 있게 하고, 체크 자체를 되돌리고 싶으면 팝업 안의 "체크 해제" 버튼을 씀.
 let pendingFixedActualId=null;
-function toggleFixed(id){
-  const checked=S.getChecked(curY,curM);
-  if(checked.includes(id)){
-    S.setChecked(curY,curM,checked.filter(x=>x!==id));
-    const fa=S.getFixedActual(curY,curM);delete fa[id];S.setFixedActual(curY,curM,fa);
-    const pd=S.getFixedPaidDay(curY,curM);delete pd[id];S.setFixedPaidDay(curY,curM,pd);
-    renderBudget();
-  }else{
-    openFixedActualPopup(id);
-  }
-}
+function toggleFixed(id){openFixedActualPopup(id);}
 function openFixedActualPopup(id){
   const f=activeFixedItems(curY,curM).find(x=>x.id===id);
   if(!f)return;
   pendingFixedActualId=id;
+  const checked=S.getChecked(curY,curM);
+  const isDone=checked.includes(id);
+  const actualMap=S.getFixedActual(curY,curM);
+  const paidDayMap=S.getFixedPaidDay(curY,curM);
+  const dim=new Date(curY,curM+1,0).getDate();
   document.getElementById('fixedActualTitle').textContent=`${f.emoji} ${f.name}`;
-  document.getElementById('fixedActualInput').value=f.amount;
+  document.getElementById('fixedActualInput').value=isDone&&actualMap[id]!=null?actualMap[id]:f.amount;
+  const dayInput=document.getElementById('fixedActualDay');
+  dayInput.max=dim;
+  dayInput.value=isDone&&paidDayMap[id]!=null?paidDayMap[id]:fixedCheckDay();
+  document.getElementById('fixedActualSaveBtn').innerHTML=isDone?`${icon('edit',14)} 수정 완료`:`${icon('check-circle',14)} 납부 완료로 체크`;
+  document.getElementById('fixedActualUncheckBtn').style.display=isDone?'block':'none';
   document.getElementById('fixedActualPopup').classList.add('open');
 }
 function closeFixedActualPopup(e){if(!e||e.target===document.getElementById('fixedActualPopup'))document.getElementById('fixedActualPopup').classList.remove('open');}
@@ -255,10 +258,24 @@ function fixedCheckDay(){
 function saveFixedActual(){
   if(!pendingFixedActualId)return;
   const amt=parseInt(document.getElementById('fixedActualInput').value)||0;
+  const dim=new Date(curY,curM+1,0).getDate();
+  const day=Math.min(dim,Math.max(1,parseInt(document.getElementById('fixedActualDay').value)||fixedCheckDay()));
   const checked=S.getChecked(curY,curM);
   if(!checked.includes(pendingFixedActualId))S.setChecked(curY,curM,[...checked,pendingFixedActualId]);
   const fa=S.getFixedActual(curY,curM);fa[pendingFixedActualId]=amt;S.setFixedActual(curY,curM,fa);
-  const pd=S.getFixedPaidDay(curY,curM);pd[pendingFixedActualId]=fixedCheckDay();S.setFixedPaidDay(curY,curM,pd);
+  const pd=S.getFixedPaidDay(curY,curM);pd[pendingFixedActualId]=day;S.setFixedPaidDay(curY,curM,pd);
+  document.getElementById('fixedActualPopup').classList.remove('open');
+  pendingFixedActualId=null;
+  renderBudget();
+}
+// 체크 자체를 되돌림 (팝업 안에서만 노출되는, 이미 체크된 항목 전용 버튼).
+function uncheckFixedActual(){
+  if(!pendingFixedActualId)return;
+  const id=pendingFixedActualId;
+  const checked=S.getChecked(curY,curM);
+  S.setChecked(curY,curM,checked.filter(x=>x!==id));
+  const fa=S.getFixedActual(curY,curM);delete fa[id];S.setFixedActual(curY,curM,fa);
+  const pd=S.getFixedPaidDay(curY,curM);delete pd[id];S.setFixedPaidDay(curY,curM,pd);
   document.getElementById('fixedActualPopup').classList.remove('open');
   pendingFixedActualId=null;
   renderBudget();
