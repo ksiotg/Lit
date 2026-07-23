@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#f4f6fb">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/style.css?v=81">
+<link rel="stylesheet" href="css/style.css?v=82">
 </head>
 <body>
 
@@ -602,8 +602,10 @@
       <div style="font-size:16px;font-weight:800;" id="fixedActualTitle">고정지출</div>
       <button onclick="closeFixedActualPopup()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     </div>
-    <div class="fg" style="margin-bottom:14px;"><label class="fl">실제 출금액</label><input class="fi" id="fixedActualInput" type="number" placeholder="0"></div>
-    <button class="add-btn" style="background:var(--budget);" onclick="saveFixedActual()">확인</button>
+    <div class="fg" style="margin-bottom:10px;"><label class="fl">실제 출금액</label><input class="fi" id="fixedActualInput" type="number" placeholder="0"></div>
+    <div class="fg" style="margin-bottom:14px;"><label class="fl">납부일 (일)</label><input class="fi" id="fixedActualDay" type="number" min="1" max="31" placeholder="1"></div>
+    <button class="add-btn" id="fixedActualSaveBtn" style="background:var(--budget);" onclick="saveFixedActual()">확인</button>
+    <button class="add-btn" id="fixedActualUncheckBtn" style="background:none;border:1px solid var(--border);color:var(--muted);margin-top:8px;display:none;" onclick="uncheckFixedActual()">체크 해제</button>
   </div>
 </div>
 
@@ -809,21 +811,21 @@
 </div>
 
 <!-- ⚠️ js/css 파일 수정할 때마다 아래 ?v= 숫자를 전부 +1 올려야 캐시 문제 없이 반영됨 -->
-<script src="js/supabase-client.js?v=81"></script>
-<script src="js/data-state.js?v=81"></script>
-<script src="js/storage.js?v=81"></script>
-<script src="js/utils.js?v=81"></script>
-<script src="js/backup.js?v=81"></script>
-<script src="js/auth.js?v=81"></script>
-<script src="js/page-switch.js?v=81"></script>
-<script src="js/budget.js?v=81"></script>
-<script src="js/routine.js?v=81"></script>
-<script src="js/routine-mgmt.js?v=81"></script>
-<script src="js/workout.js?v=81"></script>
-<script src="js/review.js?v=81"></script>
-<script src="js/freelance.js?v=81"></script>
-<script src="js/project.js?v=81"></script>
-<script src="js/friend.js?v=81"></script>
-<script src="js/main.js?v=81"></script>
+<script src="js/supabase-client.js?v=82"></script>
+<script src="js/data-state.js?v=82"></script>
+<script src="js/storage.js?v=82"></script>
+<script src="js/utils.js?v=82"></script>
+<script src="js/backup.js?v=82"></script>
+<script src="js/auth.js?v=82"></script>
+<script src="js/page-switch.js?v=82"></script>
+<script src="js/budget.js?v=82"></script>
+<script src="js/routine.js?v=82"></script>
+<script src="js/routine-mgmt.js?v=82"></script>
+<script src="js/workout.js?v=82"></script>
+<script src="js/review.js?v=82"></script>
+<script src="js/freelance.js?v=82"></script>
+<script src="js/project.js?v=82"></script>
+<script src="js/friend.js?v=82"></script>
+<script src="js/main.js?v=82"></script>
 </body>
 </html>
