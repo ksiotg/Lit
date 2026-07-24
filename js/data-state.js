@@ -197,13 +197,13 @@ const DEFAULT_LEARN_ITEMS=[
     startDate:'2026-07-24',endDate:'2027-07-24',freq:'free',
     timeLabel:'',memo:'',streakOffset:0},
   {id:'lr04',name:'리드잇',emoji:'📚',color:'#f59e0b',
-    startDate:'2026-07-24',endDate:null,freq:'free',
+    startDate:'2026-07-24',endDate:'2026-12-31',freq:'free',
     timeLabel:'',memo:'영어 원서 읽기',streakOffset:0},
   {id:'lr05',name:'듀오링고',emoji:'📗',color:'#22c55e',
-    startDate:'2020-01-01',endDate:null,freq:'daily',
+    startDate:'2026-01-01',endDate:'2026-12-31',freq:'daily',
     timeLabel:'',memo:'',streakOffset:500},
   {id:'lr06',name:'독서',emoji:'📖',color:'#0ea5e9',
-    startDate:'2026-07-24',endDate:null,freq:'daily',
+    startDate:'2026-07-24',endDate:'2026-12-31',freq:'daily',
     timeLabel:'',memo:'매일 10분',streakOffset:0},
 ];
 let LEARN_ITEMS=DEFAULT_LEARN_ITEMS;

@@ -35,6 +35,7 @@ function setRoutineView(v){
 }
 function rSyncViewButtons(){
   document.getElementById('rvbtn-week').classList.toggle('active',rView==='week');
+  document.getElementById('rvbtn-ach').classList.toggle('active',rView==='ach');
   document.getElementById('rvbtn-month').classList.toggle('active',rView==='month');
 }
 
@@ -47,6 +48,11 @@ function renderRoutine(){
     const mrCard=buildMonthlyRoutineCard();mrCard.classList.add('card-wide');mc.appendChild(mrCard);
     return;
   }
+  if(rView==='ach'){
+    // 월간 달성률: 기본 화면(주간 그리드)엔 안 보이고, 폴더 아이콘 눌렀을 때만 별도로 보여줌
+    const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
+    return;
+  }
   if(!curWeekStart){
     const refDate=new Date(rY,rM,(rY===TODAY.getFullYear()&&rM===TODAY.getMonth())?TODAY.getDate():1);
     curWeekStart=getWeekStart(rY,rM,refDate.getDate());
@@ -55,7 +61,6 @@ function renderRoutine(){
   // 달력을 맨 위로 올려서 한눈에 이번 달 상황부터 보이게 함
   const calCard=buildRoutineCal();calCard.classList.add('card-wide');mc.appendChild(calCard);
   const tableCard=buildRoutineTable();tableCard.classList.add('card-wide');mc.appendChild(tableCard);
-  const achCard=buildMonthlyAchievement();achCard.classList.add('card-wide');mc.appendChild(achCard);
 }
 
 // ─── 루틴 탭: 월간 루틴 (요일 무관, "이번 달에 했는지 + 언제 했는지"만 체크) ─────

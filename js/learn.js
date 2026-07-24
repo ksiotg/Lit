@@ -68,6 +68,47 @@ function calcLearnStreak(item){
   return streak+(item.streakOffset||0);
 }
 
+function lrDaysBetweenInclusive(startStr,endStr){
+  const [sy,sm,sd]=startStr.split('-').map(Number);
+  const [ey,em,ed]=endStr.split('-').map(Number);
+  const s=new Date(sy,sm-1,sd),e=new Date(ey,em-1,ed);
+  return Math.round((e-s)/86400000)+1;
+}
+// 달성률: (실제 완료 횟수) ÷ (시작일~마감기한까지 그 항목 스케줄 기준 총 목표 횟수) × 100
+// - daily/free/days: 스케줄된 날(요일고정이면 해당 요일, 그 외엔 매일)의 개수를 목표로 삼음
+// - weekly(주 N회): 요일 제한이 없으니 날짜 하나하나 세는 대신 "총 일수/7 × 주당 목표 횟수"로 목표를 계산
+//   (예: 주 3회 스케줄, 시작~마감까지 20주 남았으면 목표 60회)
+function calcLearnAchievement(item){
+  const startStr=item.startDate||lrTodayStr();
+  const endStr=item.endDate||'2026-12-31';
+  if(endStr<startStr)return {pct:0,done:0,goal:0};
+  const [sy,sm,sd]=startStr.split('-').map(Number);
+  const [ey,em,ed]=endStr.split('-').map(Number);
+  let cursor=new Date(sy,sm-1,sd);
+  const end=new Date(ey,em-1,ed);
+  let scheduledDays=0,done=0,guard=0;
+  while(cursor<=end&&guard<3660){
+    guard++;
+    const y=cursor.getFullYear(),m=cursor.getMonth(),d=cursor.getDate();
+    const jsDow=cursor.getDay();
+    const dowMon=jsDow===0?6:jsDow-1;
+    if(isLearnScheduledOnDow(item,dowMon)){
+      scheduledDays++;
+      if(S.getLearnChecked(y,m,d).includes(item.id))done++;
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  let goal;
+  if(item.freq==='weekly'){
+    const totalDays=lrDaysBetweenInclusive(startStr,endStr);
+    goal=Math.max(1,Math.round(totalDays/7*(item.weeklyN||3)));
+  }else{
+    goal=scheduledDays;
+  }
+  const pct=goal?Math.min(100,Math.round(done/goal*100)):0;
+  return {pct,done,goal};
+}
+
 function chLrCalMonth(d){
   lrCalM+=d;
   if(lrCalM>11){lrCalM=0;lrCalY++;}
@@ -93,6 +134,7 @@ function renderLearn(){
   const main=document.getElementById('learnMain');main.innerHTML='';
   const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   const tableCard=buildLearnTable();tableCard.classList.add('card-wide');main.appendChild(tableCard);
+  const achCard=buildLearnAchievementCard();achCard.classList.add('card-wide');main.appendChild(achCard);
   const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
 }
 
@@ -249,6 +291,29 @@ function toggleLrWeekCb(itemId,y,m,d){
   renderLearn(); // 캘린더 점/주간그리드/리스트 스트릭 모두 함께 갱신
 }
 
+// ─── 달성률: 항목별로 (완료 횟수 / 시작~마감기한 기준 목표 횟수) × 100 를 진행바로 표시 ──
+function buildLearnAchievementCard(){
+  const card=mkDiv('card');
+  const header=mkDiv('card-header');header.innerHTML='<span class="card-title">달성률</span>';
+  card.appendChild(header);
+  const activeItems=LEARN_ITEMS.filter(it=>!isLearnEnded(it));
+  if(!activeItems.length){
+    const empty=mkDiv('empty');empty.style.padding='0 16px 16px';empty.textContent='진행중인 학습 항목이 없어요';
+    card.appendChild(empty);return card;
+  }
+  const grid=mkDiv('monthly-grid');
+  const items=mkDiv('monthly-items');
+  activeItems.forEach(it=>{
+    const color=it.color||'var(--learn)';
+    const {pct,done,goal}=calcLearnAchievement(it);
+    const item=mkDiv('monthly-item');
+    item.innerHTML=`<div class="monthly-item-icon">${it.emoji||'📘'}</div><div class="monthly-item-info"><div class="monthly-item-name">${it.name} <span style="font-weight:600;color:var(--muted);font-size:9.5px;">(${done}/${goal})</span></div><div class="monthly-item-bar-track"><div class="monthly-item-bar-fill" style="width:${pct}%;background:${color}"></div></div></div><div class="monthly-item-pct" style="color:${color}">${pct}%</div>`;
+    items.appendChild(item);
+  });
+  grid.appendChild(items);card.appendChild(grid);
+  return card;
+}
+
 // ─── 항목 리스트: 진행중 + "종료된 항목 (N건)" 아코디언 ─────────────────────────
 function buildLearnListCard(){
   const card=mkDiv('card');
@@ -347,8 +412,9 @@ function openLearnForm(){
   learnFreqSel='free';learnWeekDays=[];learnWeeklyN=3;
   document.getElementById('lrFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--learn)')} 새 학습 항목`;
   document.getElementById('lrSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
-  ['lrName','lrEmoji','lrEndDate','lrTimeLabel','lrStreakOffset','lrMemo'].forEach(id=>{document.getElementById(id).value='';});
+  ['lrName','lrEmoji','lrTimeLabel','lrStreakOffset','lrMemo'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('lrStartDate').value=lrTodayStr();
+  document.getElementById('lrEndDate').value='2026-12-31'; // 마감기한 필수값 — 기본으로 올해 연말을 채워줌
   document.querySelectorAll('#learnFormPopup [data-freq]').forEach(b=>b.classList.toggle('active',b.dataset.freq==='free'));
   renderLearnFreqDetail();
   renderLearnColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
@@ -388,7 +454,7 @@ function renewLearnItem(id){
   document.getElementById('lrName').value=it.name||'';
   document.getElementById('lrEmoji').value=it.emoji||'';
   document.getElementById('lrStartDate').value=lrTodayStr();
-  document.getElementById('lrEndDate').value='';
+  document.getElementById('lrEndDate').value='2026-12-31'; // 마감기한 필수값 — 기본으로 올해 연말을 채워줌
   document.getElementById('lrTimeLabel').value=it.timeLabel||'';
   document.getElementById('lrStreakOffset').value=0;
   document.getElementById('lrMemo').value=it.memo||'';
@@ -407,13 +473,14 @@ function saveLearnForm(){
   const name=document.getElementById('lrName').value.trim();
   const emoji=document.getElementById('lrEmoji').value.trim()||'📘';
   const startDate=document.getElementById('lrStartDate').value;
-  const endDate=document.getElementById('lrEndDate').value||null;
+  const endDate=document.getElementById('lrEndDate').value;
   const timeLabel=document.getElementById('lrTimeLabel').value.trim();
   const streakOffset=parseInt(document.getElementById('lrStreakOffset').value,10)||0;
   const memo=document.getElementById('lrMemo').value.trim();
   const color=learnColorSel||FL_COLOR_PALETTE[0];
   if(!name){alert('학습 항목 이름을 입력해줘');return;}
-  if(startDate&&endDate&&startDate>endDate){alert('종료일이 시작일보다 빠를 수 없어요');return;}
+  if(!endDate){alert('마감기한을 입력해줘 (달성률 계산 기준일이에요)');return;}
+  if(startDate&&endDate&&startDate>endDate){alert('마감기한이 시작일보다 빠를 수 없어요');return;}
   const data={
     name,emoji,color,startDate,endDate,freq:learnFreqSel,timeLabel,memo,streakOffset,
     ...(learnFreqSel==='weekly'?{weeklyN:learnWeeklyN}:{}),
