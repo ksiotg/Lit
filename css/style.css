@@ -10,6 +10,7 @@
   --workout:#ef4444;--workout-tint:#fee2e2;
   --project:#ec4899;--project-tint:#fce7f3;
   --friend:#ff6f61;--friend-tint:#ffe8e4;
+  --learn:#0d9488;--learn-tint:#ccfbf1;
   --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -34,6 +35,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 .tl-btn.on.project-tl{background:var(--project);box-shadow:0 0 0 1px var(--project-tint),0 0 6px 1px #ec4899;}
 .tl-btn.friend-tl{background:#9a3d33;}
 .tl-btn.on.friend-tl{background:var(--friend);box-shadow:0 0 0 1px var(--friend-tint),0 0 6px 1px #ff6f61;}
+.tl-btn.learn-tl{background:#115e59;}
+.tl-btn.on.learn-tl{background:var(--learn);box-shadow:0 0 0 1px var(--learn-tint),0 0 6px 1px #0d9488;}
 
 /* ── 공통 헤더 ── */
 .page-header{background:#fff!important;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding-bottom:10px;}
@@ -48,6 +51,7 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-freelance .page-title{color:var(--freelance);font-weight:800;}
 #page-project .page-title{color:var(--project);font-weight:800;}
 #page-friend .page-title{color:var(--friend);font-weight:800;}
+#page-learn .page-title{color:var(--learn);font-weight:800;}
 .view-toggle{display:flex;gap:3px;}
 .view-btn{background:var(--bg);border:none;height:32px;padding:0 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;}
 .view-btn.active{background:var(--text);color:#fff;}
@@ -66,6 +70,8 @@ body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:#f4f6f
 #page-project .view-btn.active{background:var(--project);color:#fff;}
 #page-friend .nav-btn,#page-friend .view-btn{background:var(--friend-tint);color:var(--friend);}
 #page-friend .view-btn.active{background:var(--friend);color:#fff;}
+#page-learn .nav-btn,#page-learn .view-btn{background:var(--learn-tint);color:var(--learn);}
+#page-learn .view-btn.active{background:var(--learn);color:#fff;}
 
 /* ── 가계부 summary ── */
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 21px;}
@@ -463,6 +469,21 @@ flex-shrink:0;
 .pj-more-btn:hover{opacity:0.8;}
 .fi-more-btn{display:block;width:100%;margin:4px 0 10px;padding:10px;background:var(--budget-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--budget);cursor:pointer;}
 .fi-more-btn:hover{opacity:0.8;}
+.lr-more-btn{display:block;width:100%;margin-top:4px;padding:10px;background:var(--learn-tint);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--learn);cursor:pointer;}
+.lr-more-btn:hover{opacity:0.8;}
+.lr-row{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.lr-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.lr-row-info{flex:1;min-width:0;}
+.lr-row-name-line{display:flex;align-items:center;gap:6px;min-height:20px;}
+.lr-row-emoji{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.lr-row-name{font-size:13px;font-weight:700;}
+.lr-row-sub{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.lr-streak-badge{display:inline-flex;align-items:center;gap:3px;background:#fef3c7;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:800;color:#b45309;flex-shrink:0;}
+#learnFormPopup .add-btn{background:var(--learn);}
+#learnFormPopup .freq-btn.active{background:var(--learn);color:#fff;border-color:var(--learn);}
+#learnFormPopup .dow-btn.active{background:var(--learn);border-color:var(--learn);}
+#page-learn .pj-icon:hover{color:var(--learn);}
+#lrDayPopup .cb.on{background:var(--learn);border-color:var(--learn);}
 .fi-sort-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
 .fi-sort-btn.active{background:var(--budget);color:#fff;border-color:var(--budget);}
 .pj-status-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
