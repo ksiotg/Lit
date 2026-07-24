@@ -690,6 +690,9 @@ function editFixedItemStart(id){
   document.getElementById('newFItemAmount').value=f.amount;
   document.getElementById('fiItemFormTitle').innerHTML=`${icon('edit',14,'color:var(--budget)')} 고정지출 수정 (이번 달부터 적용)`;
   document.getElementById('fiItemSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
+  // 목록이 길어지면(정렬바+종료 아코디언 포함) 수정 폼이 화면 밖에 있어서
+  // 연필 아이콘을 눌러도 반응이 없는 것처럼 보이므로, 폼을 화면에 보이게 스크롤해줌.
+  document.getElementById('fiItemFormTitle').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 // 새 고정지출 추가 / 기존 항목 수정 저장.
