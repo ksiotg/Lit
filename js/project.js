@@ -140,7 +140,7 @@ function buildProjectCalCard(){
       dayProjects.slice(0,4).forEach(p=>{
         const cat=pjCatInfo(p.cat);
         const dot=mkDiv('');dot.style.cssText=`width:5px;height:5px;border-radius:50%;background:${cat.color};`;
-        dot.title=`${p.emoji||'🎯'} ${p.title||'(제목없음)'}${p.dueDate===dateStr?' (마감)':''}`;
+        dot.title=`${p.title||'(제목없음)'}${p.dueDate===dateStr?' (마감)':''}`;
         dotsWrap.appendChild(dot);
       });
       cell.appendChild(dotsWrap);
@@ -168,7 +168,7 @@ function openPjDayDetail(dateStr,dayProjects){
     const cat=pjCatInfo(p.cat);
     const ddayBadge=pjDdayBadge(p);
     return `<div class="fl-payment-row" style="cursor:pointer;" onclick="closePjDayPopupAndOpen('${p.id}')">
-      <span style="font-size:12px;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cat.color};margin-right:5px;"></span>${p.emoji||'🎯'} ${p.title||'(제목없음)'}</span>
+      <span style="font-size:12px;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cat.color};margin-right:5px;"></span>${p.title||'(제목없음)'}</span>
       ${ddayBadge||`<span style="font-size:11px;color:var(--muted);">${p.dueDate===dateStr?'마감일':'진행중'}</span>`}
     </div>`;
   }).join('')}</div>`:'<div class="empty">내역이 없어요</div>';

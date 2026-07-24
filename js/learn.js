@@ -177,7 +177,7 @@ function buildLearnCalCard(){
       const dotsWrap=mkDiv('');dotsWrap.style.cssText='display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;';
       completedItems.slice(0,4).forEach(it=>{
         const dot=mkDiv('');dot.style.cssText=`width:5px;height:5px;border-radius:50%;background:${it.color||'var(--learn)'};`;
-        dot.title=`${it.emoji||'📘'} ${it.name}`;
+        dot.title=it.name;
         dotsWrap.appendChild(dot);
       });
       cell.appendChild(dotsWrap);
@@ -190,7 +190,7 @@ function buildLearnCalCard(){
   if(legendItems.length){
     const legend=document.createElement('div');
     legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
-    legend.innerHTML=legendItems.map(it=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${it.color||'var(--learn)'};display:inline-block;"></span>${it.emoji||'📘'} ${it.name}</span>`).join('');
+    legend.innerHTML=legendItems.map(it=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${it.color||'var(--learn)'};display:inline-block;"></span>${it.name}</span>`).join('');
     card.appendChild(legend);
   }
   return card;
