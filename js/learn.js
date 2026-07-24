@@ -10,6 +10,7 @@ let lrEndedExpanded=false;
 let learnColorSel=null;
 let learnFreqSel='free',learnWeekDays=[],learnWeeklyN=3;
 let curLrWeekStart=null; // 주간 체크 그리드용 이번주 시작일(월요일 기준), 루틴 탭의 curWeekStart와 동일한 발상
+let lrView='week'; // 학습 탭: 'week'(캘린더+주간체크그리드, 기본값) / 'ach'(달성률, 폴더 아이콘 눌렀을 때만)
 
 function lrPad(n){return String(n).padStart(2,'0');}
 function lrDateStr(y,m,d){return `${y}-${lrPad(m+1)}-${lrPad(d)}`;}
@@ -122,19 +123,33 @@ function chLrWeek(d){
   renderLearn();
 }
 
-// 다른 새 탭들(친구/프로젝트)처럼 진입 시 첫 화면 = 캘린더. 별도 토글 없이 항상
-// 위쪽에 표시하고 그 아래에 항목 리스트(스트릭 포함)를 이어서 보여줌.
+function setLearnView(v){
+  lrView=v;
+  lrSyncViewButtons();
+  renderLearn();
+}
+function lrSyncViewButtons(){
+  document.getElementById('lrvbtn-week').classList.toggle('active',lrView==='week');
+  document.getElementById('lrvbtn-ach').classList.toggle('active',lrView==='ach');
+}
+
+// 다른 새 탭들(친구/프로젝트)처럼 진입 시 첫 화면 = 캘린더+주간체크그리드+항목 리스트.
+// 달성률은 기본 화면엔 안 보이고, 헤더의 폴더 아이콘을 눌렀을 때만 별도로 보여줌
+// (루틴 탭의 주간/월간 루틴 폴더 토글과 동일한 방식).
 function renderLearn(){
   LEARN_ITEMS=getLearnItems();
   document.getElementById('lrMonthLabel').textContent=`${lrCalY}년 ${lrCalM+1}월`;
+  const main=document.getElementById('learnMain');main.innerHTML='';
+  if(lrView==='ach'){
+    const achCard=buildLearnAchievementCard();achCard.classList.add('card-wide');main.appendChild(achCard);
+    return;
+  }
   if(!curLrWeekStart){
     const refDate=new Date(lrCalY,lrCalM,(lrCalY===TODAY.getFullYear()&&lrCalM===TODAY.getMonth())?TODAY.getDate():1);
     curLrWeekStart=getWeekStart(lrCalY,lrCalM,refDate.getDate());
   }
-  const main=document.getElementById('learnMain');main.innerHTML='';
   const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   const tableCard=buildLearnTable();tableCard.classList.add('card-wide');main.appendChild(tableCard);
-  const achCard=buildLearnAchievementCard();achCard.classList.add('card-wide');main.appendChild(achCard);
   const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
 }
 
