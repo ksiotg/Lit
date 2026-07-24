@@ -48,6 +48,7 @@ function frBdayLabel(bday){
 // (별도 뷰 토글 없음).
 function renderFriend(){
   FRIENDS=getFriends();
+  document.getElementById('frMonthLabel').textContent=`${frCalY}년 ${frCalM+1}월`;
   const main=document.getElementById('friendMain');main.innerHTML='';
   const calCard=buildFrCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   main.appendChild(buildFrFilterSortCard());
@@ -69,13 +70,8 @@ function buildFrCalCard(){
   });
 
   const card=mkDiv('card');
-  const head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
-  head.innerHTML=`
-    <button class="nav-btn" onclick="chFrCalMonth(-1)">‹</button>
-    <span class="page-title" style="font-size:14px;">${frCalY}년 ${frCalM+1}월</span>
-    <button class="nav-btn" onclick="chFrCalMonth(1)">›</button>`;
-  card.appendChild(head);
+  // 월 이동은 페이지 헤더 nav-row(frMonthLabel + chFrCalMonth)로 통일됐으므로
+  // 캘린더 카드 안에는 별도 월 표시/화살표를 두지 않음.
   const dow=mkDiv('cal-dow-row');
   dow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
@@ -237,4 +233,34 @@ function deleteFriend(id){
   FRIENDS=FRIENDS.filter(f=>f.id!==id);
   saveFriends(FRIENDS);
   renderFriend();
+}
+
+// ─── 친구 설정 팝업(헤더 통일: 루틴/가계부처럼 톱니바퀴 안에서 추가/수정/삭제) ──────────
+function openFriendSettings(){
+  renderFriendSettingsList();
+  document.getElementById('friendSettingsPopup').classList.add('open');
+}
+function closeFriendSettings(e){if(!e||e.target===document.getElementById('friendSettingsPopup'))document.getElementById('friendSettingsPopup').classList.remove('open');}
+function renderFriendSettingsList(){
+  const wrap=document.getElementById('frSettingsList');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  if(!FRIENDS.length){wrap.innerHTML='<div class="empty">등록된 친구가 없어요</div>';return;}
+  FRIENDS.forEach(f=>{
+    const item=mkDiv('rmgmt-item');
+    item.innerHTML=`<div class="rmgmt-icon">${icon('users',18)}</div><div class="rmgmt-info"><div class="rmgmt-name">${f.name}</div><div class="rmgmt-sub">${f.group||'미분류'}${f.birthday?' · 🎂 '+frBdayLabel(f.birthday):''}</div></div><button class="rmgmt-edit" onclick="settingsEditFriend('${f.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="settingsDeleteFriend('${f.id}')" title="삭제">${icon('x-circle',15)}</button>`;
+    wrap.appendChild(item);
+  });
+}
+function settingsEditFriend(id){
+  document.getElementById('friendSettingsPopup').classList.remove('open');
+  editFriend(id);
+}
+function settingsDeleteFriend(id){
+  deleteFriend(id); // 내부에서 FRIENDS 갱신 + renderFriend() 재호출
+  renderFriendSettingsList();
+}
+function openNewFriendFromSettings(){
+  document.getElementById('friendSettingsPopup').classList.remove('open');
+  openFriendForm();
 }

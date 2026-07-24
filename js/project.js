@@ -92,6 +92,7 @@ function chPjCalMonth(d){
 // 그 아래에 기존 상태별/카테고리별 토글 + 목록을 그대로 보여줌.
 function renderProjects(){
   PROJECTS=getProjects();
+  document.getElementById('pjMonthLabel').textContent=`${pjCalY}년 ${pjCalM+1}월`;
   pjSyncViewButtons();
   const main=document.getElementById('projectMain');main.innerHTML='';
   const calCard=buildProjectCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
@@ -114,13 +115,8 @@ function buildProjectCalCard(){
   });
 
   const card=mkDiv('card');
-  const head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
-  head.innerHTML=`
-    <button class="nav-btn" onclick="chPjCalMonth(-1)">‹</button>
-    <span class="page-title" style="font-size:14px;">${pjCalY}년 ${pjCalM+1}월</span>
-    <button class="nav-btn" onclick="chPjCalMonth(1)">›</button>`;
-  card.appendChild(head);
+  // 월 이동은 페이지 헤더 nav-row(pjMonthLabel + chPjCalMonth)로 통일됐으므로
+  // 캘린더 카드 안에는 더 이상 별도 월 표시/화살표를 두지 않음.
   const dow=mkDiv('cal-dow-row');
   dow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
@@ -398,6 +394,39 @@ function deleteProject(id){
   PROJECTS=PROJECTS.filter(p=>p.id!==id);
   saveProjects(PROJECTS);
   renderProjects();
+}
+
+// ─── 프로젝트 설정 팝업(헤더 통일: 루틴/가계부처럼 톱니바퀴 안에서 추가/수정/삭제) ──────
+// 목록 자체는 메인 화면에도 이미 보이지만, 다른 탭들과 헤더 구성(월 네비게이션 + 설정
+// 아이콘)을 맞추기 위해 설정 팝업에서도 같은 작업(추가/수정/삭제)을 할 수 있게 함.
+function openProjectSettings(){
+  renderProjectSettingsList();
+  document.getElementById('projectSettingsPopup').classList.add('open');
+}
+function closeProjectSettings(e){if(!e||e.target===document.getElementById('projectSettingsPopup'))document.getElementById('projectSettingsPopup').classList.remove('open');}
+function renderProjectSettingsList(){
+  const wrap=document.getElementById('pjSettingsList');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  if(!PROJECTS.length){wrap.innerHTML='<div class="empty">등록된 프로젝트가 없어요</div>';return;}
+  PROJECTS.forEach(p=>{
+    const cat=pjCatInfo(p.cat);
+    const item=mkDiv('rmgmt-item');
+    item.innerHTML=`<div class="rmgmt-icon">${p.emoji||'🎯'}</div><div class="rmgmt-info"><div class="rmgmt-name">${p.title||'(제목없음)'}</div><div class="rmgmt-sub">${p.status||'대기'} · ${cat.label}</div></div><button class="rmgmt-edit" onclick="settingsEditProject('${p.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="settingsDeleteProject('${p.id}')" title="삭제">${icon('x-circle',15)}</button>`;
+    wrap.appendChild(item);
+  });
+}
+function settingsEditProject(id){
+  document.getElementById('projectSettingsPopup').classList.remove('open');
+  editProjectStart(id);
+}
+function settingsDeleteProject(id){
+  deleteProject(id); // 내부에서 PROJECTS 갱신 + renderProjects() 재호출
+  renderProjectSettingsList();
+}
+function openNewProjectFromSettings(){
+  document.getElementById('projectSettingsPopup').classList.remove('open');
+  openProjectForm();
 }
 
 // ─── 프로젝트 상세 (2단 체크리스트 + 일지) ────────────────────────────────────

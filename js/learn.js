@@ -78,6 +78,7 @@ function chLrCalMonth(d){
 // 위쪽에 표시하고 그 아래에 항목 리스트(스트릭 포함)를 이어서 보여줌.
 function renderLearn(){
   LEARN_ITEMS=getLearnItems();
+  document.getElementById('lrMonthLabel').textContent=`${lrCalY}년 ${lrCalM+1}월`;
   const main=document.getElementById('learnMain');main.innerHTML='';
   const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
@@ -89,13 +90,8 @@ function buildLearnCalCard(){
   const fd=new Date(lrCalY,lrCalM,1).getDay();
   const fdMon=fd===0?6:fd-1;
   const card=mkDiv('card');
-  const head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
-  head.innerHTML=`
-    <button class="nav-btn" onclick="chLrCalMonth(-1)">‹</button>
-    <span class="page-title" style="font-size:14px;">${lrCalY}년 ${lrCalM+1}월</span>
-    <button class="nav-btn" onclick="chLrCalMonth(1)">›</button>`;
-  card.appendChild(head);
+  // 월 이동은 페이지 헤더 nav-row(lrMonthLabel + chLrCalMonth)로 통일됐으므로
+  // 캘린더 카드 안에는 별도 월 표시/화살표를 두지 않음.
   const dow=mkDiv('cal-dow-row');
   dow.style.paddingTop='14px';
   ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
@@ -353,4 +349,35 @@ function deleteLearnItem(id){
   LEARN_ITEMS=LEARN_ITEMS.filter(it=>it.id!==id);
   saveLearnItems(LEARN_ITEMS);
   renderLearn();
+}
+
+// ─── 학습 설정 팝업(헤더 통일: 루틴/가계부처럼 톱니바퀴 안에서 추가/수정/삭제) ──────────
+function openLearnSettings(){
+  renderLearnSettingsList();
+  document.getElementById('learnSettingsPopup').classList.add('open');
+}
+function closeLearnSettings(e){if(!e||e.target===document.getElementById('learnSettingsPopup'))document.getElementById('learnSettingsPopup').classList.remove('open');}
+function renderLearnSettingsList(){
+  const wrap=document.getElementById('lrSettingsList');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  if(!LEARN_ITEMS.length){wrap.innerHTML='<div class="empty">등록된 학습 항목이 없어요</div>';return;}
+  LEARN_ITEMS.forEach(it=>{
+    const item=mkDiv('rmgmt-item');
+    const endedTag=isLearnEnded(it)?' · 종료됨':'';
+    item.innerHTML=`<div class="rmgmt-icon">${it.emoji||'📘'}</div><div class="rmgmt-info"><div class="rmgmt-name">${it.name}</div><div class="rmgmt-sub">${lrFreqLabel(it)}${endedTag}</div></div><button class="rmgmt-edit" onclick="settingsEditLearn('${it.id}')" title="수정">${icon('edit',14)}</button><button class="rmgmt-del" onclick="settingsDeleteLearn('${it.id}')" title="삭제">${icon('x-circle',15)}</button>`;
+    wrap.appendChild(item);
+  });
+}
+function settingsEditLearn(id){
+  document.getElementById('learnSettingsPopup').classList.remove('open');
+  editLearnStart(id);
+}
+function settingsDeleteLearn(id){
+  deleteLearnItem(id); // 내부에서 LEARN_ITEMS 갱신 + renderLearn() 재호출
+  renderLearnSettingsList();
+}
+function openNewLearnFromSettings(){
+  document.getElementById('learnSettingsPopup').classList.remove('open');
+  openLearnForm();
 }
