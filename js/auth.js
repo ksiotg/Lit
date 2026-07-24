@@ -50,6 +50,7 @@ async function onAuthReady(user){
   EXPENSE_CATS=getExpenseCats();
   PROJECTS=getProjects();
   FRIENDS=getFriends();
+  LEARN_ITEMS=getLearnItems();
   hideAuthGate();
   switchPage('routine');
 }

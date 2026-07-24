@@ -178,6 +178,36 @@ const DEFAULT_FRIENDS=[
 ];
 let FRIENDS=DEFAULT_FRIENDS;
 
+// ─── 학습 탭 ───────────────────────────────────────────────────────────────────
+// 학습/자기계발 항목(부트캠프, 온라인 강의, 어학앱, 독서습관 등) 관리.
+// 반복 스케줄은 루틴 탭의 freq 모델(daily/weekly/days)을 그대로 재사용하고,
+// 스케줄이 정해지지 않은 항목을 위해 'free'(자유, 아무 날에나 체크 가능)를 추가함.
+// 색상은 항목마다 고유 지정(FL_COLOR_PALETTE 재사용, freelance.js에 정의됨) —
+// 캘린더에 완료 표시할 때 이 색으로 점을 찍음.
+// streakOffset: 앱 도입 전부터 이어온 연속기록(예: 듀오링고 500일+)을 계산된
+// 스트릭 위에 더해주는 수동 보정값. 기록이 없으면 0.
+const DEFAULT_LEARN_ITEMS=[
+  {id:'lr01',name:'INNER CIRCLE : 기획/디자인 Course 13기',emoji:'🎓',color:'#3b82f6',
+    startDate:'2026-07-27',endDate:'2026-11-24',freq:'days',days:[0,1,2,3,5],
+    timeLabel:'월~목 19:30~22:30, 토 09:00~13:00',memo:'',streakOffset:0},
+  {id:'lr02',name:'Max AI',emoji:'🤖',color:'#8b5cf6',
+    startDate:'2026-07-24',endDate:'2028-07-24',freq:'free',
+    timeLabel:'',memo:'스케줄 미정 — 나중에 직접 수정',streakOffset:0},
+  {id:'lr03',name:'클래스101',emoji:'🎨',color:'#ec4899',
+    startDate:'2026-07-24',endDate:'2027-07-24',freq:'free',
+    timeLabel:'',memo:'',streakOffset:0},
+  {id:'lr04',name:'리드잇',emoji:'📚',color:'#f59e0b',
+    startDate:'2026-07-24',endDate:null,freq:'free',
+    timeLabel:'',memo:'영어 원서 읽기',streakOffset:0},
+  {id:'lr05',name:'듀오링고',emoji:'📗',color:'#22c55e',
+    startDate:'2020-01-01',endDate:null,freq:'daily',
+    timeLabel:'',memo:'',streakOffset:500},
+  {id:'lr06',name:'독서',emoji:'📖',color:'#0ea5e9',
+    startDate:'2026-07-24',endDate:null,freq:'daily',
+    timeLabel:'',memo:'매일 10분',streakOffset:0},
+];
+let LEARN_ITEMS=DEFAULT_LEARN_ITEMS;
+
 // ─── STATE ─────────────────────────────────────────────────────────────────────
 const TODAY=new Date();
 let curY=TODAY.getFullYear(),curM=TODAY.getMonth();

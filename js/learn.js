@@ -1,0 +1,356 @@
+// ─── 학습(LEARN) ──────────────────────────────────────────────────────────────
+// 학습/자기계발 항목(부트캠프, 온라인 강의, 어학앱, 독서습관 등) 관리 탭.
+// 다른 새 탭들(친구/프로젝트)처럼 진입 시 캘린더가 기본으로 바로 보이고, 그 아래에
+// 항목 리스트(스트릭 표시)가 이어지는 구조 — 별도 캘린더/리스트 토글 없음.
+// 반복 스케줄은 루틴 탭의 freq 모델(daily/weekly/days)을 재사용하고, 스케줄이
+// 정해지지 않은 항목을 위해 'free'(자유, 아무 날에나 체크 가능)를 추가로 지원함.
+let editingLearnId=null;
+let lrCalY=TODAY.getFullYear(),lrCalM=TODAY.getMonth();
+let lrEndedExpanded=false;
+let learnColorSel=null;
+let learnFreqSel='free',learnWeekDays=[],learnWeeklyN=3;
+
+function lrPad(n){return String(n).padStart(2,'0');}
+function lrDateStr(y,m,d){return `${y}-${lrPad(m+1)}-${lrPad(d)}`;}
+function lrTodayStr(){return lrDateStr(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());}
+
+// 'days'(요일고정) 스케줄만 특정 요일로 제한하고, 나머지(매일/주N회/자유)는 어느
+// 요일이든 "스케줄된 날"로 침. 루틴 탭의 isRoutineScheduledOnDow와 동일한 발상 —
+// 요일고정 항목만 스케줄 안 된 요일엔 스트릭 계산에서 완전히 제외(끊기지도, 카운트되지도 않음).
+function isLearnScheduledOnDow(item,dowMon){
+  if(item.freq==='days'&&Array.isArray(item.days))return item.days.includes(dowMon);
+  return true;
+}
+// 착수~종료 기간에 해당 날짜가 포함되는지 (종료일 없으면 계속 진행중으로 간주).
+function lrItemActiveOn(item,dateStr){
+  if(item.startDate&&dateStr<item.startDate)return false;
+  if(item.endDate&&dateStr>item.endDate)return false;
+  return true;
+}
+function isLearnEnded(item){
+  return !!(item.endDate&&item.endDate<lrTodayStr());
+}
+function lrFreqLabel(item){
+  if(item.freq==='daily')return '매일';
+  if(item.freq==='weekly')return `주 ${item.weeklyN||3}회`;
+  if(item.freq==='days')return (item.days||[]).map(i=>['월','화','수','목','금','토','일'][i]).join('/')||'요일고정';
+  return '자유';
+}
+// 연속일수(스트릭): 오늘부터 거꾸로 훑으면서, 그 항목에 실제로 스케줄된 날(요일고정이면
+// 해당 요일, 그 외엔 전부)만 카운트 대상으로 삼음. 스케줄 안 된 날은 건너뛸 뿐 끊기지 않음
+// (루틴 탭 달력 필터에 적용한 것과 동일한 방식). 오늘은 아직 체크 전이어도 스트릭이 끊긴
+// 걸로 치지 않음(듀오링고 등 흔한 스트릭 UX와 동일한 "그레이스" 처리).
+function calcLearnStreak(item){
+  let streak=0;
+  let cursor=new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+  const startDate=item.startDate||'0000-01-01';
+  const todayStr=lrTodayStr();
+  let guard=0;
+  while(guard<20000){
+    guard++;
+    const y=cursor.getFullYear(),m=cursor.getMonth(),d=cursor.getDate();
+    const ds=lrDateStr(y,m,d);
+    if(ds<startDate)break;
+    const jsDow=cursor.getDay();
+    const dowMon=jsDow===0?6:jsDow-1;
+    if(isLearnScheduledOnDow(item,dowMon)){
+      const checked=S.getLearnChecked(y,m,d).includes(item.id);
+      if(checked){
+        streak++;
+      }else if(ds!==todayStr){
+        break;
+      }
+      // 오늘이고 아직 체크 안 했으면 끊긴 걸로 치지 않고 그냥 어제로 넘어감
+    }
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return streak+(item.streakOffset||0);
+}
+
+function chLrCalMonth(d){
+  lrCalM+=d;
+  if(lrCalM>11){lrCalM=0;lrCalY++;}
+  if(lrCalM<0){lrCalM=11;lrCalY--;}
+  renderLearn();
+}
+
+// 다른 새 탭들(친구/프로젝트)처럼 진입 시 첫 화면 = 캘린더. 별도 토글 없이 항상
+// 위쪽에 표시하고 그 아래에 항목 리스트(스트릭 포함)를 이어서 보여줌.
+function renderLearn(){
+  LEARN_ITEMS=getLearnItems();
+  const main=document.getElementById('learnMain');main.innerHTML='';
+  const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
+  const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
+}
+
+// ─── 캘린더: 완료 체크한 항목만 그 날짜에 항목 고유색 점으로 표시 ────────────────
+function buildLearnCalCard(){
+  const dim=new Date(lrCalY,lrCalM+1,0).getDate();
+  const fd=new Date(lrCalY,lrCalM,1).getDay();
+  const fdMon=fd===0?6:fd-1;
+  const card=mkDiv('card');
+  const head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px 0;';
+  head.innerHTML=`
+    <button class="nav-btn" onclick="chLrCalMonth(-1)">‹</button>
+    <span class="page-title" style="font-size:14px;">${lrCalY}년 ${lrCalM+1}월</span>
+    <button class="nav-btn" onclick="chLrCalMonth(1)">›</button>`;
+  card.appendChild(head);
+  const dow=mkDiv('cal-dow-row');
+  dow.style.paddingTop='14px';
+  ['월','화','수','목','금','토','일'].forEach((d,i)=>{const e=mkDiv(`cal-dow ${i===5?'sat':i===6?'sun':''}`);e.textContent=d;dow.appendChild(e);});
+  const grid=mkDiv('cal-grid');
+  for(let i=0;i<fdMon;i++)grid.appendChild(mkDiv('cal-cell empty'));
+  for(let d=1;d<=dim;d++){
+    const dow2=(fdMon+d-1)%7;
+    const isT=TODAY.getFullYear()===lrCalY&&TODAY.getMonth()===lrCalM&&TODAY.getDate()===d;
+    const dateStr=lrDateStr(lrCalY,lrCalM,d);
+    const jsDow=new Date(lrCalY,lrCalM,d).getDay();
+    const dowMon=jsDow===0?6:jsDow-1;
+    const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
+    const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
+    const scheduledItems=LEARN_ITEMS.filter(it=>lrItemActiveOn(it,dateStr)&&isLearnScheduledOnDow(it,dowMon));
+    const checkedIds=S.getLearnChecked(lrCalY,lrCalM,d);
+    const completedItems=scheduledItems.filter(it=>checkedIds.includes(it.id));
+    if(completedItems.length){
+      const dotsWrap=mkDiv('');dotsWrap.style.cssText='display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;';
+      completedItems.slice(0,4).forEach(it=>{
+        const dot=mkDiv('');dot.style.cssText=`width:5px;height:5px;border-radius:50%;background:${it.color||'var(--learn)'};`;
+        dot.title=`${it.emoji||'📘'} ${it.name}`;
+        dotsWrap.appendChild(dot);
+      });
+      cell.appendChild(dotsWrap);
+    }
+    if(scheduledItems.length)cell.onclick=()=>openLearnDayDetail(dateStr,scheduledItems);
+    grid.appendChild(cell);
+  }
+  card.appendChild(dow);card.appendChild(grid);
+  const legendItems=LEARN_ITEMS.filter(it=>!isLearnEnded(it));
+  if(legendItems.length){
+    const legend=document.createElement('div');
+    legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
+    legend.innerHTML=legendItems.map(it=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${it.color||'var(--learn)'};display:inline-block;"></span>${it.emoji||'📘'} ${it.name}</span>`).join('');
+    card.appendChild(legend);
+  }
+  return card;
+}
+
+// ─── 날짜 클릭 팝업: 그날 스케줄된 항목 목록 + 체크(완료) 토글 ────────────────────
+function openLearnDayDetail(dateStr,scheduledItems){
+  const [y,m,d]=dateStr.split('-');
+  document.getElementById('lrDayTitle').textContent=`${y}.${m}.${d}`;
+  renderLrDayContent(dateStr,scheduledItems);
+  document.getElementById('lrDayPopup').classList.add('open');
+}
+function renderLrDayContent(dateStr,scheduledItems){
+  const [yy,mm,dd]=dateStr.split('-').map(Number);
+  const checkedIds=S.getLearnChecked(yy,mm-1,dd);
+  document.getElementById('lrDayContent').innerHTML=scheduledItems.length?scheduledItems.map(it=>{
+    const on=checkedIds.includes(it.id);
+    return `<div class="fl-payment-row" style="cursor:pointer;" onclick="toggleLearnCheck('${dateStr}','${it.id}')">
+      <span style="font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${it.color||'var(--learn)'};flex-shrink:0;"></span>${it.emoji||'📘'} ${it.name}</span>
+      <div class="cb ${on?'on':''}" style="${on?`background:${it.color||'var(--learn)'};border-color:${it.color||'var(--learn)'};`:''}"></div>
+    </div>`;
+  }).join(''):'<div class="empty">그날 스케줄된 항목이 없어요</div>';
+}
+function closeLrDayPopup(e){if(e.target===document.getElementById('lrDayPopup'))document.getElementById('lrDayPopup').classList.remove('open');}
+
+function toggleLearnCheck(dateStr,itemId){
+  const [y,m,d]=dateStr.split('-').map(Number);
+  let checked=S.getLearnChecked(y,m-1,d);
+  if(checked.includes(itemId))checked=checked.filter(id=>id!==itemId);
+  else checked=[...checked,itemId];
+  S.setLearnChecked(y,m-1,d,checked);
+  const jsDow=new Date(y,m-1,d).getDay();
+  const dowMon=jsDow===0?6:jsDow-1;
+  const scheduledItems=LEARN_ITEMS.filter(it=>lrItemActiveOn(it,dateStr)&&isLearnScheduledOnDow(it,dowMon));
+  renderLrDayContent(dateStr,scheduledItems); // 팝업이 열려있는 동안 그 자리에서 체크 상태 갱신
+  renderLearn(); // 캘린더 점/리스트 스트릭도 함께 갱신
+}
+
+// ─── 항목 리스트: 진행중 + "종료된 항목 (N건)" 아코디언 ─────────────────────────
+function buildLearnListCard(){
+  const card=mkDiv('card');
+  const wrap=document.createElement('div');wrap.style.cssText='padding:16px 16px 16px;display:flex;flex-direction:column;gap:8px;';
+  if(!LEARN_ITEMS.length){
+    wrap.appendChild(mkDiv('empty','등록된 학습 항목이 없어요'));
+    card.appendChild(wrap);return card;
+  }
+  const active=LEARN_ITEMS.filter(it=>!isLearnEnded(it));
+  const ended=LEARN_ITEMS.filter(isLearnEnded);
+  active.sort((a,b)=>calcLearnStreak(b)-calcLearnStreak(a));
+  if(active.length)active.forEach(it=>wrap.appendChild(buildLrRow(it,false)));
+  else wrap.appendChild(mkDiv('empty','진행중인 학습 항목이 없어요'));
+  if(ended.length){
+    ended.sort((a,b)=>(b.endDate||'').localeCompare(a.endDate||''));
+    const btn=document.createElement('button');
+    btn.className='lr-more-btn';
+    btn.textContent=lrEndedExpanded?'접기':`종료된 항목 (${ended.length}건)`;
+    btn.onclick=toggleLrEndedList;
+    wrap.appendChild(btn);
+    if(lrEndedExpanded)ended.forEach(it=>wrap.appendChild(buildLrRow(it,true)));
+  }
+  card.appendChild(wrap);return card;
+}
+function toggleLrEndedList(){lrEndedExpanded=!lrEndedExpanded;renderLearn();}
+
+function buildLrRow(item,ended){
+  const row=mkDiv('lr-row');
+  const streak=calcLearnStreak(item);
+  const color=item.color||'var(--learn)';
+  const periodLabel=item.startDate&&item.endDate?`${item.startDate} ~ ${item.endDate}`:item.startDate?`${item.startDate} ~ (계속)`:'';
+  const subParts=[`<span class="pj-cat-badge" style="background:${color}22;color:${color};">${lrFreqLabel(item)}</span>`];
+  if(periodLabel)subParts.push(`<span>${periodLabel}</span>`);
+  if(item.timeLabel)subParts.push(`<span>${item.timeLabel}</span>`);
+  const streakBadge=`<span class="lr-streak-badge">🔥 ${streak}</span>`;
+  const actionsHtml=ended?
+    `<button class="freq-btn" style="font-size:11px;padding:4px 10px;color:var(--learn);border-color:var(--learn);" onclick="renewLearnItem('${item.id}')">갱신하기</button>
+     <button class="pj-icon del" onclick="deleteLearnItem('${item.id}')" title="삭제">${icon('x-circle',15)}</button>`
+    :`<button class="pj-icon" onclick="editLearnStart('${item.id}')" title="수정">${icon('edit',14)}</button>
+     <button class="pj-icon del" onclick="deleteLearnItem('${item.id}')" title="삭제">${icon('x-circle',15)}</button>`;
+  row.innerHTML=`
+    <div class="lr-row-top">
+      <div class="lr-row-info">
+        <div class="lr-row-name-line">
+          <span class="lr-row-emoji" style="background:${color}22;">${item.emoji||'📘'}</span>
+          <div class="lr-row-name">${item.name}</div>
+        </div>
+        <div class="lr-row-sub">${subParts.join('')}</div>
+        ${item.memo?`<div class="lr-row-sub" style="margin-top:2px;">${item.memo}</div>`:''}
+      </div>
+      ${streakBadge}
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:4px;">${actionsHtml}</div>`;
+  return row;
+}
+
+// ─── 학습 항목 추가/수정 ───────────────────────────────────────────────────────
+function renderLearnColorSwatches(selected){
+  const wrap=document.getElementById('lrColorSwatches');
+  if(!wrap)return;
+  learnColorSel=selected||FL_COLOR_PALETTE[0];
+  wrap.innerHTML=FL_COLOR_PALETTE.map(c=>`<div class="fl-color-swatch ${c===learnColorSel?'active':''}" style="background:${c};" onclick="selLearnColor('${c}')"></div>`).join('');
+}
+function selLearnColor(c){renderLearnColorSwatches(c);}
+
+function selLearnFreq(btn){
+  document.querySelectorAll('#learnFormPopup [data-freq]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  learnFreqSel=btn.dataset.freq;
+  renderLearnFreqDetail();
+}
+function renderLearnFreqDetail(){
+  const wrap=document.getElementById('lrFreqDetailWrap');
+  wrap.innerHTML='';wrap.style.display='none';
+  if(learnFreqSel==='weekly'){
+    wrap.style.display='block';
+    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">주 몇 회?</label><div style="display:flex;gap:6px;">${[1,2,3,4,5,6,7].map(n=>`<button type="button" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:${learnWeeklyN===n?'var(--learn)':'#fff'};color:${learnWeeklyN===n?'#fff':'var(--muted)'};font-size:12px;font-weight:700;cursor:pointer;" onclick="setLearnWeeklyN(${n},this)">${n}</button>`).join('')}</div>`;
+  }else if(learnFreqSel==='days'){
+    wrap.style.display='block';
+    wrap.innerHTML=`<label class="fl" style="margin-bottom:6px;display:block;">요일 선택</label><div style="display:flex;gap:4px;">${['월','화','수','목','금','토','일'].map((d,i)=>`<button type="button" class="dow-btn ${learnWeekDays.includes(i)?'active':''}" onclick="toggleLearnDow(${i},this)">${d}</button>`).join('')}</div>`;
+  }
+}
+function setLearnWeeklyN(n,btn){
+  learnWeeklyN=n;
+  btn.parentElement.querySelectorAll('button').forEach(b=>{b.style.background='#fff';b.style.color='var(--muted)';});
+  btn.style.background='var(--learn)';btn.style.color='#fff';
+}
+function toggleLearnDow(i,btn){
+  if(learnWeekDays.includes(i))learnWeekDays=learnWeekDays.filter(x=>x!==i);
+  else learnWeekDays.push(i);
+  btn.classList.toggle('active');
+}
+
+function openLearnForm(){
+  editingLearnId=null;
+  learnFreqSel='free';learnWeekDays=[];learnWeeklyN=3;
+  document.getElementById('lrFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--learn)')} 새 학습 항목`;
+  document.getElementById('lrSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
+  ['lrName','lrEmoji','lrEndDate','lrTimeLabel','lrStreakOffset','lrMemo'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('lrStartDate').value=lrTodayStr();
+  document.querySelectorAll('#learnFormPopup [data-freq]').forEach(b=>b.classList.toggle('active',b.dataset.freq==='free'));
+  renderLearnFreqDetail();
+  renderLearnColorSwatches(FL_COLOR_PALETTE[Math.floor(Math.random()*FL_COLOR_PALETTE.length)]);
+  document.getElementById('learnFormPopup').classList.add('open');
+}
+function closeLearnForm(e){if(!e||e.target===document.getElementById('learnFormPopup'))document.getElementById('learnFormPopup').classList.remove('open');}
+
+function editLearnStart(id){
+  const it=LEARN_ITEMS.find(x=>x.id===id);
+  if(!it)return;
+  editingLearnId=id;
+  document.getElementById('lrName').value=it.name||'';
+  document.getElementById('lrEmoji').value=it.emoji||'';
+  document.getElementById('lrStartDate').value=it.startDate||'';
+  document.getElementById('lrEndDate').value=it.endDate||'';
+  document.getElementById('lrTimeLabel').value=it.timeLabel||'';
+  document.getElementById('lrStreakOffset').value=it.streakOffset||0;
+  document.getElementById('lrMemo').value=it.memo||'';
+  learnFreqSel=it.freq||'free';
+  learnWeekDays=[...(it.days||[])];
+  learnWeeklyN=it.weeklyN||3;
+  document.querySelectorAll('#learnFormPopup [data-freq]').forEach(b=>b.classList.toggle('active',b.dataset.freq===learnFreqSel));
+  renderLearnFreqDetail();
+  renderLearnColorSwatches(it.color||FL_COLOR_PALETTE[0]);
+  document.getElementById('lrFormTitle').innerHTML=`${icon('edit',16,'color:var(--learn)')} 학습 항목 수정`;
+  document.getElementById('lrSaveBtn').innerHTML=`${icon('edit',14)} 수정 완료`;
+  document.getElementById('learnFormPopup').classList.add('open');
+}
+
+// 종료된 항목의 "갱신하기": 기존 항목 정보를 미리 채운 새 등록 폼을 열어주기만 하고,
+// 실제로 저장할지/기간을 얼마로 할지는 사용자가 직접 확인 후 결정하게 함(자동 갱신 금지).
+// 저장하면 기존 종료 항목은 그대로 남고(기록 보존) 새 항목이 별도로 추가됨.
+function renewLearnItem(id){
+  const it=LEARN_ITEMS.find(x=>x.id===id);
+  if(!it)return;
+  editingLearnId=null;
+  document.getElementById('lrName').value=it.name||'';
+  document.getElementById('lrEmoji').value=it.emoji||'';
+  document.getElementById('lrStartDate').value=lrTodayStr();
+  document.getElementById('lrEndDate').value='';
+  document.getElementById('lrTimeLabel').value=it.timeLabel||'';
+  document.getElementById('lrStreakOffset').value=0;
+  document.getElementById('lrMemo').value=it.memo||'';
+  learnFreqSel=it.freq||'free';
+  learnWeekDays=[...(it.days||[])];
+  learnWeeklyN=it.weeklyN||3;
+  document.querySelectorAll('#learnFormPopup [data-freq]').forEach(b=>b.classList.toggle('active',b.dataset.freq===learnFreqSel));
+  renderLearnFreqDetail();
+  renderLearnColorSwatches(it.color||FL_COLOR_PALETTE[0]);
+  document.getElementById('lrFormTitle').innerHTML=`${icon('plus-circle',16,'color:var(--learn)')} ${it.name} 갱신 (새로 등록)`;
+  document.getElementById('lrSaveBtn').innerHTML=`${icon('plus-circle',14)} 추가하기`;
+  document.getElementById('learnFormPopup').classList.add('open');
+}
+
+function saveLearnForm(){
+  const name=document.getElementById('lrName').value.trim();
+  const emoji=document.getElementById('lrEmoji').value.trim()||'📘';
+  const startDate=document.getElementById('lrStartDate').value;
+  const endDate=document.getElementById('lrEndDate').value||null;
+  const timeLabel=document.getElementById('lrTimeLabel').value.trim();
+  const streakOffset=parseInt(document.getElementById('lrStreakOffset').value,10)||0;
+  const memo=document.getElementById('lrMemo').value.trim();
+  const color=learnColorSel||FL_COLOR_PALETTE[0];
+  if(!name){alert('학습 항목 이름을 입력해줘');return;}
+  if(startDate&&endDate&&startDate>endDate){alert('종료일이 시작일보다 빠를 수 없어요');return;}
+  const data={
+    name,emoji,color,startDate,endDate,freq:learnFreqSel,timeLabel,memo,streakOffset,
+    ...(learnFreqSel==='weekly'?{weeklyN:learnWeeklyN}:{}),
+    ...(learnFreqSel==='days'?{days:[...learnWeekDays]}:{}),
+  };
+  if(editingLearnId){
+    LEARN_ITEMS=LEARN_ITEMS.map(it=>it.id===editingLearnId?{...it,...data}:it);
+  }else{
+    LEARN_ITEMS=[...LEARN_ITEMS,{id:'lr'+Date.now(),...data}];
+  }
+  saveLearnItems(LEARN_ITEMS);
+  document.getElementById('learnFormPopup').classList.remove('open');
+  renderLearn();
+}
+
+function deleteLearnItem(id){
+  if(!confirm('이 학습 항목을 삭제할까요?'))return;
+  LEARN_ITEMS=LEARN_ITEMS.filter(it=>it.id!==id);
+  saveLearnItems(LEARN_ITEMS);
+  renderLearn();
+}

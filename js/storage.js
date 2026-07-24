@@ -77,6 +77,11 @@ function getFriends(){
 }
 function saveFriends(arr){Storage._set('friends',arr);}
 
+function getLearnItems(){
+  return Storage._get('learn_items',null)||DEFAULT_LEARN_ITEMS;
+}
+function saveLearnItems(arr){Storage._set('learn_items',arr);}
+
 // 'en_YYYY-MM' 형태로 저장된 모든 달의 가계부 항목을 한번에 훑어볼 때 사용.
 // (예: 외주 프로젝트 상세보기에서 여러 달에 걸쳐 나눠 입금된 정산 내역을 모아 보여줄 때)
 function getAllEntryMonths(){
@@ -113,4 +118,7 @@ const S={
   // 월간 회고 (한 달에 한 번 작성). 'YYYY-MM' 단위로 저장.
   getMonthlyReview(y,m){return Storage._get('mrv_'+mk(y,m),null)},
   setMonthlyReview(y,m,v){Storage._set('mrv_'+mk(y,m),v)},
+  // 학습 탭: 그 날 완료 체크한 학습 항목 id 배열. (루틴의 getRoutine/setRoutine와 동일 패턴)
+  getLearnChecked(y,m,d){return Storage._get('lc_'+dk(y,m,d),[])},
+  setLearnChecked(y,m,d,a){Storage._set('lc_'+dk(y,m,d),a)},
 };
