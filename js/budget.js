@@ -219,7 +219,7 @@ function buildFixed(){
   table.appendChild(tbody);card.appendChild(table);
   const da=items.filter(f=>checked.includes(f.id)).reduce((s,f)=>s+(actualMap[f.id]!=null?actualMap[f.id]:f.amount),0);
   const ta=items.reduce((s,f)=>s+f.amount,0);
-  const footer=mkDiv('fixed-footer');footer.innerHTML=`<span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val"><span class="fixed-footer-paid">${fmt(da)}</span><span class="fixed-footer-sep"> / </span><span class="fixed-footer-total">${fmt(ta)}</span></span>`;
+  const footer=mkDiv('fixed-footer');footer.innerHTML=`<div class="fixed-footer-row"><span class="fixed-footer-label">납부 완료</span><span class="fixed-footer-val"><span class="fixed-footer-paid">${fmt(da)}</span><span class="fixed-footer-sep"> / </span><span class="fixed-footer-total">${fmt(ta)}</span></span></div><div class="fixed-footer-row"><span class="fixed-footer-label">잔여 납부</span><span class="fixed-footer-remain">${fmt(ta-da)}</span></div>`;
   card.appendChild(footer);return card;
 }
 // 고정지출 체크(납부 완료 처리) 시 예정 금액과 실제 출금액/날짜가 다를 수 있어서
