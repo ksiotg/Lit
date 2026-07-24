@@ -9,6 +9,7 @@ let lrCalY=TODAY.getFullYear(),lrCalM=TODAY.getMonth();
 let lrEndedExpanded=false;
 let learnColorSel=null;
 let learnFreqSel='free',learnWeekDays=[],learnWeeklyN=3;
+let curLrWeekStart=null; // 주간 체크 그리드용 이번주 시작일(월요일 기준), 루틴 탭의 curWeekStart와 동일한 발상
 
 function lrPad(n){return String(n).padStart(2,'0');}
 function lrDateStr(y,m,d){return `${y}-${lrPad(m+1)}-${lrPad(d)}`;}
@@ -71,6 +72,12 @@ function chLrCalMonth(d){
   lrCalM+=d;
   if(lrCalM>11){lrCalM=0;lrCalY++;}
   if(lrCalM<0){lrCalM=11;lrCalY--;}
+  curLrWeekStart=null;
+  renderLearn();
+}
+function chLrWeek(d){
+  if(!curLrWeekStart)return;
+  curLrWeekStart.setDate(curLrWeekStart.getDate()+(d*7));
   renderLearn();
 }
 
@@ -79,8 +86,13 @@ function chLrCalMonth(d){
 function renderLearn(){
   LEARN_ITEMS=getLearnItems();
   document.getElementById('lrMonthLabel').textContent=`${lrCalY}년 ${lrCalM+1}월`;
+  if(!curLrWeekStart){
+    const refDate=new Date(lrCalY,lrCalM,(lrCalY===TODAY.getFullYear()&&lrCalM===TODAY.getMonth())?TODAY.getDate():1);
+    curLrWeekStart=getWeekStart(lrCalY,lrCalM,refDate.getDate());
+  }
   const main=document.getElementById('learnMain');main.innerHTML='';
   const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
+  const tableCard=buildLearnTable();tableCard.classList.add('card-wide');main.appendChild(tableCard);
   const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
 }
 
@@ -100,14 +112,10 @@ function buildLearnCalCard(){
   for(let d=1;d<=dim;d++){
     const dow2=(fdMon+d-1)%7;
     const isT=TODAY.getFullYear()===lrCalY&&TODAY.getMonth()===lrCalM&&TODAY.getDate()===d;
-    const dateStr=lrDateStr(lrCalY,lrCalM,d);
-    const jsDow=new Date(lrCalY,lrCalM,d).getDay();
-    const dowMon=jsDow===0?6:jsDow-1;
     const cell=mkDiv(`cal-cell ${isT?'today':''} ${dow2===5?'sat':''} ${dow2===6?'sun':''}`);
     const dayEl=mkDiv('cal-day');dayEl.textContent=d;cell.appendChild(dayEl);
-    const scheduledItems=LEARN_ITEMS.filter(it=>lrItemActiveOn(it,dateStr)&&isLearnScheduledOnDow(it,dowMon));
     const checkedIds=S.getLearnChecked(lrCalY,lrCalM,d);
-    const completedItems=scheduledItems.filter(it=>checkedIds.includes(it.id));
+    const completedItems=LEARN_ITEMS.filter(it=>checkedIds.includes(it.id));
     if(completedItems.length){
       const dotsWrap=mkDiv('');dotsWrap.style.cssText='display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px;';
       completedItems.slice(0,4).forEach(it=>{
@@ -117,7 +125,7 @@ function buildLearnCalCard(){
       });
       cell.appendChild(dotsWrap);
     }
-    if(scheduledItems.length)cell.onclick=()=>openLearnDayDetail(dateStr,scheduledItems);
+    cell.onclick=()=>openLearnDayDetail(lrCalY,lrCalM,d);
     grid.appendChild(cell);
   }
   card.appendChild(dow);card.appendChild(grid);
@@ -131,37 +139,114 @@ function buildLearnCalCard(){
   return card;
 }
 
-// ─── 날짜 클릭 팝업: 그날 스케줄된 항목 목록 + 체크(완료) 토글 ────────────────────
-function openLearnDayDetail(dateStr,scheduledItems){
-  const [y,m,d]=dateStr.split('-');
-  document.getElementById('lrDayTitle').textContent=`${y}.${m}.${d}`;
-  renderLrDayContent(dateStr,scheduledItems);
+// ─── 날짜 클릭 팝업: 그날 "완료한" 학습 항목 목록만 보여주는 조회 전용 팝업 ──────────
+// (체크/해제는 아래 주간 체크 그리드에서 인라인으로 처리 — 루틴 탭 월간뷰 날짜팝업과 동일한 방식)
+function openLearnDayDetail(y,m,d){
+  document.getElementById('lrDayTitle').textContent=`${y}년 ${m+1}월 ${d}일`;
+  const checkedIds=S.getLearnChecked(y,m,d);
+  const done=LEARN_ITEMS.filter(it=>checkedIds.includes(it.id));
+  const content=document.getElementById('lrDayContent');
+  if(!done.length){
+    content.innerHTML='<div class="empty">이 날 완료한 학습 항목이 없어요</div>';
+  }else{
+    content.innerHTML=done.map(it=>`<div class="rmgmt-item" style="margin-bottom:0;"><div class="rmgmt-icon" style="background:${it.color||'var(--learn)'}22;">${it.emoji||'📘'}</div><div class="rmgmt-info"><div class="rmgmt-name">${it.name}</div></div></div>`).join('');
+  }
   document.getElementById('lrDayPopup').classList.add('open');
 }
-function renderLrDayContent(dateStr,scheduledItems){
-  const [yy,mm,dd]=dateStr.split('-').map(Number);
-  const checkedIds=S.getLearnChecked(yy,mm-1,dd);
-  document.getElementById('lrDayContent').innerHTML=scheduledItems.length?scheduledItems.map(it=>{
-    const on=checkedIds.includes(it.id);
-    return `<div class="fl-payment-row" style="cursor:pointer;" onclick="toggleLearnCheck('${dateStr}','${it.id}')">
-      <span style="font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${it.color||'var(--learn)'};flex-shrink:0;"></span>${it.emoji||'📘'} ${it.name}</span>
-      <div class="cb ${on?'on':''}" style="${on?`background:${it.color||'var(--learn)'};border-color:${it.color||'var(--learn)'};`:''}"></div>
-    </div>`;
-  }).join(''):'<div class="empty">그날 스케줄된 항목이 없어요</div>';
-}
-function closeLrDayPopup(e){if(e.target===document.getElementById('lrDayPopup'))document.getElementById('lrDayPopup').classList.remove('open');}
+function closeLrDayPopup(e){if(!e||e.target===document.getElementById('lrDayPopup'))document.getElementById('lrDayPopup').classList.remove('open');}
 
-function toggleLearnCheck(dateStr,itemId){
-  const [y,m,d]=dateStr.split('-').map(Number);
-  let checked=S.getLearnChecked(y,m-1,d);
+// ─── 주간 체크 그리드: 항목별로 이번주 요일 7칸이 나열돼 팝업 없이 바로 클릭해서 체크/해제
+// (루틴 탭 buildRoutineTable()과 동일한 구조 — 다만 학습 항목은 고정 카테고리 대신
+// 항목별 커스텀 color를 쓰므로 클래스 대신 인라인 스타일로 색을 입힘)
+function buildLearnTable(){
+  const card=mkDiv('card');
+  const weekStart=curLrWeekStart;
+  const weekDays=[];
+  for(let i=0;i<7;i++){const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);weekDays.push(d);}
+
+  const firstDayOfMonth=new Date(lrCalY,lrCalM,1);
+  const lastDayOfMonth=new Date(lrCalY,lrCalM+1,0);
+  const firstWeekStartOfMonth=getWeekStart(lrCalY,lrCalM,firstDayOfMonth.getDate());
+  const lastWeekStartOfMonth=getWeekStart(lrCalY,lrCalM,lastDayOfMonth.getDate());
+  const isPrevDisabled=weekStart.getTime()<=firstWeekStartOfMonth.getTime();
+  const isNextDisabled=weekStart.getTime()>=lastWeekStartOfMonth.getTime();
+
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  const startM=weekStart.getMonth();
+  const startWeek=getWeekOfMonth(weekStart.getFullYear(),startM,weekStart.getDate());
+  const endM=weekEnd.getMonth();
+  const endWeek=getWeekOfMonth(weekEnd.getFullYear(),endM,weekEnd.getDate());
+  let weekText;
+  if(startM===endM){weekText=`${startM+1}월 ${startWeek}주차`;}
+  else{weekText=`${startM+1}월 ${startWeek}주차 / ${endM+1}월 ${endWeek}주차`;}
+
+  const header=mkDiv('card-header');header.innerHTML=`<span class="card-title">이번 주 체크</span>`;
+  const weekNavContainer=mkDiv('');
+  weekNavContainer.style.cssText='display:flex;align-items:center;gap:4px;';
+  weekNavContainer.innerHTML=`<button class="nav-btn" style="width:24px;height:24px;font-size:12px;" onclick="chLrWeek(-1)" ${isPrevDisabled?'disabled':''}>‹</button><span style="font-size:11px;color:var(--muted);font-weight:600;min-width:40px;text-align:center;white-space:nowrap;">${weekText}</span><button class="nav-btn" style="width:24px;height:24px;font-size:12px;" onclick="chLrWeek(1)" ${isNextDisabled?'disabled':''}>›</button>`;
+  header.appendChild(weekNavContainer);card.appendChild(header);
+
+  const activeItems=LEARN_ITEMS.filter(it=>!isLearnEnded(it));
+  if(!activeItems.length){
+    const empty=mkDiv('empty');empty.style.padding='0 16px 16px';empty.textContent='진행중인 학습 항목이 없어요';
+    card.appendChild(empty);return card;
+  }
+
+  const wrap=mkDiv('rtable-wrap');
+  const table=document.createElement('table');table.className='rtable';
+
+  const thead=document.createElement('thead');
+  const htr=document.createElement('tr');
+  htr.innerHTML=`<th style="text-align:left;padding-left:4px;padding-right:14px;width:auto"></th>`;
+  weekDays.forEach((d,i)=>{
+    const isSat=i===5,isSun=i===6;
+    const color=isSun?'color:var(--expense)':isSat?'color:var(--income)':'';
+    htr.innerHTML+=`<th style="width:28px;max-width:28px;${color}">${d.getDate()}</th>`;
+  });
+  htr.innerHTML+=`<th style="width:44px;padding-left:14px"></th>`;
+  thead.appendChild(htr);table.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  activeItems.forEach(it=>{
+    const tr=document.createElement('tr');
+    const color=it.color||'var(--learn)';
+    const iconTd=document.createElement('td');
+    iconTd.style.cssText='text-align:left;padding-left:4px;padding-right:14px;';
+    iconTd.innerHTML=`<div style="display:flex;align-items:center;gap:6px;"><div class="r-cat-icon" style="background:${color}22;">${it.emoji||'📘'}</div><span style="font-size:12px;font-weight:600;white-space:nowrap;letter-spacing:-0.3px;color:${color};">${it.name}</span></div>`;
+    tr.appendChild(iconTd);
+    weekDays.forEach((d,i)=>{
+      const isSat=i===5,isSun=i===6;
+      const isFuture=d>TODAY;
+      const y=d.getFullYear(),m=d.getMonth(),dd=d.getDate();
+      const checked=isFuture?false:S.getLearnChecked(y,m,dd).includes(it.id);
+      const td=document.createElement('td');
+      const cb=mkDiv(`rcb ${checked?'on':''} ${isSat?'sat':''} ${isSun?'sun':''}`);
+      if(checked){cb.style.borderColor=color;cb.style.background=`${color}22`;}
+      if(!isFuture){
+        cb.onclick=()=>toggleLrWeekCb(it.id,y,m,dd);
+      }else{
+        cb.style.cursor='default';cb.style.opacity='0.35';
+      }
+      const wrap2=document.createElement('div');wrap2.style.cssText='display:flex;justify-content:center;';
+      wrap2.appendChild(cb);td.appendChild(wrap2);
+      tr.appendChild(td);
+    });
+    const streakTd=document.createElement('td');
+    streakTd.style.paddingLeft='14px';
+    streakTd.innerHTML=`<span class="r-count">🔥${calcLearnStreak(it)}</span>`;
+    tr.appendChild(streakTd);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);wrap.appendChild(table);card.appendChild(wrap);
+  return card;
+}
+
+function toggleLrWeekCb(itemId,y,m,d){
+  let checked=S.getLearnChecked(y,m,d);
   if(checked.includes(itemId))checked=checked.filter(id=>id!==itemId);
   else checked=[...checked,itemId];
-  S.setLearnChecked(y,m-1,d,checked);
-  const jsDow=new Date(y,m-1,d).getDay();
-  const dowMon=jsDow===0?6:jsDow-1;
-  const scheduledItems=LEARN_ITEMS.filter(it=>lrItemActiveOn(it,dateStr)&&isLearnScheduledOnDow(it,dowMon));
-  renderLrDayContent(dateStr,scheduledItems); // 팝업이 열려있는 동안 그 자리에서 체크 상태 갱신
-  renderLearn(); // 캘린더 점/리스트 스트릭도 함께 갱신
+  S.setLearnChecked(y,m,d,checked);
+  renderLearn(); // 캘린더 점/주간그리드/리스트 스트릭 모두 함께 갱신
 }
 
 // ─── 항목 리스트: 진행중 + "종료된 항목 (N건)" 아코디언 ─────────────────────────
