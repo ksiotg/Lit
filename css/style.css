@@ -128,10 +128,10 @@ main{padding:14px;display:flex;flex-direction:column;gap:14px;}
 .fixed-amt-text{font-size:12px;font-weight:700;color:#4b5563;text-align:right;display:block;}
 .fixed-amt-text.done{color:var(--budget);}
 .fixed-footer{display:flex;flex-direction:column;gap:6px;padding:10px 16px 14px;border-top:1px solid var(--border);}
-.fixed-footer-row{display:flex;justify-content:space-between;align-items:center;}
-.fixed-footer-label{font-size:11px;color:var(--muted);font-weight:600;}
-.fixed-footer-val{font-size:13px;font-weight:800;color:var(--income);}
-.fixed-footer-remain{font-size:13px;font-weight:800;color:var(--budget);}
+.fixed-footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:8px;}
+.fixed-footer-label{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;flex-shrink:0;}
+.fixed-footer-val{font-size:13px;font-weight:800;color:var(--income);white-space:nowrap;flex-shrink:0;}
+.fixed-footer-remain{font-size:13px;font-weight:800;color:var(--budget);white-space:nowrap;flex-shrink:0;}
 
 /* ── 달력 (공통) ── */
 .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 10px 4px;}
