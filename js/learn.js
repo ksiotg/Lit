@@ -133,15 +133,15 @@ function lrSyncViewButtons(){
   document.getElementById('lrvbtn-ach').classList.toggle('active',lrView==='ach');
 }
 
-// 다른 새 탭들(친구/프로젝트)처럼 진입 시 첫 화면 = 캘린더+주간체크그리드+항목 리스트.
-// 달성률은 기본 화면엔 안 보이고, 헤더의 폴더 아이콘을 눌렀을 때만 별도로 보여줌
+// 다른 새 탭들(친구/프로젝트)처럼 진입 시 첫 화면 = 캘린더+주간체크그리드+달성률.
+// 항목 리스트(CRUD, 수정/삭제)는 기본 화면엔 안 보이고, 헤더의 폴더 아이콘을 눌렀을 때만 별도로 보여줌
 // (루틴 탭의 주간/월간 루틴 폴더 토글과 동일한 방식).
 function renderLearn(){
   LEARN_ITEMS=getLearnItems();
   document.getElementById('lrMonthLabel').textContent=`${lrCalY}년 ${lrCalM+1}월`;
   const main=document.getElementById('learnMain');main.innerHTML='';
   if(lrView==='ach'){
-    const achCard=buildLearnAchievementCard();achCard.classList.add('card-wide');main.appendChild(achCard);
+    const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
     return;
   }
   if(!curLrWeekStart){
@@ -150,7 +150,7 @@ function renderLearn(){
   }
   const calCard=buildLearnCalCard();calCard.classList.add('card-wide');main.appendChild(calCard);
   const tableCard=buildLearnTable();tableCard.classList.add('card-wide');main.appendChild(tableCard);
-  const listCard=buildLearnListCard();listCard.classList.add('card-wide');main.appendChild(listCard);
+  const achCard=buildLearnAchievementCard();achCard.classList.add('card-wide');main.appendChild(achCard);
 }
 
 // ─── 캘린더: 완료 체크한 항목만 그 날짜에 항목 고유색 점으로 표시 ────────────────
