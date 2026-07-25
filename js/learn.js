@@ -12,6 +12,10 @@ let learnFreqSel='free',learnWeekDays=[],learnWeeklyN=3;
 let curLrWeekStart=null; // 주간 체크 그리드용 이번주 시작일(월요일 기준), 루틴 탭의 curWeekStart와 동일한 발상
 let lrView='week'; // 학습 탭: 'week'(캘린더+주간체크그리드, 기본값) / 'ach'(달성률, 폴더 아이콘 눌렀을 때만)
 
+// 학습 탭 ↔ 루틴 탭 자동 연동(운동/r08과 동일한 단방향 자동체크 패턴).
+// 루틴 탭의 "학습"(r15) 항목 id — 하드코딩된 값이라 루틴 쪽 id가 바뀌면 함께 맞춰줘야 함(운동/r08과 동일한 한계).
+const LEARN_ROUTINE_ID='r15';
+
 function lrPad(n){return String(n).padStart(2,'0');}
 function lrDateStr(y,m,d){return `${y}-${lrPad(m+1)}-${lrPad(d)}`;}
 function lrTodayStr(){return lrDateStr(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());}
@@ -303,7 +307,30 @@ function toggleLrWeekCb(itemId,y,m,d){
   if(checked.includes(itemId))checked=checked.filter(id=>id!==itemId);
   else checked=[...checked,itemId];
   S.setLearnChecked(y,m,d,checked);
+  syncLearnRoutineForDay(y,m,d); // 학습 탭 → 루틴 탭 자동 체크/해제 (단방향, 운동/r08과 동일한 패턴)
   renderLearn(); // 캘린더 점/주간그리드/리스트 스트릭 모두 함께 갱신
+}
+
+// 학습 탭 → 루틴 탭 자동 연동: 그 날 "스케줄된" 학습 항목(기간 안에 있고, 요일고정이면 그 요일)
+// 중 몇 %를 체크했는지 계산해서, 70% 이상이면 루틴의 "학습"(r15)을 자동 체크, 미만이면 자동 해제.
+// 운동/r08과 마찬가지로 단방향(학습→루틴)만 동작 — 루틴 탭에서 "학습"을 직접 체크/해제해도
+// 여기 함수가 다시 호출되는 게 아니므로 학습 탭 데이터(체크 기록)엔 전혀 영향이 없음.
+function syncLearnRoutineForDay(y,m,d){
+  const dateStr=lrDateStr(y,m,d);
+  const jsDow=new Date(y,m,d).getDay();
+  const dowMon=jsDow===0?6:jsDow-1;
+  const scheduled=LEARN_ITEMS.filter(it=>lrItemActiveOn(it,dateStr)&&isLearnScheduledOnDow(it,dowMon));
+  if(!scheduled.length)return; // 그 날 스케줄된 학습 항목이 0개면 0/0이 되니 자동체크 로직 자체를 건너뜀
+  const checkedIds=S.getLearnChecked(y,m,d);
+  const doneCount=scheduled.filter(it=>checkedIds.includes(it.id)).length;
+  const ratio=doneCount/scheduled.length;
+  const routineChecked=S.getRoutine(y,m,d);
+  const already=routineChecked.includes(LEARN_ROUTINE_ID);
+  if(ratio>=0.7){
+    if(!already)S.setRoutine(y,m,d,[...routineChecked,LEARN_ROUTINE_ID]);
+  }else if(already){
+    S.setRoutine(y,m,d,routineChecked.filter(id=>id!==LEARN_ROUTINE_ID));
+  }
 }
 
 // ─── 달성률: 항목별로 (완료 횟수 / 시작~마감기한 기준 목표 횟수) × 100 를 진행바로 표시 ──

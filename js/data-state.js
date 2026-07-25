@@ -64,9 +64,6 @@ const DEFAULT_ROUTINES=[
   {id:'r02',name:'유산균',emoji:'🥛',time:'AM 8:00',period:'morning',cat:'selfcare',goal:7,freq:'daily'},
   {id:'r03',name:'콘서타',emoji:'🎯',time:'AM 8:00',period:'morning',cat:'selfcare',goal:7,freq:'daily'},
   {id:'r04',name:'선크림',emoji:'☀️',time:'AM 8:00',period:'morning',cat:'selfcare',goal:5,freq:'days',days:[0,1,2,3,4]},
-  {id:'r05',name:'말해보카',emoji:'👄',time:null,period:'day',cat:'growth',goal:7,freq:'daily'},
-  {id:'r06',name:'듀오링고',emoji:'📗',time:null,period:'day',cat:'growth',goal:7,freq:'daily'},
-  {id:'r07',name:'독서',emoji:'📖',time:null,period:'day',cat:'growth',goal:3,freq:'weekly',weeklyN:3},
   {id:'r08',name:'운동',emoji:'🥊',time:null,period:'day',cat:'health',goal:3,freq:'weekly',weeklyN:3},
   {id:'r09',name:'무지출',emoji:'💰',time:null,period:'day',cat:'life',goal:3,freq:'weekly',weeklyN:3,autoFromBudget:true},
   {id:'r10',name:'영양제',emoji:'💊',time:'PM 10:00',period:'evening',cat:'selfcare',goal:7,freq:'daily'},
@@ -74,6 +71,11 @@ const DEFAULT_ROUTINES=[
   {id:'r12',name:'교정장치',emoji:'🦷',time:'PM 11:00',period:'evening',cat:'selfcare',goal:7,freq:'daily'},
   {id:'r13',name:'취침',emoji:'💤',time:'PM 11:30',period:'evening',cat:'health',goal:7,freq:'daily'},
   {id:'r14',name:'회고',emoji:'📝',time:'PM 11:00',period:'evening',cat:'growth',goal:5,freq:'weekly',weeklyN:5,autoFromReview:true},
+  // 학습 탭과 자동 연동되는 항목(운동/r08과 동일한 단방향 자동체크 패턴).
+  // 원래 있던 '말해보카/듀오링고/독서' 개별 항목은 학습 탭에서 각각 따로 트래킹하게 되면서
+  // 중복이라 이 항목 하나로 통합함. 실제 체크/해제는 learn.js의 syncLearnRoutineForDay()가
+  // 학습 탭 전체 진행률(그날 스케줄된 항목 중 70% 이상 완료)을 기준으로 자동으로 넣고 뺌.
+  {id:'r15',name:'학습',emoji:'🎓',time:null,period:'day',cat:'growth',goal:7,freq:'daily'},
 ];
 
 const REVIEW_QUESTIONS=[
