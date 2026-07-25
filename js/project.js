@@ -46,6 +46,14 @@ function pjCatInfo(catKey){
   // 루틴 탭과 동일한 CAT_LABELS/CAT_COLORS(data-state.js)를 그대로 씀.
   return {label:CAT_LABELS[catKey]||CAT_LABELS.selfcare,color:CAT_COLORS[catKey]||CAT_COLORS.selfcare};
 }
+// 캘린더 범례처럼 색 점과 라벨을 나란히 보여줄 때 쓰는 버전. CAT_LABELS 값 자체에
+// 이모지(💛/❤️/💙/💚)가 baked-in 되어 있어서 그대로 쓰면 "색 점 + 이모지 + 텍스트"로
+// 색이 중복 표시되므로, 여기서만 이모지를 떼고 순수 텍스트만 반환함(다른 곳의
+// CAT_LABELS 사용은 그대로 유지 — 뱃지/버튼 등은 이모지가 유일한 색상 표시라서 남겨둠).
+function pjCatLabelPlain(catKey){
+  const label=CAT_LABELS[catKey]||CAT_LABELS.selfcare;
+  return label.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]+\s*/u,'');
+}
 function pjBadge(status){
   const cls=PJ_STATUS_BADGE[status]||'wait';
   const iconName=PJ_STATUS_ICON[status]||'circle';
@@ -154,7 +162,7 @@ function buildProjectCalCard(){
     legend.style.cssText='padding:2px 16px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;';
     legend.innerHTML=PJ_CAT_LIST.filter(k=>activeProjects.some(p=>(p.cat||PJ_CAT_LIST[0])===k)).map(k=>{
       const info=pjCatInfo(k);
-      return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${info.color};display:inline-block;"></span>${info.label}</span>`;
+      return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--muted);"><span style="width:7px;height:7px;border-radius:50%;background:${info.color};display:inline-block;"></span>${pjCatLabelPlain(k)}</span>`;
     }).join('');
     card.appendChild(legend);
   }
